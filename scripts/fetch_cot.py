@@ -37,14 +37,18 @@ DATA = ROOT / "data"
 CFTC_URL = "https://www.cftc.gov/files/dea/history/deacot{year}.zip"
 
 COLUMN_MAP = {
-    "Market_and_Exchange_Names": "market",
-    "As_of_Date_In_Form_YYMMDD": "date",
-    "Comm_Positions_Long_All": "comm_long",
-    "Comm_Positions_Short_All": "comm_short",
-    "NonComm_Positions_Long_All": "large_spec_long",
-    "NonComm_Positions_Short_All": "large_spec_short",
-    "NonRept_Positions_Long_All": "small_spec_long",
-    "NonRept_Positions_Short_All": "small_spec_short",
+    # Confirmed against a live run's actual header row (deacot{year}.zip's
+    # annual.txt uses space/parenthesis-style labels, not the underscore
+    # "Comm_Positions_Long_All" style used by the newer fut_fin/fut_disagg
+    # files) - see the 2026-09-27 debug output captured in commit history.
+    "Market and Exchange Names": "market",
+    "As of Date in Form YYMMDD": "date",
+    "Commercial Positions-Long (All)": "comm_long",
+    "Commercial Positions-Short (All)": "comm_short",
+    "Noncommercial Positions-Long (All)": "large_spec_long",
+    "Noncommercial Positions-Short (All)": "large_spec_short",
+    "Nonreportable Positions-Long (All)": "small_spec_long",
+    "Nonreportable Positions-Short (All)": "small_spec_short",
 }
 
 
