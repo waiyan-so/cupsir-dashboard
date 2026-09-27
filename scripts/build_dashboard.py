@@ -74,11 +74,8 @@ def fetch_cot_results():
         from fetch_cot import get_cot_results
         return get_cot_results()
     except Exception as e:
-        import traceback
-        msg = f"{type(e).__name__}: {e}"
-        print(f"[build_dashboard] COT fetch failed, all COT indicators will show PENDING: {msg}")
-        traceback.print_exc()
-        return {"_debug_error": msg}
+        print(f"[build_dashboard] COT fetch failed, all COT indicators will show PENDING: {type(e).__name__}: {e}")
+        return {}
 
 
 def main():
@@ -86,9 +83,6 @@ def main():
               "total_score": 0, "category_labels": CATEGORY_LABELS, "category_order": CATEGORY_ORDER, "indicators": []}
     score_map = {"positive": 1, "warning": 0, "negative": -1, "recession": -2}
     cot_results = fetch_cot_results()
-    if "_debug_error" in cot_results:
-        output["cot_debug_error"] = cot_results.pop("_debug_error")
-    output["cot_debug_raw"] = cot_results  # temporary, remove once COT is verified working
 
     for iid, cfg in INDICATORS.items():
         try:

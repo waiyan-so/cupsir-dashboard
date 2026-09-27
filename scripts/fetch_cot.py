@@ -130,12 +130,16 @@ def get_cot_results(lookback_weeks: int = 52) -> dict:
         # contract's name) into the same net-position series.
         mdf = df_all[market_lower.str.startswith(needle, na=False)].copy()
         if mdf.empty:
-            # Temporary: surface nearby real market names so the config's
-            # cot_market prefix can be corrected without another blind guess.
-            keyword = max(needle.split(), key=len)
-            candidates = sorted(df_all[market_lower.str.contains(keyword, na=False, regex=False)]["market"].unique().tolist())[:15]
-            out[iid] = {"value": "N/A", "date": "N/A", "sentiment": "N/A", "history": [],
-                        "_debug_no_match": needle, "_debug_candidates": candidates}
+            # S&P 500 / 10Y Treasury / DXY are not in this Legacy "Futures Only"
+            # report at all - CFTC moved these specific markets to the "Traders
+            # in Financial Futures" (TFF) report, which classifies traders as
+            # Dealer/Asset Manager/Leveraged Funds/Other Reportable instead of
+            # Commercial/Non-Commercial and needs its own fetch+parse path
+            # (different file, different columns, different netting definition
+            # for what counts as "smart money"). Confirmed via live CFTC data on
+            # 2026-09-27 - gold and crude oil (traditional commodities) ARE in
+            # this report and resolve correctly; these three are a follow-up.
+            out[iid] = {"value": "N/A", "date": "N/A", "sentiment": "N/A", "history": []}
             continue
         matched_names = mdf["market"].unique().tolist()
         if len(matched_names) > 1:
