@@ -1,5 +1,5 @@
 {
-  "probed_at": "2026-09-27T23:22:40.439581+00:00",
+  "probed_at": "2026-09-27T23:23:58.220363+00:00",
   "2026": {
     "zip_namelist": [
       "FinFutYY.txt"
@@ -106,7 +106,11 @@
     ],
     "treasury_10y_candidates": [
       "10 YEAR ERIS SOFR SWAP - CHICAGO BOARD OF TRADE",
-      "MICRO 10 YEAR YIELD - CHICAGO BOARD OF TRADE"
+      "MICRO 10 YEAR YIELD - CHICAGO BOARD OF TRADE",
+      "ULTRA UST 10Y - CHICAGO BOARD OF TRADE",
+      "UST 10Y NOTE - CHICAGO BOARD OF TRADE",
+      "UST 2Y NOTE - CHICAGO BOARD OF TRADE",
+      "UST 5Y NOTE - CHICAGO BOARD OF TRADE"
     ],
     "dollar_index_candidates": [
       "USD INDEX - ICE FUTURES U.S."
