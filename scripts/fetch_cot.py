@@ -71,14 +71,17 @@ def _fetch_recent_years() -> pd.DataFrame:
     """Current year + previous year, so a 52-week lookback works near January."""
     this_year = datetime.now(timezone.utc).year
     frames = []
+    errors = []
     for yr in (this_year - 1, this_year):
         try:
             frames.append(_fetch_year(yr))
         except Exception as e:
-            print(f"[fetch_cot] year {yr} failed: {type(e).__name__}: {e}")
+            detail = f"{yr}: {type(e).__name__}: {e}"
+            print(f"[fetch_cot] year failed - {detail}")
+            errors.append(detail)
             continue
     if not frames:
-        raise RuntimeError("Could not fetch any CFTC COT year file")
+        raise RuntimeError("Could not fetch any CFTC COT year file | " + " || ".join(errors))
     return pd.concat(frames, ignore_index=True)
 
 
