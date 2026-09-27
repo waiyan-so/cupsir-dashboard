@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-27 22:53 UTC",
+  "updated_at": "2026-09-27 22:55 UTC",
   "overall_signal": "BULLISH",
   "total_score": 5,
   "category_labels": {
@@ -1033,7 +1033,7 @@
       "category": "market",
       "name": "WTI Crude Oil",
       "name_zh": "WTI 原油",
-      "value": 93.57,
+      "value": 93.53,
       "unit": "USD",
       "data_date": "2026-09-27",
       "signal": "DECLINING",
@@ -1169,7 +1169,7 @@
         },
         {
           "date": "2026-09-27",
-          "value": 93.57
+          "value": 93.53
         }
       ]
     },
@@ -1293,5 +1293,6 @@
       },
       "history": []
     }
-  ]
+  ],
+  "cot_debug_error": "RuntimeError: Could not fetch any CFTC COT year file"
 }
