@@ -62,11 +62,22 @@ def _fetch_year(year: int) -> pd.DataFrame:
     r = requests.get(url, headers=HEADERS, timeout=60)
     r.raise_for_status()
     with zipfile.ZipFile(io.BytesIO(r.content)) as z:
-        filename = [f for f in z.namelist() if f.lower().endswith(".txt")][0]
+        names = z.namelist()
+        txt_names = [f for f in names if f.lower().endswith(".txt")]
+        if not txt_names:
+            raise RuntimeError(f"no .txt in zip; namelist={names[:10]}")
+        filename = txt_names[0]
         with z.open(filename) as f:
             df = pd.read_csv(f, low_memory=False)
+    df.columns = [c.strip() for c in df.columns]
     df = df.rename(columns=COLUMN_MAP)
     keep = list(COLUMN_MAP.values())
+    missing = [c for c in keep if c not in df.columns]
+    if missing:
+        raise RuntimeError(
+            f"missing {missing} after rename; zip={names[:5]}; picked={filename}; "
+            f"raw_columns_sample={list(df.columns)[:20]}"
+        )
     df = df[[c for c in keep if c in df.columns]].copy()
     for c in ["comm_long", "comm_short", "large_spec_long", "large_spec_short", "small_spec_long", "small_spec_short"]:
         df[c] = pd.to_numeric(df[c], errors="coerce")
