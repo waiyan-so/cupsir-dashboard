@@ -38,9 +38,18 @@ COLUMN_MAP = {
 }
 
 
+HEADERS = {
+    # cftc.gov returns 403 to requests' default User-Agent on some networks
+    # (including GitHub Actions runners) - a browser-like UA fixes it.
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                  "(KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+    "Accept": "application/zip,application/octet-stream,*/*",
+}
+
+
 def _fetch_year(year: int) -> pd.DataFrame:
     url = CFTC_URL.format(year=year)
-    r = requests.get(url, timeout=60)
+    r = requests.get(url, headers=HEADERS, timeout=60)
     r.raise_for_status()
     with zipfile.ZipFile(io.BytesIO(r.content)) as z:
         filename = [f for f in z.namelist() if f.lower().endswith(".txt")][0]
@@ -65,7 +74,8 @@ def _fetch_recent_years() -> pd.DataFrame:
     for yr in (this_year - 1, this_year):
         try:
             frames.append(_fetch_year(yr))
-        except Exception:
+        except Exception as e:
+            print(f"[fetch_cot] year {yr} failed: {type(e).__name__}: {e}")
             continue
     if not frames:
         raise RuntimeError("Could not fetch any CFTC COT year file")
