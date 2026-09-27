@@ -1,1 +1,58 @@
-[]
+[
+  {
+    "title": "US 30-year yield tops 5.5% in ‘Vacuum’ after sentiment gauge",
+    "source": "Bloomberg",
+    "url": "https://www.bloomberg.com/news/articles/2026-09-25/us-30-year-yield-tops-5-5-in-vacuum-after-sentiment-gauge",
+    "published_at": "2026-09-26T15:11:00Z",
+    "summary": "US 30-year yield hits multiyear highs above 5.5% as consumer sentiment beats estimates, with 10-year also rising, amid ongoing rate expectations."
+  },
+  {
+    "title": "The 10-year Treasury yield is at its highest in nearly two decades. How we got here",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/2026/09/26/10-year-treasury-yield-is-at-its-highest-in-19-years-how-we-got-here.html",
+    "published_at": "2026-09-26T13:30:06Z",
+    "summary": "The benchmark yield has climbed to a 19-year high, fueled by sticky inflation, heavy bond issuance and an AI-fueled investment boom."
+  },
+  {
+    "title": "Many homeowners have a big insurance coverage gap — and don't even know it",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/2026/09/26/homeowners-insurance-coverage-gap.html",
+    "published_at": "2026-09-26T13:30:01Z",
+    "summary": "Many consumers have a gap in their homeowners insurance coverage. This puts them at financial risk, and they are likely unaware, experts said."
+  },
+  {
+    "title": "Trump rejects Iran's conditional ceasefire proposal, WSJ reports, as Saudi coalition intercepts projectiles",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/2026/09/26/trump-rejects-irans-conditional-ceasefire-proposal-wsj-reports.html",
+    "published_at": "2026-09-26T12:39:09Z",
+    "summary": "Trump expects renewed U.S. bombing of Iran after the midterm elections, The Wall Street Journal reports, as Saudi-backed forces intercept projectiles."
+  },
+  {
+    "title": "How recent grads and college students should be thinking about AI, the CV, and the job market",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/2026/09/25/ai-jobs-recent-graduates-college-degrees.html",
+    "published_at": "2026-09-25T19:16:16Z",
+    "summary": "It is getting harder for college students and recent graduates to be seen in the job market as AI is used as a hiring tool and demanded by employers as a skill."
+  },
+  {
+    "title": "Trump, Xi wrap state visit centered on spectacle over substance. Here are the top takeaways",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/2026/09/25/trump-xi-summit-takeaways.html",
+    "published_at": "2026-09-25T18:52:40Z",
+    "summary": "President Trump and Chinese leader Xi went heavy on the ceremony and light on deliverables as they danced around Taiwan and Iran during two days in Washington."
+  },
+  {
+    "title": "Trump says he will meet Xi again in November in China",
+    "source": "Bloomberg",
+    "url": "https://www.bloomberg.com/news/articles/2026-09-25/trump-hosts-xi-for-tea-with-final-day-of-summit-underway",
+    "published_at": "2026-09-25T18:35:16Z",
+    "summary": "US and Chinese officials signalled progress on trade talks, while differences over Taiwan, artificial intelligence, semiconductors and rare earths remain"
+  },
+  {
+    "title": "Trump-Xi summit: China presses for changes on Taiwan and trade",
+    "source": "Bloomberg",
+    "url": "https://www.bloomberg.com/news/articles/2026-09-25/xi-seizes-trump-detente-to-seek-lasting-gains-on-trade-taiwan",
+    "published_at": "2026-09-25T18:25:59Z",
+    "summary": "Xi Jinping pressed Donald Trump on Taiwan and trade after their summit, while China and the US continued talks on tariffs and the trade truce."
+  }
+]
