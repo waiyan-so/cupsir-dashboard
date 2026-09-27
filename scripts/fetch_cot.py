@@ -24,7 +24,7 @@ from config import INDICATORS
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 
-CFTC_URL = "https://www.cftc.gov/sites/default/files/files/dea/history/fut_fin_txt_{year}.zip"
+CFTC_URL = "https://www.cftc.gov/files/dea/history/fut_fin_txt_{year}.zip"
 
 COLUMN_MAP = {
     "Market_and_Exchange_Names": "market",
