@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CupSir Macro Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="header">
+    <div><h1>CupSir Macro Dashboard</h1><p id="updatedAt">Loading...</p></div>
+    <div id="overallSignal" class="signal warning">Loading</div>
+  </header>
+  <main>
+    <section class="top-grid">
+      <article class="panel"><h2>未來兩周經濟事件</h2><div id="events"></div></article>
+      <article class="panel"><h2>市場新聞與重要講話</h2><div id="news"></div></article>
+    </section>
+    <section class="indicator-layout">
+      <aside class="panel"><h2>指標</h2><div id="indicatorList"></div></aside>
+      <article class="panel"><div id="indicatorDetail"><p>正在讀取指標資料。</p></div></article>
+    </section>
+    <section class="panel"><h2>AI / 規則式研究摘要</h2><div id="summary"></div></section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+[
+  {"published_at":"Sample","title":"Replace this sample news item with an RSS or news-API fetcher.","source":"Starter Pack","url":"https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm","summary":"Use official primary sources for policy events whenever possible."},
+  {"published_at":"Sample","title":"Treasury quarterly refunding announcements","source":"U.S. Treasury","url":"https://home.treasury.gov/policy-issues/financing-the-government/quarterly-refunding","summary":"Track Bills versus Coupons issuance structure under the CupSir framework."}
+]
