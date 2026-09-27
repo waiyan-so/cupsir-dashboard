@@ -1,0 +1,117 @@
+"""
+Fetch CFTC Commitments of Traders (Legacy Financial Futures) report and
+compute the COT Index / Sentiment Index (Larry Williams method, 52-week
+lookback) for the markets listed in config.INDICATORS (source == "cot").
+
+Standalone usage (writes data/cot_cache.json for inspection):
+    python scripts/fetch_cot.py
+
+Library usage (called from build_dashboard.py):
+    from fetch_cot import get_cot_results
+    results = get_cot_results()   # {"cot_sp500": {...}, "cot_10y": {...}, ...}
+"""
+import io
+import json
+import zipfile
+from datetime import datetime, timezone
+from pathlib import Path
+
+import pandas as pd
+import requests
+
+from config import INDICATORS
+
+ROOT = Path(__file__).resolve().parent.parent
+DATA = ROOT / "data"
+
+CFTC_URL = "https://www.cftc.gov/sites/default/files/files/dea/history/fut_fin_txt_{year}.zip"
+
+COLUMN_MAP = {
+    "Market_and_Exchange_Names": "market",
+    "As_of_Date_In_Form_YYMMDD": "date",
+    "Comm_Positions_Long_All": "comm_long",
+    "Comm_Positions_Short_All": "comm_short",
+    "NonComm_Positions_Long_All": "large_spec_long",
+    "NonComm_Positions_Short_All": "large_spec_short",
+    "NonRept_Positions_Long_All": "small_spec_long",
+    "NonRept_Positions_Short_All": "small_spec_short",
+}
+
+
+def _fetch_year(year: int) -> pd.DataFrame:
+    url = CFTC_URL.format(year=year)
+    r = requests.get(url, timeout=60)
+    r.raise_for_status()
+    with zipfile.ZipFile(io.BytesIO(r.content)) as z:
+        filename = [f for f in z.namelist() if f.lower().endswith(".txt")][0]
+        with z.open(filename) as f:
+            df = pd.read_csv(f, low_memory=False)
+    df = df.rename(columns=COLUMN_MAP)
+    keep = list(COLUMN_MAP.values())
+    df = df[[c for c in keep if c in df.columns]].copy()
+    for c in ["comm_long", "comm_short", "large_spec_long", "large_spec_short", "small_spec_long", "small_spec_short"]:
+        df[c] = pd.to_numeric(df[c], errors="coerce")
+    df["comm_net"] = df["comm_long"] - df["comm_short"]
+    df["large_spec_net"] = df["large_spec_long"] - df["large_spec_short"]
+    df["small_spec_net"] = df["small_spec_long"] - df["small_spec_short"]
+    df["date"] = pd.to_datetime(df["date"], format="%y%m%d", errors="coerce")
+    return df.dropna(subset=["date"])
+
+
+def _fetch_recent_years() -> pd.DataFrame:
+    """Current year + previous year, so a 52-week lookback works near January."""
+    this_year = datetime.now(timezone.utc).year
+    frames = []
+    for yr in (this_year - 1, this_year):
+        try:
+            frames.append(_fetch_year(yr))
+        except Exception:
+            continue
+    if not frames:
+        raise RuntimeError("Could not fetch any CFTC COT year file")
+    return pd.concat(frames, ignore_index=True)
+
+
+def _cot_index(series: pd.Series, lookback: int = 52) -> pd.Series:
+    lo = series.rolling(lookback, min_periods=max(4, lookback // 4)).min()
+    hi = series.rolling(lookback, min_periods=max(4, lookback // 4)).max()
+    return (series - lo) / (hi - lo) * 100
+
+
+def get_cot_results(lookback_weeks: int = 52) -> dict:
+    df_all = _fetch_recent_years()
+    out = {}
+    for iid, cfg in INDICATORS.items():
+        if cfg.get("source") != "cot":
+            continue
+        needle = cfg["cot_market"].lower()
+        mdf = df_all[df_all["market"].str.lower().str.contains(needle, na=False)].copy()
+        if mdf.empty:
+            out[iid] = {"value": "N/A", "date": "N/A", "sentiment": "N/A", "history": []}
+            continue
+        mdf = mdf.sort_values("date").reset_index(drop=True)
+        mdf["cot_index"] = _cot_index(mdf["comm_net"], lookback_weeks)
+        mdf["sentiment_index"] = _cot_index(mdf["small_spec_net"], lookback_weeks)
+        latest = mdf.iloc[-1]
+        history = [
+            {"date": d.strftime("%Y-%m-%d"), "value": round(float(v), 1)}
+            for d, v in zip(mdf["date"].tail(30), mdf["cot_index"].tail(30))
+            if pd.notna(v)
+        ]
+        out[iid] = {
+            "value": round(float(latest["cot_index"]), 1) if pd.notna(latest["cot_index"]) else "N/A",
+            "sentiment": round(float(latest["sentiment_index"]), 1) if pd.notna(latest["sentiment_index"]) else "N/A",
+            "date": latest["date"].strftime("%Y-%m-%d"),
+            "history": history,
+        }
+    return out
+
+
+def main():
+    results = get_cot_results()
+    (DATA / "cot_cache.json").write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"Wrote {len(results)} COT markets to data/cot_cache.json")
+
+
+if __name__ == "__main__":
+    main()

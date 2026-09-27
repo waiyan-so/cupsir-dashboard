@@ -1,5 +1,10 @@
 [
-  {"date":"2026-10-27","time":"TBD","title":"FOMC Meeting","title_zh":"聯儲局議息會議","importance":3,"notes":"關注利率決定、政策聲明及記者會。"},
-  {"date":"2026-10-30","time":"08:30 ET","title":"Personal Income and Outlays / PCE","title_zh":"PCE 通脹數據","importance":3,"notes":"關注核心 PCE 的實際值、預期值和前值。"},
-  {"date":"2026-11-06","time":"08:30 ET","title":"Employment Situation","title_zh":"非農就業報告","importance":3,"notes":"關注 NFP、失業率和平均時薪。"}
+  {
+    "date": "2026-10-02",
+    "time": "08:30 ET",
+    "title_zh": "非農就業報告（NFP）",
+    "notes": "關注 NFP、失業率和平均時薪。",
+    "importance": 3,
+    "stars": "⭐⭐⭐"
+  }
 ]

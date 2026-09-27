@@ -19,12 +19,12 @@ jobs:
           cache: pip
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Fetch official BLS labour data
-        env:
-          BLS_API_KEY: ${{ secrets.BLS_API_KEY }}
-        run: python scripts/fetch_bls.py
       - name: Generate forward economic calendar
         run: python scripts/fetch_events.py
+      - name: Fetch market news and speeches
+        env:
+          NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
+        run: python scripts/fetch_news.py
       - name: Build dashboard data and signals
         env:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}

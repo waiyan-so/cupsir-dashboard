@@ -9,8 +9,8 @@ risks = [f"{x['name_zh']}：{x['signal']}" for x in items if x.get("signal_color
 pos = [f"{x['name_zh']}：{x['signal']}" for x in items if x.get("signal_color") == "positive"][:4]
 summary = {
   "headline": f"整體 CupSir 框架訊號：{dashboard.get('overall_signal', 'NEUTRAL')}（分數 {dashboard.get('total_score', 0)}）",
-  "macro": "此為規則式研究摘要，應同時評估就業、經濟週期、流動性、信用及市場價格，不應依賴任何單一指標。",
-  "market_sentiment": "已接入的 VIX、DXY、銅價及油價提供市場溫度的交叉檢查；COT、QRA、GDPNow 和 SOS 仍待後續資料管道接入。",
+  "macro": "此為規則式研究摘要，綜合宏觀環境（Sahm Rule、孳息曲線、信用差、GDPNow）、市場溫度（VIX、DXY、銅、油）及機構持倉（COT）三大類指標，不應依賴任何單一指標。",
+  "market_sentiment": "VIX、DXY、銅價及油價提供市場溫度的交叉檢查；COT Index／Sentiment Index 反映五個市場（S&P 500、10年債、黃金、原油、美元）的機構聰明錢持倉極端程度。",
   "catalysts": ["查看上方未來兩周經濟日曆中的三星事件", "重要數據發布後，觀察股票、美元、長債及波動率是否同向確認"],
   "checklist": risks or pos or ["等待更多資料更新"],
   "disclaimer": "此內容僅供研究與教育用途，不構成投資建議。資料可能存在時滯、修正或供應商限制。"
