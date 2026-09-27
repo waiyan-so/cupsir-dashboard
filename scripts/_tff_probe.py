@@ -53,7 +53,7 @@ def probe_year(year: int) -> dict:
         "market_column_used": market_col,
         "row_count": len(df),
         "sp500_candidates": find("s&p 500"),
-        "treasury_10y_candidates": find("10-year") + find("10 year") + find("10-yr"),
+        "treasury_10y_candidates": sorted(set(find("10-year") + find("10 year") + find("10-yr") + find("treasury") + find("ust 10") + find("note"))),
         "dollar_index_candidates": find("dollar index") + find("usd index"),
     }
 
