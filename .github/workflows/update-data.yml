@@ -17,8 +17,15 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -r requirements.txt
-      - name: Build dashboard data
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Fetch official BLS labour data
+        env:
+          BLS_API_KEY: ${{ secrets.BLS_API_KEY }}
+        run: python scripts/fetch_bls.py
+      - name: Generate forward economic calendar
+        run: python scripts/fetch_events.py
+      - name: Build dashboard data and signals
         env:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
         run: |
