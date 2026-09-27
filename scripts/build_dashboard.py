@@ -88,6 +88,7 @@ def main():
     cot_results = fetch_cot_results()
     if "_debug_error" in cot_results:
         output["cot_debug_error"] = cot_results.pop("_debug_error")
+    output["cot_debug_raw"] = cot_results  # temporary, remove once COT is verified working
 
     for iid, cfg in INDICATORS.items():
         try:

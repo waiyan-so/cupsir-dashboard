@@ -1,7 +1,17 @@
 """
-Fetch CFTC Commitments of Traders (Legacy Financial Futures) report and
-compute the COT Index / Sentiment Index (Larry Williams method, 52-week
-lookback) for the markets listed in config.INDICATORS (source == "cot").
+Fetch CFTC Commitments of Traders - "Futures Only" Legacy report
+(deacot{year}.zip, Commercial / Non-Commercial / Non-Reportable trader
+classification) and compute the COT Index / Sentiment Index (Larry
+Williams method, 52-week lookback) for the markets listed in
+config.INDICATORS (source == "cot").
+
+Deliberately NOT using the "Financial Futures" (fut_fin_txt / TFF)
+report: that one only covers currencies/rates/equity-index markets (no
+gold or crude oil) and classifies traders as Dealer/Asset Manager/
+Leveraged Money/Other Reportable instead of Commercial/Non-Commercial -
+which doesn't match CupSir's "commercial smart money" framework. The
+Legacy "Futures Only" report covers every market (financial AND
+commodity) in one file with the classification CupSir actually uses.
 
 Standalone usage (writes data/cot_cache.json for inspection):
     python scripts/fetch_cot.py
@@ -24,7 +34,7 @@ from config import INDICATORS
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 
-CFTC_URL = "https://www.cftc.gov/files/dea/history/fut_fin_txt_{year}.zip"
+CFTC_URL = "https://www.cftc.gov/files/dea/history/deacot{year}.zip"
 
 COLUMN_MAP = {
     "Market_and_Exchange_Names": "market",
@@ -98,10 +108,23 @@ def get_cot_results(lookback_weeks: int = 52) -> dict:
         if cfg.get("source") != "cot":
             continue
         needle = cfg["cot_market"].lower()
-        mdf = df_all[df_all["market"].str.lower().str.contains(needle, na=False)].copy()
+        market_lower = df_all["market"].str.lower()
+        # startswith, not contains: CFTC market names are "<CONTRACT> - <EXCHANGE>",
+        # and `contains` risks silently blending rows from an unrelated market that
+        # happens to share a substring (e.g. "GOLD" also appearing inside some other
+        # contract's name) into the same net-position series.
+        mdf = df_all[market_lower.str.startswith(needle, na=False)].copy()
         if mdf.empty:
-            out[iid] = {"value": "N/A", "date": "N/A", "sentiment": "N/A", "history": []}
+            out[iid] = {"value": "N/A", "date": "N/A", "sentiment": "N/A", "history": [],
+                        "_debug_no_match": needle}
             continue
+        matched_names = mdf["market"].unique().tolist()
+        if len(matched_names) > 1:
+            # Multiple distinct market listings matched (e.g. different contract
+            # months/exchanges) - keep only the most frequent one so the net-position
+            # series stays internally consistent.
+            top_name = mdf["market"].value_counts().idxmax()
+            mdf = mdf[mdf["market"] == top_name].copy()
         mdf = mdf.sort_values("date").reset_index(drop=True)
         mdf["cot_index"] = _cot_index(mdf["comm_net"], lookback_weeks)
         mdf["sentiment_index"] = _cot_index(mdf["small_spec_net"], lookback_weeks)
