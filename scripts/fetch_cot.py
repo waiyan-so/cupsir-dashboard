@@ -130,8 +130,12 @@ def get_cot_results(lookback_weeks: int = 52) -> dict:
         # contract's name) into the same net-position series.
         mdf = df_all[market_lower.str.startswith(needle, na=False)].copy()
         if mdf.empty:
+            # Temporary: surface nearby real market names so the config's
+            # cot_market prefix can be corrected without another blind guess.
+            keyword = max(needle.split(), key=len)
+            candidates = sorted(df_all[market_lower.str.contains(keyword, na=False, regex=False)]["market"].unique().tolist())[:15]
             out[iid] = {"value": "N/A", "date": "N/A", "sentiment": "N/A", "history": [],
-                        "_debug_no_match": needle}
+                        "_debug_no_match": needle, "_debug_candidates": candidates}
             continue
         matched_names = mdf["market"].unique().tolist()
         if len(matched_names) > 1:
