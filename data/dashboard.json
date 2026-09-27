@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-27 22:59 UTC",
+  "updated_at": "2026-09-27 23:01 UTC",
   "overall_signal": "BULLISH",
   "total_score": 5,
   "category_labels": {
@@ -888,7 +888,7 @@
       "category": "market",
       "name": "Copper Futures",
       "name_zh": "銅價",
-      "value": 6.74,
+      "value": 6.738,
       "unit": "USD",
       "data_date": "2026-09-27",
       "signal": "BOTTOMING",
@@ -1024,7 +1024,7 @@
         },
         {
           "date": "2026-09-27",
-          "value": 6.74
+          "value": 6.738
         }
       ]
     },
@@ -1033,7 +1033,7 @@
       "category": "market",
       "name": "WTI Crude Oil",
       "name_zh": "WTI 原油",
-      "value": 93.53,
+      "value": 93.59,
       "unit": "USD",
       "data_date": "2026-09-27",
       "signal": "DECLINING",
@@ -1169,7 +1169,7 @@
         },
         {
           "date": "2026-09-27",
-          "value": 93.53
+          "value": 93.59
         }
       ]
     },
@@ -1294,6 +1294,6 @@
       "history": []
     }
   ],
-  "cot_debug_error": "RuntimeError: Could not fetch any CFTC COT year file | 2025: KeyError: 'comm_long' || 2026: KeyError: 'comm_long'",
+  "cot_debug_error": "RuntimeError: Could not fetch any CFTC COT year file | 2025: RuntimeError: missing ['market', 'date', 'comm_long', 'comm_short', 'large_spec_long', 'large_spec_short', 'small_spec_long', 'small_spec_short'] after rename; zip=['annual.txt']; picked=annual.txt; raw_columns_sample=['Market and Exchange Names', 'As of Date in Form YYMMDD', 'As of Date in Form YYYY-MM-DD', 'CFTC Contract Market Code', 'CFTC Market Code in Initials', 'CFTC Region Code', 'CFTC Commodity Code', 'Open Interest (All)', 'Noncommercial Positions-Long (All)', 'Noncommercial Positions-Short (All)', 'Noncommercial Positions-Spreading (All)', 'Commercial Positions-Long (All)', 'Commercial Positions-Short (All)', 'Total Reportable Positions-Long (All)', 'Total Reportable Positions-Short (All)', 'Nonreportable Positions-Long (All)', 'Nonreportable Positions-Short (All)', 'Open Interest (Old)', 'Noncommercial Positions-Long (Old)', 'Noncommercial Positions-Short (Old)'] || 2026: RuntimeError: missing ['market', 'date', 'comm_long', 'comm_short', 'large_spec_long', 'large_spec_short', 'small_spec_long', 'small_spec_short'] after rename; zip=['annual.txt']; picked=annual.txt; raw_columns_sample=['Market and Exchange Names', 'As of Date in Form YYMMDD', 'As of Date in Form YYYY-MM-DD', 'CFTC Contract Market Code', 'CFTC Market Code in Initials', 'CFTC Region Code', 'CFTC Commodity Code', 'Open Interest (All)', 'Noncommercial Positions-Long (All)', 'Noncommercial Positions-Short (All)', 'Noncommercial Positions-Spreading (All)', 'Commercial Positions-Long (All)', 'Commercial Positions-Short (All)', 'Total Reportable Positions-Long (All)', 'Total Reportable Positions-Short (All)', 'Nonreportable Positions-Long (All)', 'Nonreportable Positions-Short (All)', 'Open Interest (Old)', 'Noncommercial Positions-Long (Old)', 'Noncommercial Positions-Short (Old)']",
   "cot_debug_raw": {}
 }
