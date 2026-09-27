@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-27 23:01 UTC",
+  "updated_at": "2026-09-27 23:03 UTC",
   "overall_signal": "BULLISH",
   "total_score": 5,
   "category_labels": {
@@ -888,7 +888,7 @@
       "category": "market",
       "name": "Copper Futures",
       "name_zh": "銅價",
-      "value": 6.738,
+      "value": 6.739,
       "unit": "USD",
       "data_date": "2026-09-27",
       "signal": "BOTTOMING",
@@ -1024,7 +1024,7 @@
         },
         {
           "date": "2026-09-27",
-          "value": 6.738
+          "value": 6.739
         }
       ]
     },
@@ -1033,7 +1033,7 @@
       "category": "market",
       "name": "WTI Crude Oil",
       "name_zh": "WTI 原油",
-      "value": 93.59,
+      "value": 93.62,
       "unit": "USD",
       "data_date": "2026-09-27",
       "signal": "DECLINING",
@@ -1169,7 +1169,7 @@
         },
         {
           "date": "2026-09-27",
-          "value": 93.59
+          "value": 93.62
         }
       ]
     },
@@ -1226,12 +1226,12 @@
       "category": "cot",
       "name": "Gold COT",
       "name_zh": "黃金 COT",
-      "value": "N/A",
+      "value": 30.7,
       "unit": "index",
-      "data_date": "N/A",
-      "signal": "PENDING COT IMPORT",
+      "data_date": "2026-09-22",
+      "signal": "NEUTRAL",
       "signal_color": "warning",
-      "interpretation": "CupSir framework classification: PENDING COT IMPORT.",
+      "interpretation": "CupSir framework classification: NEUTRAL.",
       "checklist": [
         "商業持倉者 COT Index 是否 ≥80 或 ≤20",
         "小型投機者 Sentiment Index 是否反向極端",
@@ -1243,19 +1243,140 @@
         "type": "tradingview",
         "target": "COMEX:GC1!"
       },
-      "history": []
+      "history": [
+        {
+          "date": "2026-03-03",
+          "value": 91.2
+        },
+        {
+          "date": "2026-03-10",
+          "value": 89.1
+        },
+        {
+          "date": "2026-03-17",
+          "value": 92.9
+        },
+        {
+          "date": "2026-03-24",
+          "value": 88.3
+        },
+        {
+          "date": "2026-03-31",
+          "value": 90.3
+        },
+        {
+          "date": "2026-04-07",
+          "value": 97.3
+        },
+        {
+          "date": "2026-04-14",
+          "value": 90.8
+        },
+        {
+          "date": "2026-04-21",
+          "value": 89.1
+        },
+        {
+          "date": "2026-04-28",
+          "value": 96.8
+        },
+        {
+          "date": "2026-05-05",
+          "value": 93.0
+        },
+        {
+          "date": "2026-05-12",
+          "value": 84.8
+        },
+        {
+          "date": "2026-05-19",
+          "value": 100.0
+        },
+        {
+          "date": "2026-05-26",
+          "value": 100.0
+        },
+        {
+          "date": "2026-06-02",
+          "value": 82.4
+        },
+        {
+          "date": "2026-06-09",
+          "value": 86.9
+        },
+        {
+          "date": "2026-06-16",
+          "value": 81.3
+        },
+        {
+          "date": "2026-06-23",
+          "value": 83.2
+        },
+        {
+          "date": "2026-06-30",
+          "value": 69.7
+        },
+        {
+          "date": "2026-07-07",
+          "value": 68.7
+        },
+        {
+          "date": "2026-07-14",
+          "value": 75.1
+        },
+        {
+          "date": "2026-07-21",
+          "value": 76.5
+        },
+        {
+          "date": "2026-07-28",
+          "value": 77.2
+        },
+        {
+          "date": "2026-08-04",
+          "value": 65.1
+        },
+        {
+          "date": "2026-08-11",
+          "value": 42.6
+        },
+        {
+          "date": "2026-08-18",
+          "value": 37.7
+        },
+        {
+          "date": "2026-08-25",
+          "value": 19.5
+        },
+        {
+          "date": "2026-09-01",
+          "value": 32.3
+        },
+        {
+          "date": "2026-09-08",
+          "value": 27.5
+        },
+        {
+          "date": "2026-09-15",
+          "value": 32.6
+        },
+        {
+          "date": "2026-09-22",
+          "value": 30.7
+        }
+      ]
     },
     {
       "id": "cot_oil",
       "category": "cot",
       "name": "Oil COT",
       "name_zh": "原油 COT",
-      "value": "N/A",
+      "value": 68.3,
       "unit": "index",
-      "data_date": "N/A",
-      "signal": "PENDING COT IMPORT",
+      "data_date": "2026-09-22",
+      "signal": "NEUTRAL",
       "signal_color": "warning",
-      "interpretation": "CupSir framework classification: PENDING COT IMPORT.",
+      "interpretation": "CupSir framework classification: NEUTRAL.",
       "checklist": [
         "商業持倉者 COT Index 是否 ≥80 或 ≤20",
         "小型投機者 Sentiment Index 是否反向極端",
@@ -1267,7 +1388,128 @@
         "type": "tradingview",
         "target": "NYMEX:CL1!"
       },
-      "history": []
+      "history": [
+        {
+          "date": "2026-03-03",
+          "value": 62.6
+        },
+        {
+          "date": "2026-03-10",
+          "value": 100.0
+        },
+        {
+          "date": "2026-03-17",
+          "value": 100.0
+        },
+        {
+          "date": "2026-03-24",
+          "value": 100.0
+        },
+        {
+          "date": "2026-03-31",
+          "value": 100.0
+        },
+        {
+          "date": "2026-04-07",
+          "value": 91.3
+        },
+        {
+          "date": "2026-04-14",
+          "value": 86.0
+        },
+        {
+          "date": "2026-04-21",
+          "value": 95.8
+        },
+        {
+          "date": "2026-04-28",
+          "value": 94.0
+        },
+        {
+          "date": "2026-05-05",
+          "value": 89.0
+        },
+        {
+          "date": "2026-05-12",
+          "value": 93.9
+        },
+        {
+          "date": "2026-05-19",
+          "value": 84.5
+        },
+        {
+          "date": "2026-05-26",
+          "value": 82.3
+        },
+        {
+          "date": "2026-06-02",
+          "value": 70.1
+        },
+        {
+          "date": "2026-06-09",
+          "value": 61.7
+        },
+        {
+          "date": "2026-06-16",
+          "value": 46.3
+        },
+        {
+          "date": "2026-06-23",
+          "value": 53.4
+        },
+        {
+          "date": "2026-06-30",
+          "value": 61.7
+        },
+        {
+          "date": "2026-07-07",
+          "value": 59.1
+        },
+        {
+          "date": "2026-07-14",
+          "value": 51.6
+        },
+        {
+          "date": "2026-07-21",
+          "value": 53.7
+        },
+        {
+          "date": "2026-07-28",
+          "value": 59.0
+        },
+        {
+          "date": "2026-08-04",
+          "value": 60.9
+        },
+        {
+          "date": "2026-08-11",
+          "value": 68.1
+        },
+        {
+          "date": "2026-08-18",
+          "value": 75.6
+        },
+        {
+          "date": "2026-08-25",
+          "value": 73.9
+        },
+        {
+          "date": "2026-09-01",
+          "value": 79.5
+        },
+        {
+          "date": "2026-09-08",
+          "value": 80.5
+        },
+        {
+          "date": "2026-09-15",
+          "value": 75.6
+        },
+        {
+          "date": "2026-09-22",
+          "value": 68.3
+        }
+      ]
     },
     {
       "id": "cot_dxy",
@@ -1294,6 +1536,281 @@
       "history": []
     }
   ],
-  "cot_debug_error": "RuntimeError: Could not fetch any CFTC COT year file | 2025: RuntimeError: missing ['market', 'date', 'comm_long', 'comm_short', 'large_spec_long', 'large_spec_short', 'small_spec_long', 'small_spec_short'] after rename; zip=['annual.txt']; picked=annual.txt; raw_columns_sample=['Market and Exchange Names', 'As of Date in Form YYMMDD', 'As of Date in Form YYYY-MM-DD', 'CFTC Contract Market Code', 'CFTC Market Code in Initials', 'CFTC Region Code', 'CFTC Commodity Code', 'Open Interest (All)', 'Noncommercial Positions-Long (All)', 'Noncommercial Positions-Short (All)', 'Noncommercial Positions-Spreading (All)', 'Commercial Positions-Long (All)', 'Commercial Positions-Short (All)', 'Total Reportable Positions-Long (All)', 'Total Reportable Positions-Short (All)', 'Nonreportable Positions-Long (All)', 'Nonreportable Positions-Short (All)', 'Open Interest (Old)', 'Noncommercial Positions-Long (Old)', 'Noncommercial Positions-Short (Old)'] || 2026: RuntimeError: missing ['market', 'date', 'comm_long', 'comm_short', 'large_spec_long', 'large_spec_short', 'small_spec_long', 'small_spec_short'] after rename; zip=['annual.txt']; picked=annual.txt; raw_columns_sample=['Market and Exchange Names', 'As of Date in Form YYMMDD', 'As of Date in Form YYYY-MM-DD', 'CFTC Contract Market Code', 'CFTC Market Code in Initials', 'CFTC Region Code', 'CFTC Commodity Code', 'Open Interest (All)', 'Noncommercial Positions-Long (All)', 'Noncommercial Positions-Short (All)', 'Noncommercial Positions-Spreading (All)', 'Commercial Positions-Long (All)', 'Commercial Positions-Short (All)', 'Total Reportable Positions-Long (All)', 'Total Reportable Positions-Short (All)', 'Nonreportable Positions-Long (All)', 'Nonreportable Positions-Short (All)', 'Open Interest (Old)', 'Noncommercial Positions-Long (Old)', 'Noncommercial Positions-Short (Old)']",
-  "cot_debug_raw": {}
+  "cot_debug_raw": {
+    "cot_sp500": {
+      "value": "N/A",
+      "date": "N/A",
+      "sentiment": "N/A",
+      "history": [],
+      "_debug_no_match": "s&p 500 stock index"
+    },
+    "cot_10y": {
+      "value": "N/A",
+      "date": "N/A",
+      "sentiment": "N/A",
+      "history": [],
+      "_debug_no_match": "10-year u.s. treasury notes"
+    },
+    "cot_gold": {
+      "value": 30.7,
+      "sentiment": 59.6,
+      "date": "2026-09-22",
+      "history": [
+        {
+          "date": "2026-03-03",
+          "value": 91.2
+        },
+        {
+          "date": "2026-03-10",
+          "value": 89.1
+        },
+        {
+          "date": "2026-03-17",
+          "value": 92.9
+        },
+        {
+          "date": "2026-03-24",
+          "value": 88.3
+        },
+        {
+          "date": "2026-03-31",
+          "value": 90.3
+        },
+        {
+          "date": "2026-04-07",
+          "value": 97.3
+        },
+        {
+          "date": "2026-04-14",
+          "value": 90.8
+        },
+        {
+          "date": "2026-04-21",
+          "value": 89.1
+        },
+        {
+          "date": "2026-04-28",
+          "value": 96.8
+        },
+        {
+          "date": "2026-05-05",
+          "value": 93.0
+        },
+        {
+          "date": "2026-05-12",
+          "value": 84.8
+        },
+        {
+          "date": "2026-05-19",
+          "value": 100.0
+        },
+        {
+          "date": "2026-05-26",
+          "value": 100.0
+        },
+        {
+          "date": "2026-06-02",
+          "value": 82.4
+        },
+        {
+          "date": "2026-06-09",
+          "value": 86.9
+        },
+        {
+          "date": "2026-06-16",
+          "value": 81.3
+        },
+        {
+          "date": "2026-06-23",
+          "value": 83.2
+        },
+        {
+          "date": "2026-06-30",
+          "value": 69.7
+        },
+        {
+          "date": "2026-07-07",
+          "value": 68.7
+        },
+        {
+          "date": "2026-07-14",
+          "value": 75.1
+        },
+        {
+          "date": "2026-07-21",
+          "value": 76.5
+        },
+        {
+          "date": "2026-07-28",
+          "value": 77.2
+        },
+        {
+          "date": "2026-08-04",
+          "value": 65.1
+        },
+        {
+          "date": "2026-08-11",
+          "value": 42.6
+        },
+        {
+          "date": "2026-08-18",
+          "value": 37.7
+        },
+        {
+          "date": "2026-08-25",
+          "value": 19.5
+        },
+        {
+          "date": "2026-09-01",
+          "value": 32.3
+        },
+        {
+          "date": "2026-09-08",
+          "value": 27.5
+        },
+        {
+          "date": "2026-09-15",
+          "value": 32.6
+        },
+        {
+          "date": "2026-09-22",
+          "value": 30.7
+        }
+      ]
+    },
+    "cot_oil": {
+      "value": 68.3,
+      "sentiment": 68.5,
+      "date": "2026-09-22",
+      "history": [
+        {
+          "date": "2026-03-03",
+          "value": 62.6
+        },
+        {
+          "date": "2026-03-10",
+          "value": 100.0
+        },
+        {
+          "date": "2026-03-17",
+          "value": 100.0
+        },
+        {
+          "date": "2026-03-24",
+          "value": 100.0
+        },
+        {
+          "date": "2026-03-31",
+          "value": 100.0
+        },
+        {
+          "date": "2026-04-07",
+          "value": 91.3
+        },
+        {
+          "date": "2026-04-14",
+          "value": 86.0
+        },
+        {
+          "date": "2026-04-21",
+          "value": 95.8
+        },
+        {
+          "date": "2026-04-28",
+          "value": 94.0
+        },
+        {
+          "date": "2026-05-05",
+          "value": 89.0
+        },
+        {
+          "date": "2026-05-12",
+          "value": 93.9
+        },
+        {
+          "date": "2026-05-19",
+          "value": 84.5
+        },
+        {
+          "date": "2026-05-26",
+          "value": 82.3
+        },
+        {
+          "date": "2026-06-02",
+          "value": 70.1
+        },
+        {
+          "date": "2026-06-09",
+          "value": 61.7
+        },
+        {
+          "date": "2026-06-16",
+          "value": 46.3
+        },
+        {
+          "date": "2026-06-23",
+          "value": 53.4
+        },
+        {
+          "date": "2026-06-30",
+          "value": 61.7
+        },
+        {
+          "date": "2026-07-07",
+          "value": 59.1
+        },
+        {
+          "date": "2026-07-14",
+          "value": 51.6
+        },
+        {
+          "date": "2026-07-21",
+          "value": 53.7
+        },
+        {
+          "date": "2026-07-28",
+          "value": 59.0
+        },
+        {
+          "date": "2026-08-04",
+          "value": 60.9
+        },
+        {
+          "date": "2026-08-11",
+          "value": 68.1
+        },
+        {
+          "date": "2026-08-18",
+          "value": 75.6
+        },
+        {
+          "date": "2026-08-25",
+          "value": 73.9
+        },
+        {
+          "date": "2026-09-01",
+          "value": 79.5
+        },
+        {
+          "date": "2026-09-08",
+          "value": 80.5
+        },
+        {
+          "date": "2026-09-15",
+          "value": 75.6
+        },
+        {
+          "date": "2026-09-22",
+          "value": 68.3
+        }
+      ]
+    },
+    "cot_dxy": {
+      "value": "N/A",
+      "date": "N/A",
+      "sentiment": "N/A",
+      "history": [],
+      "_debug_no_match": "u.s. dollar index"
+    }
+  }
 }
