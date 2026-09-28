@@ -3,6 +3,15 @@ name: Deploy CupSir dashboard
 on:
   push:
     branches: [main]
+  workflow_run:
+    # update-data.yml commits its own data refresh using the Actions bot's
+    # built-in GITHUB_TOKEN - GitHub deliberately does NOT let a push made
+    # with that token trigger other workflows (anti-recursion rule), so a
+    # plain `on: push` here misses every scheduled/manual data refresh and
+    # the live site keeps serving whatever was deployed before that commit.
+    # Chaining off the upstream workflow's completion closes that gap.
+    workflows: ["Update CupSir dashboard data"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -16,12 +25,15 @@ concurrency:
 
 jobs:
   deploy:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - name: Prepare site
         run: |
           mkdir -p _site/data
