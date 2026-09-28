@@ -9,7 +9,13 @@ function embedLabel(embed) {
   return embed.target || '未設定';
 }
 
+let cotChart = null;
+// COT history is weekly (~30 points stored = ~7 months); "3 months of data" = last ~13 weeks.
+const COT_CHART_WEEKS = 13;
+
 function renderDetail(x) {
+  const cotSeries = (x.history || []).slice(-COT_CHART_WEEKS);
+  const isCot = x.category === 'cot' && cotSeries.length > 1 && typeof uPlot !== 'undefined';
   const history = (x.history || []).map(p => `<div class="bar-row"><span>${esc(p.date)}</span><div class="bar"><i style="width:${Math.min(Math.abs(Number(p.value) || 0) * 5, 100)}%"></i></div><b>${esc(p.value)}</b></div>`).join('') || '<p class="muted">沒有可顯示的歷史資料。</p>';
   document.querySelector('#indicatorDetail').innerHTML = `
     <div class="detail-head">
@@ -25,11 +31,60 @@ function renderDetail(x) {
       <p>${esc(embedLabel(x.embed))}</p>
       <small class="muted">互動圖表嵌入將於後續版本加入，現時先顯示右方近期數值。</small>
     </div>
-    <h3>最近數值</h3>
-    <div class="mini-chart">${history}</div>
+    ${isCot
+      ? `<h3>COT Index 走勢（近 3 個月，虛線 = 80／20 極端水平）</h3><div id="cotChartBox" class="cot-chart-box"></div>`
+      : `<h3>最近數值</h3><div class="mini-chart">${history}</div>`}
     <p class="muted">資料日期：${esc(x.data_date)} · <a href="${esc(x.source_url)}" target="_blank" rel="noreferrer">${esc(x.source_name)}</a></p>
   `;
+  if (cotChart) { cotChart.destroy(); cotChart = null; }
+  if (isCot) drawCotChart(cotSeries);
 }
+
+function drawCotChart(series) {
+  const box = document.querySelector('#cotChartBox');
+  if (!box) return;
+  const xs = series.map(p => Math.floor(new Date(p.date).getTime() / 1000));
+  const ys = series.map(p => Number(p.value));
+  const opts = {
+    width: box.clientWidth || 600,
+    height: 220,
+    scales: { x: { time: true }, y: { range: [0, 100] } },
+    axes: [
+      { stroke: '#94a3b8', grid: { stroke: '#1f2c42' } },
+      { stroke: '#94a3b8', grid: { stroke: '#1f2c42' }, values: (u, vals) => vals.map(v => v.toFixed(0)) },
+    ],
+    series: [
+      {},
+      { label: 'COT Index', stroke: '#60a5fa', width: 2, points: { show: true, size: 5 }, fill: 'rgba(96,165,250,0.08)' },
+    ],
+    legend: { show: false },
+    cursor: { points: { size: 7 } },
+    hooks: {
+      draw: [u => {
+        const ctx = u.ctx;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(148,163,184,0.45)';
+        ctx.setLineDash([4, 4]);
+        ctx.lineWidth = 1;
+        [80, 20].forEach(level => {
+          const y = u.valToPos(level, 'y', true);
+          ctx.beginPath();
+          ctx.moveTo(u.bbox.left, y);
+          ctx.lineTo(u.bbox.left + u.bbox.width, y);
+          ctx.stroke();
+        });
+        ctx.restore();
+      }],
+    },
+  };
+  cotChart = new uPlot(opts, [xs, ys], box);
+}
+
+window.addEventListener('resize', () => {
+  if (!cotChart) return;
+  const box = document.querySelector('#cotChartBox');
+  if (box) cotChart.setSize({ width: box.clientWidth || 600, height: 220 });
+});
 
 function renderList(dashboard) {
   const items = dashboard.indicators || [];

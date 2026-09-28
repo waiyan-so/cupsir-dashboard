@@ -1,10 +1,50 @@
 [
   {
+    "date": "2026-09-30",
+    "time": "08:30 ET",
+    "title_zh": "核心 PCE 物價指數（個人所得與支出）",
+    "notes": "Fed 最重視的通脹指標，直接影響利率預期。",
+    "importance": 3,
+    "stars": "⭐⭐⭐"
+  },
+  {
+    "date": "2026-10-01",
+    "time": "10:00 ET",
+    "title_zh": "ISM 製造業採購經理指數（PMI）",
+    "notes": "50 為榮枯分界線，市場前瞻性製造業指標。",
+    "importance": 2,
+    "stars": "⭐⭐"
+  },
+  {
     "date": "2026-10-02",
     "time": "08:30 ET",
     "title_zh": "非農就業報告（NFP）",
     "notes": "關注 NFP、失業率和平均時薪。",
     "importance": 3,
     "stars": "⭐⭐⭐"
+  },
+  {
+    "date": "2026-10-05",
+    "time": "10:00 ET",
+    "title_zh": "ISM 服務業 PMI",
+    "notes": "50 為榮枯分界線，服務業佔美國經濟主體。",
+    "importance": 2,
+    "stars": "⭐⭐"
+  },
+  {
+    "date": "2026-10-06",
+    "time": "08:30 ET",
+    "title_zh": "貿易帳（Trade Balance）",
+    "notes": "進出口差額，公布數據為兩個月前的資料。",
+    "importance": 1,
+    "stars": "⭐"
+  },
+  {
+    "date": "2026-10-07",
+    "time": "14:00 ET",
+    "title_zh": "FOMC 議息紀要（Minutes）",
+    "notes": "補充議息會議討論細節，關注委員分歧程度。",
+    "importance": 2,
+    "stars": "⭐⭐"
   }
 ]
