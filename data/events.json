@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-09-30",
-    "time": "08:30 ET",
-    "title_zh": "核心 PCE 物價指數（個人所得與支出）",
-    "notes": "Fed 最重視的通脹指標，直接影響利率預期。",
-    "importance": 3,
-    "stars": "⭐⭐⭐"
-  },
-  {
     "date": "2026-10-01",
     "time": "10:00 ET",
     "title_zh": "ISM 製造業採購經理指數（PMI）",
@@ -62,5 +54,21 @@
     "notes": "關注核心 CPI 按月/按年變化，市場對通脹路徑最敏感的數據之一。",
     "importance": 3,
     "stars": "⭐⭐⭐"
+  },
+  {
+    "date": "2026-10-15",
+    "time": "08:30 ET",
+    "title_zh": "生產者物價指數（PPI）",
+    "notes": "上游通脹壓力指標，通常在 CPI 之後一兩日發布。",
+    "importance": 2,
+    "stars": "⭐⭐"
+  },
+  {
+    "date": "2026-10-15",
+    "time": "08:30 ET",
+    "title_zh": "零售銷售（Retail Sales）",
+    "notes": "反映消費力度，對非必需消費品股份敏感度高。",
+    "importance": 2,
+    "stars": "⭐⭐"
   }
 ]

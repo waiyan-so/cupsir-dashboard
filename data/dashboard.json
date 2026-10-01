@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-30 23:19 UTC",
+  "updated_at": "2026-10-01 14:42 UTC",
   "overall_signal": "BULLISH",
   "total_score": 6,
   "category_labels": {
@@ -308,9 +308,9 @@
       "category": "macro",
       "name": "High Yield Credit Spread",
       "name_zh": "高收益信用差",
-      "value": 3.08,
+      "value": 3.12,
       "unit": "%",
-      "data_date": "2026-09-29",
+      "data_date": "2026-09-30",
       "signal": "NORMAL",
       "signal_color": "positive",
       "interpretation": "CupSir framework classification: NORMAL.",
@@ -326,10 +326,6 @@
         "target": "BAMLH0A0HYM2"
       },
       "history": [
-        {
-          "date": "2026-08-19",
-          "value": 2.73
-        },
         {
           "date": "2026-08-20",
           "value": 2.75
@@ -445,6 +441,10 @@
         {
           "date": "2026-09-29",
           "value": 3.08
+        },
+        {
+          "date": "2026-09-30",
+          "value": 3.12
         }
       ]
     },
@@ -598,9 +598,9 @@
       "category": "market",
       "name": "CBOE Volatility Index",
       "name_zh": "VIX 波動率指數",
-      "value": 16.34,
+      "value": 17.27,
       "unit": "",
-      "data_date": "2026-09-30",
+      "data_date": "2026-10-01",
       "signal": "NEUTRAL",
       "signal_color": "positive",
       "interpretation": "CupSir framework classification: NEUTRAL.",
@@ -616,10 +616,6 @@
         "target": "TVC:VIX"
       },
       "history": [
-        {
-          "date": "2026-08-20",
-          "value": 16.01
-        },
         {
           "date": "2026-08-21",
           "value": 15.13
@@ -735,6 +731,10 @@
         {
           "date": "2026-09-30",
           "value": 16.34
+        },
+        {
+          "date": "2026-10-01",
+          "value": 17.27
         }
       ]
     },
@@ -743,9 +743,9 @@
       "category": "market",
       "name": "US Dollar Index",
       "name_zh": "美元指數 DXY",
-      "value": 101.461,
+      "value": 101.718,
       "unit": "",
-      "data_date": "2026-09-30",
+      "data_date": "2026-10-01",
       "signal": "USD STRENGTHENING",
       "signal_color": "warning",
       "interpretation": "CupSir framework classification: USD STRENGTHENING.",
@@ -761,10 +761,6 @@
         "target": "TVC:DXY"
       },
       "history": [
-        {
-          "date": "2026-08-19",
-          "value": 98.83
-        },
         {
           "date": "2026-08-20",
           "value": 98.9
@@ -879,7 +875,11 @@
         },
         {
           "date": "2026-09-30",
-          "value": 101.461
+          "value": 101.45
+        },
+        {
+          "date": "2026-10-01",
+          "value": 101.718
         }
       ]
     },
@@ -888,9 +888,9 @@
       "category": "market",
       "name": "Copper Futures",
       "name_zh": "銅價",
-      "value": 6.627,
+      "value": 6.571,
       "unit": "USD",
-      "data_date": "2026-09-30",
+      "data_date": "2026-10-01",
       "signal": "NEUTRAL",
       "signal_color": "warning",
       "interpretation": "CupSir framework classification: NEUTRAL.",
@@ -906,10 +906,6 @@
         "target": "COMEX:HG1!"
       },
       "history": [
-        {
-          "date": "2026-08-19",
-          "value": 6.488
-        },
         {
           "date": "2026-08-20",
           "value": 6.46
@@ -1024,7 +1020,11 @@
         },
         {
           "date": "2026-09-30",
-          "value": 6.627
+          "value": 6.559
+        },
+        {
+          "date": "2026-10-01",
+          "value": 6.571
         }
       ]
     },
@@ -1033,9 +1033,9 @@
       "category": "market",
       "name": "WTI Crude Oil",
       "name_zh": "WTI 原油",
-      "value": 90.16,
+      "value": 91.82,
       "unit": "USD",
-      "data_date": "2026-09-30",
+      "data_date": "2026-10-01",
       "signal": "DECLINING",
       "signal_color": "warning",
       "interpretation": "CupSir framework classification: DECLINING.",
@@ -1051,10 +1051,6 @@
         "target": "NYMEX:CL1!"
       },
       "history": [
-        {
-          "date": "2026-08-19",
-          "value": 85.83
-        },
         {
           "date": "2026-08-20",
           "value": 87.83
@@ -1169,7 +1165,11 @@
         },
         {
           "date": "2026-09-30",
-          "value": 90.16
+          "value": 90.42
+        },
+        {
+          "date": "2026-10-01",
+          "value": 91.82
         }
       ]
     },
