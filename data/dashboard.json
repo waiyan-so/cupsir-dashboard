@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-01 14:42 UTC",
+  "updated_at": "2026-10-01 23:34 UTC",
   "overall_signal": "BULLISH",
   "total_score": 6,
   "category_labels": {
@@ -163,9 +163,9 @@
       "category": "macro",
       "name": "10Y-2Y Treasury Spread",
       "name_zh": "十年減兩年孳息差",
-      "value": 0.41,
+      "value": 0.46,
       "unit": "%",
-      "data_date": "2026-09-30",
+      "data_date": "2026-10-01",
       "signal": "NORMAL",
       "signal_color": "positive",
       "interpretation": "CupSir framework classification: NORMAL.",
@@ -181,10 +181,6 @@
         "target": "T10Y2Y"
       },
       "history": [
-        {
-          "date": "2026-08-19",
-          "value": 0.46
-        },
         {
           "date": "2026-08-20",
           "value": 0.5
@@ -300,6 +296,10 @@
         {
           "date": "2026-09-30",
           "value": 0.41
+        },
+        {
+          "date": "2026-10-01",
+          "value": 0.46
         }
       ]
     },
@@ -453,7 +453,7 @@
       "category": "macro",
       "name": "Atlanta Fed GDPNow",
       "name_zh": "GDPNow 實時預估",
-      "value": 3.737,
+      "value": 3.677,
       "unit": "%",
       "data_date": "2026-07-01",
       "signal": "STRONG",
@@ -589,7 +589,7 @@
         },
         {
           "date": "2026-07-01",
-          "value": 3.7372
+          "value": 3.6773
         }
       ]
     },
@@ -598,7 +598,7 @@
       "category": "market",
       "name": "CBOE Volatility Index",
       "name_zh": "VIX 波動率指數",
-      "value": 17.27,
+      "value": 16.39,
       "unit": "",
       "data_date": "2026-10-01",
       "signal": "NEUTRAL",
@@ -734,7 +734,7 @@
         },
         {
           "date": "2026-10-01",
-          "value": 17.27
+          "value": 16.39
         }
       ]
     },
@@ -743,7 +743,7 @@
       "category": "market",
       "name": "US Dollar Index",
       "name_zh": "美元指數 DXY",
-      "value": 101.718,
+      "value": 102.043,
       "unit": "",
       "data_date": "2026-10-01",
       "signal": "USD STRENGTHENING",
@@ -879,7 +879,7 @@
         },
         {
           "date": "2026-10-01",
-          "value": 101.718
+          "value": 102.043
         }
       ]
     },
@@ -888,7 +888,7 @@
       "category": "market",
       "name": "Copper Futures",
       "name_zh": "銅價",
-      "value": 6.571,
+      "value": 6.58,
       "unit": "USD",
       "data_date": "2026-10-01",
       "signal": "NEUTRAL",
@@ -1024,7 +1024,7 @@
         },
         {
           "date": "2026-10-01",
-          "value": 6.571
+          "value": 6.58
         }
       ]
     },
@@ -1033,7 +1033,7 @@
       "category": "market",
       "name": "WTI Crude Oil",
       "name_zh": "WTI 原油",
-      "value": 91.82,
+      "value": 93.06,
       "unit": "USD",
       "data_date": "2026-10-01",
       "signal": "DECLINING",
@@ -1169,7 +1169,7 @@
         },
         {
           "date": "2026-10-01",
-          "value": 91.82
+          "value": 93.06
         }
       ]
     },
