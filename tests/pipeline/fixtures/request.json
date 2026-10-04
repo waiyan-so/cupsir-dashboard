@@ -1,5 +1,5 @@
 {
-  "notes": "Real daily bars used by fixed tests. Edit this list and push to a non-main branch (or run the 'Fetch test fixtures' workflow by hand) to refresh. One CSV per entry in tests/pipeline/fixtures/real/.",
+  "notes": "Real daily bars used by fixed tests. Edit this list, then run the 'Fetch test fixtures' workflow by hand to refresh. One CSV per entry in tests/pipeline/fixtures/real/.",
   "requests": [
     {
       "ticker": "SPY",

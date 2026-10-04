@@ -1,15 +1,11 @@
 name: Fetch test fixtures
 
-# Downloads the historical bars listed in tests/pipeline/fixtures/request.json
-# and commits them as CSV fixtures for the fixed tests. Not part of the daily
-# data refresh: it runs only by hand, or when request.json changes on a
-# branch other than main.
+# Downloads the historical bars and the CFTC sample listed in
+# tests/pipeline/fixtures/request.json and commits them as fixtures for the
+# fixed tests. Not part of the daily data refresh: it runs only by hand
+# (Actions tab -> this workflow -> Run workflow, on the branch that needs them).
 on:
   workflow_dispatch:
-  push:
-    branches-ignore: [main]
-    paths:
-      - tests/pipeline/fixtures/request.json
 
 permissions:
   contents: write
@@ -28,7 +24,6 @@ jobs:
       - name: Download fixtures
         run: python tests/pipeline/fetch_fixtures.py
       - name: Commit fixtures
-        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
