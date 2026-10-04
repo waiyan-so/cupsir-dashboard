@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-04 12:42 UTC",
+  "updated_at": "2026-10-04 13:02 UTC",
   "overall_signal": "BULLISH",
   "total_score": 7,
   "category_labels": {
@@ -888,7 +888,7 @@
       "category": "market",
       "name": "Copper Futures",
       "name_zh": "銅價",
-      "value": 6.492,
+      "value": 6.549,
       "unit": "USD",
       "data_date": "2026-10-02",
       "signal": "NEUTRAL",
@@ -1024,7 +1024,7 @@
         },
         {
           "date": "2026-10-02",
-          "value": 6.492
+          "value": 6.549
         }
       ]
     },
