@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 import requests
 import yfinance as yf
-from config import INDICATORS, CATEGORY_LABELS, CATEGORY_ORDER
+from config import INDICATORS, CATEGORY_LABELS, CATEGORY_ORDER, INTERPRETATION_TEXT, FETCH_FAILED_TEXT
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
@@ -110,7 +110,7 @@ def main():
                 "id": iid, "category": cfg["category"], "name": cfg["name"], "name_zh": cfg["name_zh"],
                 "value": round(value, 3) if isinstance(value, float) else value, "unit": cfg.get("unit", ""),
                 "data_date": data_date, "signal": label, "signal_color": color,
-                "interpretation": f"CupSir framework classification: {label}.", "checklist": cfg["checklist"],
+                "interpretation": INTERPRETATION_TEXT.format(signal=label), "checklist": cfg["checklist"],
                 "source_name": {"fred": "FRED", "market": "Yahoo Finance", "cot": "CFTC"}.get(cfg["source"], "Source"),
                 "source_url": cfg["source_url"], "embed": cfg.get("embed"), "history": history[-30:]
             })
@@ -118,7 +118,7 @@ def main():
             output["indicators"].append({
                 "id": iid, "category": cfg["category"], "name": cfg["name"], "name_zh": cfg["name_zh"],
                 "value": "N/A", "unit": cfg.get("unit", ""), "data_date": "N/A", "signal": "UNAVAILABLE",
-                "signal_color": "warning", "interpretation": f"Data fetch failed: {str(e)[:120]}",
+                "signal_color": "warning", "interpretation": FETCH_FAILED_TEXT.format(error=str(e)[:120]),
                 "checklist": cfg["checklist"], "source_name": "Source", "source_url": cfg["source_url"],
                 "embed": cfg.get("embed"), "history": []
             })

@@ -123,3 +123,9 @@ CATEGORY_LABELS = {
     "cot": "三、COT 聰明錢持倉",
 }
 CATEGORY_ORDER = ["macro", "market", "cot"]
+
+# The sentence under each indicator's value in the detail panel
+# (dashboard.json "interpretation"). {signal} is the indicator's signal label;
+# {error} is the reason a fetch failed, as reported by the source.
+INTERPRETATION_TEXT = "CupSir 框架分類：{signal}。"
+FETCH_FAILED_TEXT = "資料讀取失敗：{error}"

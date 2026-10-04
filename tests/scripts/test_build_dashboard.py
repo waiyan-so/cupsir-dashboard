@@ -81,3 +81,37 @@ def test_one_working_source_is_enough_to_write(data_dir, monkeypatch, working, c
     with_value = [x["id"] for x in out["indicators"] if x["value"] != "N/A"]
     assert with_value and len(with_value) < len(out["indicators"])
     assert "::warning::" not in capsys.readouterr().out
+
+
+# ---------------------------------------------------------------- X14: the sentence under the value
+
+def has_cjk(text):
+    return any("\u4e00" <= ch <= "\u9fff" for ch in text)
+
+
+def test_interpretation_is_chinese_and_names_the_signal(data_dir, monkeypatch):
+    use_sources(monkeypatch)
+    bd.main()
+    out = json.loads((data_dir / "dashboard.json").read_text(encoding="utf-8"))
+    for item in out["indicators"]:
+        assert has_cjk(item["interpretation"]), item["id"]
+        assert item["signal"] in item["interpretation"], item["id"]
+        assert "framework classification" not in item["interpretation"]
+
+
+def test_a_failed_fetch_is_explained_in_chinese(data_dir, monkeypatch):
+    use_sources(monkeypatch, fred=boom)
+    bd.main()
+    out = json.loads((data_dir / "dashboard.json").read_text(encoding="utf-8"))
+    failed = [x for x in out["indicators"] if x["signal"] == "UNAVAILABLE"]
+    assert failed
+    for item in failed:
+        assert has_cjk(item["interpretation"])
+        assert "source is down" in item["interpretation"]
+        assert "Data fetch failed" not in item["interpretation"]
+
+
+def test_the_sentences_live_in_config_not_in_the_build_script():
+    import inspect
+    source = inspect.getsource(bd)
+    assert "框架分類" not in source and "資料讀取失敗" not in source
