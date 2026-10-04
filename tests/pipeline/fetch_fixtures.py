@@ -15,6 +15,7 @@ import sys
 import time
 from pathlib import Path
 
+import pandas as pd
 import yfinance as yf
 
 HERE = Path(__file__).resolve().parent
@@ -48,10 +49,35 @@ def fetch(req):
     raise RuntimeError(last_error)
 
 
+def fetch_cftc(spec):
+    """Rows of the real CFTC yearly files for a few contract codes, kept in the files' own
+    column layout so tests exercise the production parser. Also records the full header."""
+    sys.path.insert(0, str(HERE.parents[1] / "scripts"))
+    from pipeline.collect import cftc
+    tables = [cftc.download_year(year) for year in spec["years"]]
+    raw = pd.concat(tables, ignore_index=True)
+    (OUT / "cftc_legacy_header.txt").write_text("\n".join(str(c) for c in tables[-1].columns) + "\n", encoding="utf-8")
+    code_col = cftc.find_column(raw, cftc.CODE_COLUMN)
+    keep = [cftc.find_column(raw, cftc.NAME_COLUMN), cftc.find_column(raw, cftc.DATE_COLUMN), code_col]
+    keep += [cftc.find_column(raw, name) for name in cftc.POSITION_COLUMNS.values()]
+    sample = raw[raw[code_col].astype(str).str.strip().isin(spec["codes"])][keep]
+    sample.to_csv(OUT / "cftc_legacy_sample.csv", index=False)
+    print(f"cftc_legacy_sample.csv: {len(sample)} rows, code column is '{code_col}', "
+          f"codes found: {sorted(sample[code_col].astype(str).str.strip().unique())}")
+
+
 def main():
-    requests_ = json.loads(REQUEST.read_text(encoding="utf-8"))["requests"]
+    request = json.loads(REQUEST.read_text(encoding="utf-8"))
+    requests_ = request["requests"]
     OUT.mkdir(parents=True, exist_ok=True)
     failed = 0
+    if "cftc" in request:
+        try:
+            fetch_cftc(request["cftc"])
+        except Exception as e:  # noqa: BLE001
+            failed += 1
+            (OUT / "cftc_legacy_error.txt").write_text(f"{type(e).__name__}: {e}\n", encoding="utf-8")
+            print(f"::warning::cftc sample: download failed - {type(e).__name__}: {e}")
     for req in requests_:
         name = fixture_name(req)
         try:
