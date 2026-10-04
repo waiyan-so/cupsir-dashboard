@@ -6,7 +6,8 @@ Each indicator dict:
   source       - "fred" | "market" | "cot"
   series_id    - FRED series id (source == "fred")
   ticker       - Yahoo Finance ticker (source == "market")
-  cot_market   - CFTC "Market_and_Exchange_Names" substring (source == "cot")
+  cot_market   - full CFTC "Market and Exchange Names" value, "<CONTRACT> - <EXCHANGE>"
+                 (source == "cot"). Matched exactly, never as a prefix or substring.
   embed        - {"type": "fred"|"tradingview", "target": <series_id or TradingView symbol>}
                  drives the live chart iframe/widget in the detail panel
 """
@@ -76,35 +77,40 @@ INDICATORS = {
     # ---- 三、COT 聰明錢持倉 (cot) ----
     "cot_sp500": {
         "category": "cot", "name": "S&P 500 COT", "name_zh": "S&P 500 COT 持倉",
-        "source": "cot", "report": "tff", "cot_market": "E-MINI S&P 500", "unit": "index",
+        "source": "cot", "report": "tff", "cot_market": "E-MINI S&P 500 - CHICAGO MERCANTILE EXCHANGE", "unit": "index",
         "checklist": ["機構方(Dealer+Asset Manager)COT Index 是否 ≥80 或 ≤20", "槓桿基金 Sentiment Index 是否反向極端", "確認是否出現極端擠擁"],
         "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders",
         "embed": {"type": "tradingview", "target": "SP:SPX"},
     },
     "cot_10y": {
         "category": "cot", "name": "10Y Treasury COT", "name_zh": "10年期國債 COT",
-        "source": "cot", "report": "tff", "cot_market": "UST 10Y NOTE", "unit": "index",
+        "source": "cot", "report": "tff", "cot_market": "UST 10Y NOTE - CHICAGO BOARD OF TRADE", "unit": "index",
         "checklist": ["機構方(Dealer+Asset Manager)COT Index 是否 ≥80 或 ≤20", "槓桿基金 Sentiment Index 是否反向極端", "是否與孳息曲線走勢背馳"],
         "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders",
         "embed": {"type": "tradingview", "target": "CBOT:ZN1!"},
     },
     "cot_gold": {
         "category": "cot", "name": "Gold COT", "name_zh": "黃金 COT",
-        "source": "cot", "report": "legacy", "cot_market": "GOLD", "unit": "index",
+        "source": "cot", "report": "legacy", "cot_market": "GOLD - COMMODITY EXCHANGE INC.", "unit": "index",
         "checklist": ["商業持倉者 COT Index 是否 ≥80 或 ≤20", "小型投機者 Sentiment Index 是否反向極端", "是否與避險需求走勢一致"],
         "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders",
         "embed": {"type": "tradingview", "target": "COMEX:GC1!"},
     },
     "cot_oil": {
         "category": "cot", "name": "Oil COT", "name_zh": "原油 COT",
-        "source": "cot", "report": "legacy", "cot_market": "CRUDE OIL, LIGHT SWEET", "unit": "index",
+        # This is the ICE Futures Europe WTI contract - the one the old prefix
+        # "CRUDE OIL, LIGHT SWEET" resolved to, kept so this indicator's value does
+        # not change here. The NYMEX contract has been named
+        # "WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE" since 2022-02-08; switching
+        # to it is a separate, owner-approved change (issue X1).
+        "source": "cot", "report": "legacy", "cot_market": "CRUDE OIL, LIGHT SWEET-WTI - ICE FUTURES EUROPE", "unit": "index",
         "checklist": ["商業持倉者 COT Index 是否 ≥80 或 ≤20", "小型投機者 Sentiment Index 是否反向極端", "是否與油價週期判斷一致"],
         "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders",
         "embed": {"type": "tradingview", "target": "NYMEX:CL1!"},
     },
     "cot_dxy": {
         "category": "cot", "name": "DXY COT", "name_zh": "美元指數 COT",
-        "source": "cot", "report": "tff", "cot_market": "USD INDEX", "unit": "index",
+        "source": "cot", "report": "tff", "cot_market": "USD INDEX - ICE FUTURES U.S.", "unit": "index",
         "checklist": ["機構方(Dealer+Asset Manager)COT Index 是否 ≥80 或 ≤20", "槓桿基金 Sentiment Index 是否反向極端", "是否與風險資產走勢背馳"],
         "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders",
         "embed": {"type": "tradingview", "target": "TVC:DXY"},
