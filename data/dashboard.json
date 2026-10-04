@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-02 23:25 UTC",
+  "updated_at": "2026-10-04 23:34 UTC",
   "overall_signal": "BULLISH",
   "total_score": 7,
   "category_labels": {
@@ -23,7 +23,7 @@
       "data_date": "2026-09-01",
       "signal": "NORMAL",
       "signal_color": "positive",
-      "interpretation": "CupSir framework classification: NORMAL.",
+      "interpretation": "CupSir 框架分類：NORMAL。",
       "checklist": [
         "是否接近 0.5 衰退閾值",
         "是否連續上升",
@@ -168,7 +168,7 @@
       "data_date": "2026-10-02",
       "signal": "NORMAL",
       "signal_color": "positive",
-      "interpretation": "CupSir framework classification: NORMAL.",
+      "interpretation": "CupSir 框架分類：NORMAL。",
       "checklist": [
         "是否倒掛",
         "是否處於倒掛後正常化階段",
@@ -313,7 +313,7 @@
       "data_date": "2026-10-01",
       "signal": "NORMAL",
       "signal_color": "positive",
-      "interpretation": "CupSir framework classification: NORMAL.",
+      "interpretation": "CupSir 框架分類：NORMAL。",
       "checklist": [
         "是否突破 3.5%",
         "是否快速擴大",
@@ -455,10 +455,10 @@
       "name_zh": "GDPNow 實時預估",
       "value": 3.677,
       "unit": "%",
-      "data_date": "2026-07-01",
+      "data_date": "2026 年第三季",
       "signal": "STRONG",
       "signal_color": "positive",
-      "interpretation": "CupSir framework classification: STRONG.",
+      "interpretation": "CupSir 框架分類：STRONG。",
       "checklist": [
         "是否連續兩季為負（技術性衰退）",
         "與官方 GDP 方向是否一致",
@@ -603,7 +603,7 @@
       "data_date": "2026-10-02",
       "signal": "NEUTRAL",
       "signal_color": "positive",
-      "interpretation": "CupSir framework classification: NEUTRAL.",
+      "interpretation": "CupSir 框架分類：NEUTRAL。",
       "checklist": [
         "是否在 20 至 30 的不明朗區間",
         "是否超過 30 或 45",
@@ -743,12 +743,12 @@
       "category": "market",
       "name": "US Dollar Index",
       "name_zh": "美元指數 DXY",
-      "value": 101.924,
+      "value": 101.891,
       "unit": "",
-      "data_date": "2026-10-02",
+      "data_date": "2026-10-04",
       "signal": "USD STRENGTHENING",
       "signal_color": "warning",
-      "interpretation": "CupSir framework classification: USD STRENGTHENING.",
+      "interpretation": "CupSir 框架分類：USD STRENGTHENING。",
       "checklist": [
         "檢查一個月升跌幅",
         "美元急升是否壓制風險資產",
@@ -761,10 +761,6 @@
         "target": "TVC:DXY"
       },
       "history": [
-        {
-          "date": "2026-08-21",
-          "value": 98.8
-        },
         {
           "date": "2026-08-24",
           "value": 99.0
@@ -879,7 +875,11 @@
         },
         {
           "date": "2026-10-02",
-          "value": 101.924
+          "value": 101.93
+        },
+        {
+          "date": "2026-10-04",
+          "value": 101.891
         }
       ]
     },
@@ -888,12 +888,12 @@
       "category": "market",
       "name": "Copper Futures",
       "name_zh": "銅價",
-      "value": 6.579,
+      "value": 6.582,
       "unit": "USD",
-      "data_date": "2026-10-02",
+      "data_date": "2026-10-04",
       "signal": "NEUTRAL",
       "signal_color": "warning",
-      "interpretation": "CupSir framework classification: NEUTRAL.",
+      "interpretation": "CupSir 框架分類：NEUTRAL。",
       "checklist": [
         "距三個月低位的反彈幅度",
         "是否形成底部",
@@ -906,10 +906,6 @@
         "target": "COMEX:HG1!"
       },
       "history": [
-        {
-          "date": "2026-08-21",
-          "value": 6.58
-        },
         {
           "date": "2026-08-24",
           "value": 6.599
@@ -1024,7 +1020,11 @@
         },
         {
           "date": "2026-10-02",
-          "value": 6.579
+          "value": 6.492
+        },
+        {
+          "date": "2026-10-04",
+          "value": 6.582
         }
       ]
     },
@@ -1033,12 +1033,12 @@
       "category": "market",
       "name": "WTI Crude Oil",
       "name_zh": "WTI 原油",
-      "value": 91.26,
+      "value": 91.09,
       "unit": "USD",
-      "data_date": "2026-10-02",
+      "data_date": "2026-10-04",
       "signal": "DECLINING",
       "signal_color": "warning",
-      "interpretation": "CupSir framework classification: DECLINING.",
+      "interpretation": "CupSir 框架分類：DECLINING。",
       "checklist": [
         "距六個月高位的跌幅",
         "油價是否仍處於高位",
@@ -1051,10 +1051,6 @@
         "target": "NYMEX:CL1!"
       },
       "history": [
-        {
-          "date": "2026-08-21",
-          "value": 87.06
-        },
         {
           "date": "2026-08-24",
           "value": 85.01
@@ -1169,7 +1165,11 @@
         },
         {
           "date": "2026-10-02",
-          "value": 91.26
+          "value": 91.11
+        },
+        {
+          "date": "2026-10-04",
+          "value": 91.09
         }
       ]
     },
@@ -1183,7 +1183,7 @@
       "data_date": "2026-09-29",
       "signal": "BULLISH LEAN",
       "signal_color": "positive",
-      "interpretation": "CupSir framework classification: BULLISH LEAN.",
+      "interpretation": "CupSir 框架分類：BULLISH LEAN。",
       "checklist": [
         "機構方(Dealer+Asset Manager)COT Index 是否 ≥80 或 ≤20",
         "槓桿基金 Sentiment Index 是否反向極端",
@@ -1328,7 +1328,7 @@
       "data_date": "2026-09-29",
       "signal": "BULLISH LEAN",
       "signal_color": "positive",
-      "interpretation": "CupSir framework classification: BULLISH LEAN.",
+      "interpretation": "CupSir 框架分類：BULLISH LEAN。",
       "checklist": [
         "機構方(Dealer+Asset Manager)COT Index 是否 ≥80 或 ≤20",
         "槓桿基金 Sentiment Index 是否反向極端",
@@ -1473,7 +1473,7 @@
       "data_date": "2026-09-29",
       "signal": "NEUTRAL",
       "signal_color": "warning",
-      "interpretation": "CupSir framework classification: NEUTRAL.",
+      "interpretation": "CupSir 框架分類：NEUTRAL。",
       "checklist": [
         "商業持倉者 COT Index 是否 ≥80 或 ≤20",
         "小型投機者 Sentiment Index 是否反向極端",
@@ -1618,7 +1618,7 @@
       "data_date": "2026-09-29",
       "signal": "NEUTRAL",
       "signal_color": "warning",
-      "interpretation": "CupSir framework classification: NEUTRAL.",
+      "interpretation": "CupSir 框架分類：NEUTRAL。",
       "checklist": [
         "商業持倉者 COT Index 是否 ≥80 或 ≤20",
         "小型投機者 Sentiment Index 是否反向極端",
@@ -1763,7 +1763,7 @@
       "data_date": "2026-09-29",
       "signal": "NEUTRAL",
       "signal_color": "warning",
-      "interpretation": "CupSir framework classification: NEUTRAL.",
+      "interpretation": "CupSir 框架分類：NEUTRAL。",
       "checklist": [
         "機構方(Dealer+Asset Manager)COT Index 是否 ≥80 或 ≤20",
         "槓桿基金 Sentiment Index 是否反向極端",
