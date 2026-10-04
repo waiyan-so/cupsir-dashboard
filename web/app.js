@@ -139,3 +139,12 @@ async function init() {
   renderSummary(s);
 }
 init().catch(err => document.body.insertAdjacentHTML('afterbegin', `<div class="error">資料讀取失敗：${esc(err.message)}</div>`));
+
+// Tabs: each .tab button shows the .tab-panel whose id is "<data-tab>Tab" and hides the others.
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.tab-panel').forEach(p => { p.hidden = p.id !== `${name}Tab`; });
+  // A chart inside a hidden panel has no width; let every chart re-measure now.
+  window.dispatchEvent(new Event('resize'));
+}
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => switchTab(t.dataset.tab));

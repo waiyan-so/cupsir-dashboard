@@ -1,0 +1,400 @@
+/*
+ * Presentation layer for the market breadth cards and the sector table.
+ *
+ * Everything drawn here comes from the `meta` block of the JSON files: which
+ * indicators exist, where each one appears, how a value is formatted, which
+ * chart to draw and every piece of wording. This file therefore names no
+ * indicator, no threshold and no indicator copy - adding an indicator to
+ * config/indicators.json needs no change here.
+ *
+ * It calculates nothing. The only work done is sorting and number formatting.
+ * Loaded after app.js and uses its load(), cls() and esc().
+ */
+(function () {
+  'use strict';
+
+  const LOAD_ERROR = '資料暫時未能載入';
+  const CHART_HEIGHT = 240;
+  const AXIS = '#94a3b8';
+  const GRID = '#1f2c42';
+  const SURFACE = '#0f1a2c';
+  // Line colours in fixed order (validated for colour-blind separation on the chart surface).
+  // The green / yellow / red of the page are reserved for states and are not used for lines.
+  const SERIES_COLORS = ['#3987e5', '#d95926', '#199e70', '#c98500'];
+  const NAME_COLUMN = '__name';
+
+  const $ = (sel, root) => (root || document).querySelector(sel);
+  const warned = new Set();
+  function warnOnce(kind, name) {
+    const key = `${kind}:${name}`;
+    if (!warned.has(key)) { warned.add(key); console.warn(`[breadth] unknown ${kind} "${name}", showing the raw value`); }
+  }
+
+  // ------------------------------------------------------------ formats
+
+  const num = (v, digits) => Number(v).toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  const FORMATS = {
+    state_chip: v => String(v).replace(/_/g, ' '),
+    count: v => String(v),
+    pct: v => `${num(v, 2)}%`,
+    signed_pct: v => `${v > 0 ? '+' : ''}${num(v, 2)}%`,
+    percentile: (v, labels) => `${Math.round(v)}${labels.percentile_unit ? ' ' + labels.percentile_unit : ''}`,
+    number: v => Number(v).toLocaleString('en-US', { maximumFractionDigits: 4 }),
+  };
+
+  function formatValue(format, value, labels) {
+    if (value === null || value === undefined) return labels.na || 'N/A';
+    const fn = FORMATS[format];
+    if (!fn) { warnOnce('format', format); return String(value); }
+    return fn(value, labels);
+  }
+
+  // A value of unknown kind, for the list of values in a detail panel.
+  function formatPlain(value, labels) {
+    if (value === null || value === undefined) return labels.na || 'N/A';
+    if (typeof value === 'boolean') return (value ? labels.yes : labels.no) || String(value);
+    if (typeof value === 'number') return FORMATS.number(value);
+    return String(value);
+  }
+
+  // The envelope field `state` can be shown like any entry of `values`.
+  const pick = (result, key) => (key === 'state' ? result.state : (result.values || {})[key]);
+  const isOk = result => result && result.status === 'ok';
+  // A result without a tone gets no colour class (cls() would turn it yellow).
+  const toneClass = result => (isOk(result) && result.tone ? cls(result.tone) : '');
+
+  function mainText(spec, result, labels) {
+    if (!isOk(result)) return labels.na || 'N/A';
+    return formatValue(spec.format, pick(result, spec.value_key), labels);
+  }
+
+  function secondaryText(spec, result, labels) {
+    if (!isOk(result) || !spec.secondary_key) return '';
+    const value = pick(result, spec.secondary_key);
+    if (value === null || value === undefined) return '';
+    return formatValue(spec.secondary_format || 'number', value, labels);
+  }
+
+  // ------------------------------------------------------------ charts
+
+  const charts = [];   // { plot, box }
+
+  function destroyChartsIn(root) {
+    for (let i = charts.length - 1; i >= 0; i--) {
+      if (root.contains(charts[i].box)) { charts[i].plot.destroy(); charts.splice(i, 1); }
+    }
+  }
+
+  window.addEventListener('resize', () => {
+    charts.forEach(c => c.plot.setSize({ width: c.box.clientWidth || 600, height: CHART_HEIGHT }));
+  });
+
+  /*
+   * drawLineChart(box, series, opts)
+   *   series: { xs: [unix seconds], lines: [{ label, values, width?, pointsOnly? }] }
+   *   opts:   { levels?: [y values drawn as dashed lines], yRange?: [min, max], xLabel?: text }
+   */
+  function drawLineChart(box, series, opts) {
+    opts = opts || {};
+    const colorOf = i => SERIES_COLORS[(i - 1) % SERIES_COLORS.length];
+    const isoDate = (u, v) => (v == null ? '--' : new Date(v * 1000).toISOString().slice(0, 10));
+    const uSeries = [{ label: opts.xLabel || '', value: isoDate }];
+    series.lines.forEach((line, i) => {
+      const color = colorOf(i + 1);
+      uSeries.push(line.pointsOnly
+        ? { label: line.label, stroke: color, width: 0, points: { show: true, size: 11, fill: color, stroke: SURFACE, width: 2 } }
+        : { label: line.label, stroke: color, width: line.width || 2, points: { show: false } });
+    });
+    const scales = { x: { time: true } };
+    if (opts.yRange) scales.y = { range: opts.yRange };
+    const plot = new uPlot({
+      width: box.clientWidth || 600,
+      height: CHART_HEIGHT,
+      scales,
+      axes: [
+        { stroke: AXIS, grid: { stroke: GRID } },
+        { stroke: AXIS, grid: { stroke: GRID }, size: 56 },
+      ],
+      series: uSeries,
+      legend: { show: true, markers: { width: 2, stroke: (u, i) => colorOf(i), fill: (u, i) => (series.lines[i - 1].pointsOnly ? colorOf(i) : null) } },
+      cursor: { points: { size: 7 } },
+      hooks: {
+        draw: [u => {
+          if (!opts.levels || !opts.levels.length) return;
+          const ctx = u.ctx;
+          ctx.save();
+          ctx.strokeStyle = 'rgba(148,163,184,0.45)';
+          ctx.setLineDash([4, 4]);
+          ctx.lineWidth = 1;
+          opts.levels.forEach(level => {
+            const y = u.valToPos(level, 'y', true);
+            ctx.beginPath();
+            ctx.moveTo(u.bbox.left, y);
+            ctx.lineTo(u.bbox.left + u.bbox.width, y);
+            ctx.stroke();
+          });
+          ctx.restore();
+        }],
+      },
+    }, [series.xs].concat(series.lines.map(l => l.values)), box);
+    charts.push({ plot, box });
+  }
+
+  const toSeconds = date => Math.floor(new Date(date).getTime() / 1000);
+  const column = (history, key) => history.map(p => (p[key] === undefined ? null : p[key]));
+  const seriesLabel = (ind, key) => (ind.value_labels || {})[key] || key;
+
+  function historyLines(ind, result, widthOf) {
+    const keys = ind.detail_chart.series || [];
+    return keys.map((key, i) => ({ label: seriesLabel(ind, key), values: column(result.history, key), width: widthOf(i) }));
+  }
+
+  const chartOptions = (ind, labels) => ({ levels: ind.detail_chart.levels, yRange: ind.detail_chart.y_range, xLabel: labels.date });
+
+  const CHARTS = {
+    line(box, ind, result, labels) {
+      drawLineChart(box, { xs: result.history.map(p => toSeconds(p.date)), lines: historyLines(ind, result, () => 2) }, chartOptions(ind, labels));
+    },
+    // First series is the price; the rest are its moving averages, drawn thinner.
+    price_with_ma(box, ind, result, labels) {
+      drawLineChart(box, { xs: result.history.map(p => toSeconds(p.date)), lines: historyLines(ind, result, i => (i === 0 ? 2 : 1.25)) }, chartOptions(ind, labels));
+    },
+    // The first series, plus a dot on every date listed in the result's events.
+    line_with_markers(box, ind, result, labels) {
+      const lines = historyLines(ind, result, () => 2);
+      const eventDates = new Set((result.events || []).map(e => e.date));
+      const base = lines.length ? lines[0].values : [];
+      lines.push({ label: ind.name_zh, pointsOnly: true, values: result.history.map((p, i) => (eventDates.has(p.date) ? base[i] : null)) });
+      drawLineChart(box, { xs: result.history.map(p => toSeconds(p.date)), lines }, chartOptions(ind, labels));
+    },
+  };
+
+  // Called after the HTML holding `.chart-box[data-chart]` placeholders is in the page.
+  function mountCharts(root, labels, lookup) {
+    root.querySelectorAll('.chart-box[data-chart]').forEach(box => {
+      const { ind, result } = lookup(box.dataset.chart);
+      const draw = CHARTS[ind.detail_chart.type];
+      if (!draw) { warnOnce('chart type', ind.detail_chart.type); box.remove(); return; }
+      if (typeof uPlot === 'undefined') { box.remove(); return; }   // chart library not loaded: text still shows
+      draw(box, ind, result, labels);
+    });
+  }
+
+  // ------------------------------------------------------------ shared detail blocks
+
+  function valuesList(ind, result, labels) {
+    const names = ind.value_labels || {};
+    const rows = Object.keys(names)
+      .filter(key => isOk(result) && key in (result.values || {}))
+      .map(key => `<div class="kv"><span>${esc(names[key])}</span><b>${esc(formatPlain(result.values[key], labels))}</b></div>`);
+    return rows.length ? `<div class="kv-list">${rows.join('')}</div>` : '';
+  }
+
+  function expertView(ind, labels) {
+    const items = (ind.expert_view || []).map(v => `<li>${esc(v)}</li>`).join('');
+    const note = ind.disclaimer ? `<p class="muted breadth-note">${esc(ind.disclaimer)}</p>` : '';
+    return `<h4>${esc(labels.expert_view_heading || '')}</h4><ul>${items}</ul>${note}`;
+  }
+
+  function chartSlot(ind, result, chartKey) {
+    const hasData = ind.detail_chart && isOk(result) && (result.history || []).length > 1;
+    return hasData ? `<div class="chart-box cot-chart-box" data-chart="${esc(chartKey)}"></div>` : '';
+  }
+
+  function dataDateLine(results, labels) {
+    const dates = results.filter(isOk).map(r => r.data_date).filter(Boolean).sort();
+    return dates.length ? `<p class="muted">${esc(labels.data_date || '')}：${esc(dates[dates.length - 1])}</p>` : '';
+  }
+
+  function setTabLabels(labels) {
+    document.querySelectorAll('.tab').forEach(tab => {
+      const text = labels[`tab_${tab.dataset.tab}`];
+      if (text) tab.textContent = text;
+    });
+  }
+
+  // ------------------------------------------------------------ components
+
+  const COMPONENTS = {
+    // One small card per indicator, one line per subject. Click to open the detail below the cards.
+    status_card(ind, payload) {
+      const labels = payload.meta.ui_labels || {};
+      const lines = ind.subjects.map(sid => {
+        const subject = payload.meta.subjects.find(s => s.id === sid) || { name_zh: sid };
+        const result = (payload.results[ind.id] || {})[sid];
+        const secondary = secondaryText(ind, result, labels);
+        return `<span class="card-row"><span>${esc(subject.name_zh)}</span><span class="card-value"><b class="${toneClass(result)}">${esc(mainText(ind, result, labels))}</b>${secondary ? `<small class="${toneClass(result)}">${esc(secondary)}</small>` : ''}</span></span>`;
+      }).join('');
+      return `<button class="status-card" data-id="${esc(ind.id)}"><span class="card-title">${esc(ind.name_zh)}</span>${lines}</button>`;
+    },
+    // One table cell per row.
+    table_column(ind, row, labels) {
+      const result = row.results[ind.id];
+      const secondary = secondaryText(ind, result, labels);
+      const title = isOk(result) ? '' : ` title="${esc(result ? result.reason : '')}"`;
+      return `<td class="${toneClass(result)}"${title}>${esc(mainText(ind, result, labels))}${secondary ? `<small>${esc(secondary)}</small>` : ''}</td>`;
+    },
+  };
+
+  function byComponent(indicators, component) {
+    return (indicators || []).filter(ind => {
+      if (!COMPONENTS[ind.component]) { warnOnce('component', ind.component); return false; }
+      return ind.component === component;
+    }).sort((a, b) => a.order - b.order);
+  }
+
+  // ------------------------------------------------------------ market: status cards
+
+  function renderMarket(payload) {
+    const box = $('#breadthCards');
+    const labels = payload.meta.ui_labels || {};
+    const inds = byComponent(payload.meta.indicators, 'status_card');
+    if (!inds.length) { box.innerHTML = ''; return; }
+    const all = inds.flatMap(ind => ind.subjects.map(sid => (payload.results[ind.id] || {})[sid]));
+    box.innerHTML = `<div class="status-cards">${inds.map(ind => COMPONENTS.status_card(ind, payload)).join('')}</div>`
+      + `<div id="breadthDetail" class="panel breadth-detail" hidden></div>${dataDateLine(all, labels)}`;
+
+    const detail = $('#breadthDetail');
+    const cards = box.querySelectorAll('.status-card');
+    cards.forEach(card => card.onclick = () => {
+      const wasOpen = card.classList.contains('active');
+      cards.forEach(c => c.classList.remove('active'));
+      destroyChartsIn(detail);
+      if (wasOpen) { detail.hidden = true; detail.innerHTML = ''; return; }
+      card.classList.add('active');
+      const ind = inds.find(i => i.id === card.dataset.id);
+      const blocks = ind.subjects.map(sid => {
+        const subject = payload.meta.subjects.find(s => s.id === sid) || { name_zh: sid, ticker: '' };
+        const result = (payload.results[ind.id] || {})[sid];
+        return `<div class="subject-block">
+          <div class="subject-head"><b>${esc(subject.name_zh)} <small class="muted-inline">${esc(subject.ticker)}</small></b><span class="chip ${toneClass(result)}">${esc(mainText(ind, result, labels))}</span></div>
+          ${chartSlot(ind, result, sid)}
+          ${valuesList(ind, result, labels)}
+        </div>`;
+      }).join('');
+      detail.innerHTML = `<div class="detail-head"><div><h2>${esc(ind.name_zh)}</h2><p class="muted">${esc(ind.name)}</p></div></div>
+        <div class="subject-grid">${blocks}</div>${expertView(ind, labels)}`;
+      detail.hidden = false;
+      mountCharts(detail, labels, sid => ({ ind, result: payload.results[ind.id][sid] }));
+    });
+  }
+
+  // ------------------------------------------------------------ table view (sector table)
+
+  function sortKey(spec, ind, row) {
+    const result = row.results[spec.indicator];
+    if (!isOk(result)) return null;
+    const value = pick(result, spec.value_key);
+    if (value === null || value === undefined) return null;
+    if (ind && ind.sort_order && spec.value_key === ind.value_key) {
+      const position = ind.sort_order.indexOf(value);
+      return position === -1 ? ind.sort_order.length : position;
+    }
+    return value;
+  }
+
+  // N/A rows always sink to the bottom, whatever the direction.
+  function compareRows(a, b, spec, ind) {
+    const x = sortKey(spec, ind, a), y = sortKey(spec, ind, b);
+    if (x === null && y === null) return 0;
+    if (x === null) return 1;
+    if (y === null) return -1;
+    const diff = typeof x === 'string' || typeof y === 'string' ? String(x).localeCompare(String(y)) : x - y;
+    return spec.dir === 'desc' ? -diff : diff;
+  }
+
+  function renderTable(payload, tableSel, detailSel, nameLabelKey) {
+    const tableBox = $(tableSel), detailBox = $(detailSel);
+    const meta = payload.meta, labels = meta.ui_labels || {};
+    const inds = byComponent(meta.indicators, 'table_column');
+    const indById = Object.fromEntries(inds.map(i => [i.id, i]));
+    let sort = meta.default_sort ? Object.assign({ column: meta.default_sort.indicator }, meta.default_sort) : null;
+    let openRow = null;
+
+    function sortedRows() {
+      const rows = payload.rows.map((row, i) => ({ row, i }));
+      rows.sort((a, b) => {
+        let diff = 0;
+        if (sort && sort.column === NAME_COLUMN) {
+          diff = a.row.name_zh.localeCompare(b.row.name_zh);
+          if (sort.dir === 'desc') diff = -diff;
+        } else if (sort) {
+          diff = compareRows(a.row, b.row, sort, indById[sort.indicator]);
+          if (diff === 0 && meta.tie_break) diff = compareRows(a.row, b.row, meta.tie_break, indById[meta.tie_break.indicator]);
+        }
+        return diff || a.i - b.i;
+      });
+      return rows.map(r => r.row);
+    }
+
+    function draw() {
+      const arrow = col => (sort && sort.column === col ? (sort.dir === 'desc' ? ' ▼' : ' ▲') : '');
+      const head = `<th data-col="${NAME_COLUMN}">${esc(labels[nameLabelKey] || '')}${arrow(NAME_COLUMN)}</th>`
+        + inds.map(ind => `<th data-col="${esc(ind.id)}">${esc(ind.column_label)}${arrow(ind.id)}</th>`).join('');
+      const body = sortedRows().map(row => `<tr data-id="${esc(row.id)}" class="${row.id === openRow ? 'active' : ''}">
+        <td>${esc(row.name_zh)}<small>${esc((row.tickers || {}).subject || '')}</small></td>
+        ${inds.map(ind => COMPONENTS.table_column(ind, row, labels)).join('')}</tr>`).join('');
+      const notes = inds.filter(ind => ind.disclaimer).map(ind => `<p class="muted breadth-note">${esc(ind.disclaimer)}</p>`).join('');
+      const all = payload.rows.flatMap(row => inds.map(ind => row.results[ind.id]));
+      tableBox.innerHTML = `<div class="table-scroll"><table class="breadth-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>${notes}${dataDateLine(all, labels)}`;
+
+      tableBox.querySelectorAll('th').forEach(th => th.onclick = () => {
+        const col = th.dataset.col;
+        if (sort && sort.column === col) {
+          sort = Object.assign({}, sort, { dir: sort.dir === 'desc' ? 'asc' : 'desc' });
+        } else if (col === NAME_COLUMN) {
+          sort = { column: col, dir: 'asc' };
+        } else {
+          const ind = indById[col];
+          sort = { column: col, indicator: col, value_key: ind.value_key, dir: ind.sort_order ? 'asc' : 'desc' };
+        }
+        draw();
+      });
+      tableBox.querySelectorAll('tbody tr').forEach(tr => tr.onclick = () => {
+        openRow = openRow === tr.dataset.id ? null : tr.dataset.id;
+        draw();
+        drawDetail();
+      });
+    }
+
+    function drawDetail() {
+      destroyChartsIn(detailBox);
+      const row = payload.rows.find(r => r.id === openRow);
+      if (!row) { detailBox.innerHTML = ''; return; }
+      const blocks = inds.map(ind => {
+        const result = row.results[ind.id];
+        return `<div class="subject-block stacked">
+          <div class="subject-head"><b>${esc(ind.name_zh)} <small class="muted-inline">${esc(ind.name)}</small></b><span class="chip ${toneClass(result)}">${esc(mainText(ind, result, labels))}</span></div>
+          ${chartSlot(ind, result, ind.id)}
+          ${valuesList(ind, result, labels)}
+          ${expertView(ind, labels)}
+        </div>`;
+      }).join('');
+      const tickers = Object.values(row.tickers || {}).join(' · ');
+      detailBox.innerHTML = `<div class="detail-head breadth-detail-head"><div><h2>${esc(row.name_zh)}</h2><p class="muted">${esc(tickers)}</p></div></div>${blocks}`;
+      mountCharts(detailBox, labels, id => ({ ind: indById[id], result: row.results[id] }));
+    }
+
+    draw();
+  }
+
+  // ------------------------------------------------------------ loading
+
+  const SOURCES = [
+    { file: 'data/market_breadth.json', box: '#breadthCards', render: renderMarket },
+    { file: 'data/sectors.json', box: '#sectorTable', render: p => renderTable(p, '#sectorTable', '#sectorDetail', 'sector_column') },
+  ];
+
+  // Each file loads on its own: one failing never affects the other or the existing page.
+  SOURCES.forEach(async source => {
+    try {
+      const payload = await load(source.file);
+      setTabLabels((payload.meta || {}).ui_labels || {});
+      source.render(payload);
+    } catch (err) {
+      console.warn(`[breadth] ${source.file}: ${err.message}`);
+      const box = $(source.box);
+      if (box) box.innerHTML = `<p class="muted breadth-error">${LOAD_ERROR}</p>`;
+    }
+  });
+})();

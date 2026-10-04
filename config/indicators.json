@@ -7,6 +7,8 @@
     "sector_column": "板塊",
     "na": "N/A",
     "data_date": "數據日期",
+    "date": "日期",
+    "percentile_unit": "百分位",
     "yes": "是",
     "no": "否"
   },
@@ -48,7 +50,7 @@
         "sector": {"component": "table_column", "order": 30, "column_label": "出貨日 25D", "value_key": "count_25d", "format": "count"}
       },
       "detail_chart": {"type": "line_with_markers", "series": ["close"]},
-      "value_labels": {"count_25d": "25 日內出貨日數"},
+      "value_labels": {"count_25d": "25 日內出貨日數", "close": "收市價"},
       "expert_view": ["25 個交易日內出貨日是否達 5 日或以上", "出貨日是否集中在最近數日", "是否同時跌穿 50 日線"],
       "disclaimer": null,
       "notes": "公式見規格第 3.2 節。收市價為調整後價格，避免除息日被錯計。values 的鍵名是 count_<window>d。"
@@ -66,7 +68,7 @@
         "sector": {"component": "table_column", "order": 40, "column_label": "Eq/Cap 比率 21D 變化", "value_key": "roc_21d_pct", "format": "signed_pct"}
       },
       "detail_chart": {"type": "line", "series": ["ratio"]},
-      "value_labels": {"ratio": "比率", "normalized": "標準化（歷史首日 = 100）", "roc_21d_pct": "21 日變化"},
+      "value_labels": {"ratio": "比率", "normalized": "標準化（圖表首日 = 100）", "roc_21d_pct": "21 日變化（%）"},
       "expert_view": ["比率 21 日變化是否向上（參與擴散）", "價格上升時比率是否同步上升", "比率下降是否代表升勢集中於少數大型股"],
       "disclaimer": null,
       "notes": "公式見規格第 3.3、4.2 節。顏色規則是設計預設值 D1：21 日變化大於 0 為 positive，小於 0 為 negative。values 的鍵名是 roc_<roc_window>d_pct。"
@@ -102,7 +104,7 @@
                    "value_key": "percentile_252d", "format": "percentile", "secondary_key": "annualized_pct", "secondary_format": "pct"}
       },
       "detail_chart": {"type": "line", "series": ["annualized_pct"]},
-      "value_labels": {"annualized_pct": "年化波幅", "percentile_252d": "一年百分位"},
+      "value_labels": {"annualized_pct": "年化波幅（%）", "percentile_252d": "一年百分位"},
       "expert_view": ["百分位是否處於過去一年高位", "波幅上升時趨勢狀態有否同步轉弱", "各板塊的波幅百分位是否普遍上升"],
       "disclaimer": "板塊波幅為過去 21 個交易日的已實現波幅（Realized Volatility），量度已發生的波動；VIX 為期權市場對未來 30 日的隱含波動率（Implied Volatility）。兩者計法不同，數值不可直接比較。請看百分位（與該板塊自身過去一年相比），而非絕對數值。",
       "notes": "公式見規格第 4.3 節。顏色規則是設計預設值 D2。bands 的判斷：數值小於或等於上限即屬該段。values 的鍵名是 percentile_<percentile_window>d。"
@@ -121,7 +123,7 @@
       },
       "cross_section": [{"op": "rank", "value_key": "return_63d_excess_pct", "dir": "desc", "target_key": "rank_by_63d"}],
       "detail_chart": null,
-      "value_labels": {"return_21d_excess_pct": "21 日超額回報", "return_63d_excess_pct": "63 日超額回報", "rs_slope_21d": "RS 線 21 日斜率", "rank_by_63d": "63 日排名"},
+      "value_labels": {"return_21d_excess_pct": "21 日超額回報（%）", "return_63d_excess_pct": "63 日超額回報（%）", "rs_slope_21d": "RS 線 21 日斜率", "rank_by_63d": "63 日排名"},
       "expert_view": ["63 日超額回報排名是否靠前", "21 日與 63 日方向是否一致", "領先板塊有否出現輪換"],
       "disclaimer": null,
       "notes": "公式見規格第 4.4 節。rank_by_63d 由板塊處理層按 cross_section 補入。values 的鍵名是 return_<window>d_excess_pct 和 rs_slope_<slope_window>d。"
