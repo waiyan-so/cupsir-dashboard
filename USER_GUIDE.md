@@ -1,137 +1,117 @@
-# CupSir Dashboard: Installation Guide
+# CupSir Dashboard: User Guide
 
 ## 1. What you need
 
-- A GitHub account
-- A new GitHub repository, for example `cupsir-dashboard`
-- A free FRED API key from https://fred.stlouisfed.org/docs/api/api_key.html
-- Optional: an AI API key if you later replace the local template summary with an LLM-generated summary
+- A GitHub account and this repository.
+- A free FRED API key: https://fred.stlouisfed.org/docs/api/api_key.html
+- A NewsAPI key for the news panel: https://newsapi.org
 
-The dashboard uses GitHub Pages for hosting and GitHub Actions for scheduled refreshes. FRED provides programmatic economic-data access via its API. [GitHub Pages documentation](https://docs.github.com/en/pages) | [FRED API documentation](https://fred.stlouisfed.org/docs/api/fred/)
+## 2. One-time setup
 
-## 2. Create the repository
+1. **Secrets.** In the repository open **Settings -> Secrets and variables -> Actions** and add two repository secrets, named exactly `FRED_API_KEY` and `NEWS_API_KEY`. Never put a key in a file or a commit.
+2. **Pages.** Open **Settings -> Pages** and set **Source** to **GitHub Actions**.
+3. **First run.** Open **Actions -> Update CupSir dashboard data -> Run workflow**. When it finishes, **Deploy CupSir dashboard** starts by itself and publishes the page.
 
-1. On GitHub select **New repository**.
-2. Name it `cupsir-dashboard`.
-3. Select **Public** for the easiest GitHub Pages setup, or use a plan that supports Pages for private repositories.
-4. Create the repository.
+The page address is shown in the deploy run and in the Pages settings. It normally looks like `https://YOUR-GITHUB-USER.github.io/cupsir-dashboard/`.
 
-## 3. Upload this pack
+## 3. How the data refresh works
 
-1. Download and unzip this starter pack.
-2. Upload all contents of `cupsir-dashboard-starter` to the root of your new repository.
-3. Commit the files to the `main` branch.
+`update-data.yml` is scheduled for 20:00 UTC, Monday to Friday. GitHub often starts scheduled jobs late, sometimes by several hours. You can also start it by hand from the Actions tab.
 
-Your repository should contain:
+Each run:
 
-```text
-.github/workflows/update-data.yml
-.github/workflows/deploy-pages.yml
-scripts/
-data/
-web/
-requirements.txt
+1. Builds the 14-day economic calendar (`data/events.json`).
+2. Fetches news (`data/news.json`).
+3. Builds the 13 indicators and the overall signal (`data/dashboard.json`), then the summary (`data/summary.json`).
+4. Builds the market breadth, sector and COT data (`data/market_breadth.json`, `data/sectors.json`, `data/cot.json`).
+5. Commits `data/` and pushes. The deploy workflow then publishes the page.
+
+Two runs on the same branch never overlap; a second one waits for the first.
+
+### Checking a run
+
+A green tick is not enough. Three parts of a run keep the previous data and carry on when something fails, so the run still shows as successful:
+
+| Part | What happens on failure |
+|---|---|
+| News | The previous `news.json` is kept |
+| The 13 indicators | A source that fails shows as unavailable. If every source fails, the previous `dashboard.json` is kept |
+| Breadth, sector and COT step | Marked `continue-on-error`; the previous files are kept |
+
+So open the run page and look at:
+
+- **Annotations** at the bottom of the run summary. Problems are reported there as warnings.
+- **The data dates** on the page itself, and `最後更新` in the header.
+
+## 4. Yearly upkeep: the economic calendar
+
+The calendar uses published release dates, held per year in `scripts/fetch_events.py`:
+
+| Table | Holds | Source |
+|---|---|---|
+| `FOMC_DATES` | FOMC decision days | federalreserve.gov, FOMC calendars |
+| `NFP_DAYS` | Employment Situation release days | bls.gov release schedule |
+| `MONTHLY_RELEASES[...]["days"]` | CPI, PPI, core PCE, retail sales, durable goods, housing starts, new and existing home sales, trade balance, ISM manufacturing and services | OMB schedule of principal economic indicators, Census, ISM, NAR (links are in the file) |
+
+When the agencies publish next year's schedules, usually in the last quarter, add that year to each table.
+
+A year with no table is never guessed. Its events are left out of the calendar and the run reports one warning naming the missing tables. If the calendar looks thin around the turn of the year, this is why.
+
+FOMC minutes (meeting day plus 21 days) and the QRA estimate (first Wednesday of February, May, August and November) are computed and need no upkeep.
+
+## 5. Customising
+
+### The 13 left-hand indicators
+
+Edit `scripts/config.py`: names, FRED series, Yahoo tickers, CFTC market names, checklist wording. Signal thresholds are in `signal()` and `cot_signal()` in `scripts/build_dashboard.py`.
+
+A COT indicator's `cot_market` must be the full CFTC market name, for example `GOLD - COMMODITY EXCHANGE INC.`. It is matched exactly. If the name is not in the CFTC file the indicator shows N/A and the run warns, listing the nearest names.
+
+### Breadth, sector and COT tabs
+
+These are driven by two files and need no code change for routine edits:
+
+- `config/universe.json`: what is covered. Index ETFs, the 11 sectors with their ETFs, and the 16 COT markets with their CFTC contract codes. Adding a COT market is one new entry here.
+- `config/indicators.json`: the indicators, their parameters and thresholds, column labels and the "Expert's view" wording.
+
+A new kind of calculation needs a function in `scripts/pipeline/calc/` plus its entry in `config/indicators.json`.
+
+`python scripts/run_pipeline.py --dry-run` checks the configuration and runs everything without writing files.
+
+## 6. Running locally
+
+```bash
+pip install -r requirements-dev.txt
+pytest
 ```
 
-## 4. Add your FRED secret
+The tests run offline on fixture files. To preview the page, build it the way the deploy workflow does:
 
-1. In your repository, open **Settings -> Secrets and variables -> Actions**.
-2. Select **New repository secret**.
-3. Name it exactly `FRED_API_KEY`.
-4. Paste your FRED API key and save.
-
-Never add the API key to `web/app.js`, a JSON data file, or a Git commit. GitHub Secrets are only available to workflows.
-
-## 5. Enable GitHub Pages
-
-1. Open **Settings -> Pages** in the repository.
-2. Under **Build and deployment**, set **Source** to **GitHub Actions**.
-3. Save.
-
-The deploy workflow publishes the contents of the `web/` folder. After the first successful deployment, GitHub shows the site URL in the **Actions** workflow run and in the Pages settings.
-
-## 6. Run the first update
-
-1. Open the **Actions** tab.
-2. Choose **Update CupSir dashboard data**.
-3. Choose **Run workflow** and confirm.
-4. Wait for the workflow to complete successfully.
-5. Confirm that `data/dashboard.json` was updated.
-6. Open **Deploy CupSir dashboard** or push any small commit to `main` to publish the page.
-
-## 7. Open the dashboard
-
-The page URL normally looks like:
-
-```text
-https://YOUR-GITHUB-USER.github.io/cupsir-dashboard/
+```bash
+mkdir -p _site/data && cp -R web/. _site/ && cp -R data/. _site/data/
+python -m http.server --directory _site 8000
 ```
 
-If the page is blank, open the browser developer tools and check the Network tab. The common cause is an incorrect relative path. This pack places `index.html` in `web/`, so `web/app.js` loads data with `../data/...` paths. GitHub Pages publishes only `web/`, therefore the deployment workflow first copies `data/` into `web/data/`.
+Then open http://localhost:8000. The page loads its data from `data/...` next to `index.html`, so opening `web/index.html` directly shows nothing.
 
-## 8. How the scheduled update works
+To rebuild the data locally, set the two keys as environment variables and run the scripts in the order shown in section 3.
 
-`update-data.yml` is scheduled on weekdays. GitHub scheduled workflows use UTC cron. The current sample runs at `20:00 UTC`, which is morning in Sydney but shifts by one hour when daylight saving changes. Adjust the `cron` line if you need a different time.
+## 7. Troubleshooting
 
-The job:
+**The four macro indicators show UNAVAILABLE.** Check that the `FRED_API_KEY` secret exists, is spelled exactly so, and that the key is active.
 
-1. Fetches FRED and market data.
-2. Runs CupSir-style signal rules.
-3. Writes `data/dashboard.json`.
-4. Commits the updated JSON back to `main`.
-5. The deployment workflow publishes the refreshed dashboard.
+**Market indicators show UNAVAILABLE.** Yahoo Finance sometimes fails or renames a symbol. Re-run the workflow; if it persists, check the ticker in `scripts/config.py`.
 
-## 9. Customise the indicators
+**A COT indicator shows N/A or PENDING.** Read the run's annotations. Either the CFTC file could not be downloaded, or the market name no longer matches (section 5).
 
-Edit `scripts/config.py` to change names, source IDs, checks, and thresholds. The initial version covers:
+**A tab says the data could not be loaded.** Its JSON file is missing or the breadth step failed. Read the annotations and re-run the workflow.
 
-- Sahm Rule
-- 10Y-2Y yield curve
-- High-yield credit spread
-- VIX
-- DXY
-- Copper
-- WTI oil
-- S&P 500 COT placeholder
+**The page did not change after a run.** Check that **Deploy CupSir dashboard** ran after it and succeeded. It can be started by hand.
 
-The `data/events.json` and `data/news.json` files start with samples. Replace them with data generated by your own event/news fetchers in a later phase.
+**The scheduled run did not happen.** Scheduled workflows run only on the default branch and GitHub can delay or skip them under load. Start one by hand.
 
-## 10. Add real AI summaries later
+**The news panel is empty or old.** Check `NEWS_API_KEY`. NewsAPI's free tier is rate-limited and only serves recent articles.
 
-The starter pack creates a deterministic template summary; it does not require an AI key. To add an LLM:
+## 8. Safety note
 
-1. Add a provider key as a GitHub Secret.
-2. Create `scripts/generate_ai_summary.py`.
-3. Send only structured indicator/event/news data to the model.
-4. Require JSON output.
-5. Validate its output before overwriting `data/summary.json`.
-6. Never expose provider keys to the browser.
-
-## 11. Troubleshooting
-
-### FRED job fails
-
-- Confirm the secret name is exactly `FRED_API_KEY`.
-- Confirm the key is active.
-- Re-run the workflow from the Actions tab.
-
-### Market data job fails
-
-- The workflow retains the existing sample values where possible.
-- Yahoo Finance symbols can occasionally fail or change; inspect the Actions log and update `scripts/config.py` if needed.
-
-### GitHub Pages is not live
-
-- Confirm Pages Source is **GitHub Actions**.
-- Open the most recent **Deploy CupSir dashboard** run.
-- Verify it completed successfully.
-
-### No automatic scheduled run
-
-- Scheduled workflows run on the default branch.
-- GitHub may delay scheduled jobs during high load.
-- Use **Run workflow** for an immediate manual update.
-
-## 12. Safety note
-
-This dashboard is for education and market research only. It does not provide financial advice, trading instructions, or execution signals. Economic releases may be revised and market-data availability may be delayed.
+This dashboard is for education and market research. It gives no financial advice, trading instructions or execution signals. Economic releases get revised and market data can be late.
