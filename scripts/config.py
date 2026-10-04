@@ -10,6 +10,8 @@ Each indicator dict:
                  (source == "cot"). Matched exactly, never as a prefix or substring.
   embed        - {"type": "fred"|"tradingview", "target": <series_id or TradingView symbol>}
                  drives the live chart iframe/widget in the detail panel
+  date_as      - "quarter" when the source dates each value by the first day of the
+                 quarter it is for; the detail panel then shows the quarter, not that day
   summary_label - short market name used when the research summary lists the COT
                  markets (source == "cot")
 """
@@ -40,7 +42,9 @@ INDICATORS = {
     "gdpnow": {
         "category": "macro", "name": "Atlanta Fed GDPNow", "name_zh": "GDPNow 實時預估",
         # GDPNow is mirrored on FRED under series id GDPNOW - no separate Excel scraper needed.
-        "source": "fred", "series_id": "GDPNOW", "unit": "%",
+        # FRED dates each GDPNow value by the first day of the quarter being estimated,
+        # so the raw date looks months old while the estimate itself is current.
+        "source": "fred", "series_id": "GDPNOW", "unit": "%", "date_as": "quarter",
         "checklist": ["是否連續兩季為負（技術性衰退）", "與官方 GDP 方向是否一致", "增長率所處區間（強/中性/疲弱/收縮）"],
         "source_url": "https://www.atlantafed.org/cqer/research/gdpnow",
         "embed": {"type": "fred", "target": "GDPNOW"},
@@ -131,3 +135,7 @@ CATEGORY_ORDER = ["macro", "market", "cot"]
 # {error} is the reason a fetch failed, as reported by the source.
 INTERPRETATION_TEXT = "CupSir 框架分類：{signal}。"
 FETCH_FAILED_TEXT = "資料讀取失敗：{error}"
+
+# How a "date_as": "quarter" indicator's data date is written (dashboard.json "data_date").
+QUARTER_DATE_TEXT = "{year} 年第{quarter}季"
+QUARTER_NAMES = ["一", "二", "三", "四"]

@@ -4,7 +4,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 import requests
 import yfinance as yf
-from config import INDICATORS, CATEGORY_LABELS, CATEGORY_ORDER, INTERPRETATION_TEXT, FETCH_FAILED_TEXT
+from config import (INDICATORS, CATEGORY_LABELS, CATEGORY_ORDER, INTERPRETATION_TEXT, FETCH_FAILED_TEXT,
+                    QUARTER_DATE_TEXT, QUARTER_NAMES)
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
@@ -29,6 +30,19 @@ def fred_observations(series_id, limit=60):
 def market_observations(ticker, period="3mo"):
     h = yf.Ticker(ticker).history(period=period)["Close"].dropna()
     return [{"date": d.strftime("%Y-%m-%d"), "value": round(float(v), 3)} for d, v in h.items()]
+
+
+def display_date(iso_date, cfg):
+    """The data date as shown on the page. A "date_as": "quarter" series is dated by
+    the first day of the quarter its value is for, so show the quarter instead of
+    that day; every other date is shown as it is. History points keep real dates."""
+    if cfg.get("date_as") != "quarter":
+        return iso_date
+    try:
+        year, month = int(iso_date[:4]), int(iso_date[5:7])
+        return QUARTER_DATE_TEXT.format(year=year, quarter=QUARTER_NAMES[(month - 1) // 3])
+    except (ValueError, IndexError):
+        return iso_date
 
 
 def signal(indicator_id, value, history):
@@ -90,7 +104,7 @@ def main():
                 history = list(reversed(fred_observations(cfg["series_id"])))
                 value = history[-1]["value"]
                 label, color = signal(iid, value, history)
-                data_date = history[-1]["date"]
+                data_date = display_date(history[-1]["date"], cfg)
             elif cfg["source"] == "market":
                 history = market_observations(cfg["ticker"])
                 value = history[-1]["value"]

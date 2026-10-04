@@ -115,3 +115,35 @@ def test_the_sentences_live_in_config_not_in_the_build_script():
     import inspect
     source = inspect.getsource(bd)
     assert "框架分類" not in source and "資料讀取失敗" not in source
+
+
+# ---------------------------------------------------------------- X17: a quarterly series shows its quarter
+
+QUARTERLY = {"date_as": "quarter"}
+
+
+@pytest.mark.parametrize("iso, shown", [
+    ("2026-01-01", "2026 年第一季"), ("2026-03-31", "2026 年第一季"),
+    ("2026-04-01", "2026 年第二季"), ("2026-07-01", "2026 年第三季"),
+    ("2026-10-01", "2026 年第四季"), ("2027-12-31", "2027 年第四季"),
+])
+def test_quarter_series_show_the_quarter(iso, shown):
+    assert bd.display_date(iso, QUARTERLY) == shown
+
+
+def test_other_series_keep_their_date():
+    assert bd.display_date("2026-07-01", {}) == "2026-07-01"
+
+
+def test_an_unreadable_date_is_passed_through():
+    assert bd.display_date("N/A", QUARTERLY) == "N/A"
+
+
+def test_only_gdpnow_is_marked_quarterly_and_its_history_keeps_real_dates(data_dir, monkeypatch):
+    assert [iid for iid, cfg in bd.INDICATORS.items() if cfg.get("date_as") == "quarter"] == ["gdpnow"]
+    use_sources(monkeypatch)
+    bd.main()
+    out = {x["id"]: x for x in json.loads((data_dir / "dashboard.json").read_text(encoding="utf-8"))["indicators"]}
+    assert out["gdpnow"]["data_date"] == "2026 年第三季"          # fred_rows ends on 2026-09-01
+    assert out["gdpnow"]["history"][-1]["date"] == "2026-09-01"
+    assert out["sahm_rule"]["data_date"] == "2026-09-01"
