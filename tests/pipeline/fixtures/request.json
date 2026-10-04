@@ -1,0 +1,11 @@
+{
+  "notes": "Real daily bars used by fixed tests. Edit this list and push to a non-main branch (or run the 'Fetch test fixtures' workflow by hand) to refresh. One CSV per entry in tests/pipeline/fixtures/real/.",
+  "requests": [
+    {"ticker": "SPY", "start": "2019-01-02", "end": "2020-07-01", "auto_adjust": true,  "why": "FTD case 2020-04-02"},
+    {"ticker": "QQQ", "start": "2019-01-02", "end": "2020-07-01", "auto_adjust": true,  "why": "FTD case 2020-04-02"},
+    {"ticker": "SPY", "start": "2021-07-01", "end": "2024-01-01", "auto_adjust": true,  "why": "FTD cases 2023-01-06 and 2023-11-01"},
+    {"ticker": "QQQ", "start": "2021-07-01", "end": "2024-01-01", "auto_adjust": true,  "why": "FTD cases 2023-01-06 and 2023-11-01"},
+    {"ticker": "XLU", "start": "2026-06-01", "end": "2026-10-03", "auto_adjust": true,  "why": "ex-dividend day must not count as a distribution day"},
+    {"ticker": "XLU", "start": "2026-06-01", "end": "2026-10-03", "auto_adjust": false, "why": "same window, unadjusted, for comparison"}
+  ]
+}
