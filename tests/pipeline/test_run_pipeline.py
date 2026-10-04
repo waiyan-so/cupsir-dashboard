@@ -254,3 +254,47 @@ def test_exit_code_from_the_command_line(tmp_path):
                            "--offline", str(empty), "--dry-run"], capture_output=True, text=True)
     assert proc.returncode == 1
     assert "::error::" in proc.stdout
+
+
+# ---- added after review
+
+def test_registry_key_that_the_results_do_not_have_exits_2(tmp_path, offline_dir):
+    # value_key left behind after a params change: window 25 -> 30 renames count_25d to count_30d
+    stale = registry_with(tmp_path, lambda cfg: cfg["indicators"]["distribution_days"]["params"].update(window=30))
+    code, data = run(tmp_path, "--offline", str(offline_dir), "--registry", stale)
+    assert code == 2 and not data.exists()
+
+
+def test_chart_series_that_the_history_does_not_have_exits_2(tmp_path, offline_dir):
+    stale = registry_with(tmp_path, lambda cfg: cfg["indicators"]["realized_vol"]["detail_chart"].update(series=["vol"]))
+    code, data = run(tmp_path, "--offline", str(offline_dir), "--registry", stale)
+    assert code == 2 and not data.exists()
+
+
+def test_one_output_failing_keeps_its_old_file_and_still_writes_the_other(tmp_path, offline_dir):
+    code, data = run(tmp_path, "--offline", str(offline_dir))
+    market_before = (data / MARKET).read_bytes()
+    sector_before = load(data, SECTORS)
+    for subject in load(data, MARKET)["meta"]["subjects"]:
+        (offline_dir / "prices" / f"{subject['ticker']}.csv").unlink()
+    code, _ = run(tmp_path, "--offline", str(offline_dir), data=data)
+    assert code == 0
+    assert (data / MARKET).read_bytes() == market_before            # every market cell failed: old file kept
+    sector_after = load(data, SECTORS)
+    assert sector_after["rows"][0]["results"]["trend_regime"]["status"] == "ok"
+    assert sector_after["rows"][0]["results"]["relative_strength"]["reason"] == "fetch_failed"   # benchmark gone
+    assert sector_after["updated_at"] >= sector_before["updated_at"]
+
+
+def test_scope_with_no_enabled_indicator_gets_an_empty_file_not_a_failure(tmp_path, offline_dir):
+    def only_market(cfg):
+        for d in cfg["indicators"].values():
+            if "market" in d["scopes"]:
+                d["scopes"].pop("sector", None)      # keep it for the market tab only
+            else:
+                d["enabled"] = False                 # sector-only indicator: switch it off
+    code, data = run(tmp_path, "--offline", str(offline_dir), "--registry", registry_with(tmp_path, only_market))
+    assert code == 0
+    sector = load(data, SECTORS)
+    assert sector["meta"]["indicators"] == [] and all(r["results"] == {} for r in sector["rows"])
+    assert load(data, MARKET)["results"]["trend_regime"]["spy"]["status"] == "ok"

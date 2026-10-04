@@ -15,7 +15,7 @@ PCT_DIGITS = 2
 PERCENTILE_DIGITS = 1
 
 
-@calculator("realized_vol")
+@calculator("realized_vol", params=("window", "percentile_window", "annualize", "history_days"))
 def compute(frames, params):
     close = frames["subject"]["close"]
     daily_return = np.log(close / close.shift(1))

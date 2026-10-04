@@ -13,11 +13,14 @@ without adding its renderer there only produces a console warning in the
 browser, never a broken page.
 """
 import json
+import re
 from pathlib import Path
 
 ROLES = ("subject", "equal_weight", "benchmark")
 SCOPES = ("market", "sector")
 COMPONENTS = ("status_card", "table_column")
+# Where each component can appear: cards on the market tab, columns in a table.
+COMPONENT_OF_SCOPE = {"market": "status_card", "sector": "table_column"}
 FORMATS = ("state_chip", "count", "pct", "signed_pct", "percentile", "number")
 CHART_TYPES = ("line", "price_with_ma", "line_with_markers")
 TONE_RULE_TYPES = ("state_map", "sign", "bands")
@@ -30,6 +33,10 @@ BANNED_WORDS = ("cupsir",)
 
 EXPERT_VIEW_MIN = 2
 EXPERT_VIEW_MAX = 4
+
+# Ids end up in file names, JSON keys and HTML attributes.
+ID_PATTERN = re.compile(r"^[a-z][a-z0-9_]*$")
+REQUIRED_LABELS = ("na", "expert_view_heading")
 
 
 class RegistryError(Exception):
@@ -71,7 +78,11 @@ def load(indicators_path, universe_path, calculators):
     """Read both config files, validate them, return (indicators_cfg, universe_cfg)."""
     indicators_cfg = load_json(indicators_path)
     universe_cfg = load_json(universe_path)
-    validate(indicators_cfg, universe_cfg, calculators)
+    try:
+        validate(indicators_cfg, universe_cfg, calculators)
+    except (TypeError, KeyError, AttributeError) as e:
+        # A value of the wrong shape somewhere the rules did not anticipate.
+        raise RegistryError("config", "", f"結構不正確：{type(e).__name__}: {e}") from e
     return indicators_cfg, universe_cfg
 
 
@@ -84,6 +95,10 @@ def _need(cond, entry, field, message):
 
 def _is_str(v):
     return isinstance(v, str) and v.strip() != ""
+
+
+def _is_id(v):
+    return isinstance(v, str) and ID_PATTERN.match(v) is not None
 
 
 def _is_int(v):
@@ -132,7 +147,7 @@ def validate_universe(universe_cfg):
         for i, s in enumerate(block["subjects"]):
             where = f"universe.{scope}.subjects[{i}]"
             _need(isinstance(s, dict), where, "", "必須是物件")
-            _need(_is_str(s.get("id")), where, "id", "必填")
+            _need(_is_id(s.get("id")), where, "id", "必填，只可以用小寫英文字母、數字和底線")
             where = f"universe.{scope}.{s['id']}"
             _need(s["id"] not in seen, where, "id", "id 重複")
             seen.add(s["id"])
@@ -175,6 +190,8 @@ def _validate_scope(entry, scope, block, universe_cfg):
     field = f"scopes.{scope}"
     _need(isinstance(block, dict), entry, field, "必須是物件")
     _need(block.get("component") in COMPONENTS, entry, f"{field}.component", f"只可以是 {list(COMPONENTS)}")
+    _need(block["component"] == COMPONENT_OF_SCOPE[scope], entry, f"{field}.component",
+          f"{scope} 範圍只可以用 {COMPONENT_OF_SCOPE[scope]}")
     _need(block.get("format") in FORMATS, entry, f"{field}.format", f"只可以是 {list(FORMATS)}")
     _need(_is_int(block.get("order")), entry, f"{field}.order", "必填，整數")
     _need(_is_str(block.get("value_key")), entry, f"{field}.value_key", "必填")
@@ -192,7 +209,8 @@ def _validate_scope(entry, scope, block, universe_cfg):
         _need(isinstance(subs, list) and subs, entry, f"{field}.subjects", "必填，而且不可為空")
         known = {s["id"] for s in subjects(universe_cfg, "market")}
         for sid in subs:
-            _need(sid in known, entry, f"{field}.subjects", f"「{sid}」不在 universe.json 的 market 範圍")
+            _need(isinstance(sid, str) and sid in known, entry, f"{field}.subjects",
+                  f"「{sid}」不在 universe.json 的 market 範圍")
     else:
         _need(_is_str(block.get("column_label")), entry, f"{field}.column_label", "必填")
         _check_text(entry, f"{field}.column_label", block["column_label"])
@@ -200,6 +218,7 @@ def _validate_scope(entry, scope, block, universe_cfg):
 
 def _validate_indicator(iid, d, universe_cfg, calculators):
     entry = f"indicators.{iid}"
+    _need(_is_id(iid), entry, "", "指標 id 只可以用小寫英文字母、數字和底線")
     _need(isinstance(d, dict), entry, "", "必須是物件")
 
     # Rule 1: required fields.
@@ -219,6 +238,8 @@ def _validate_indicator(iid, d, universe_cfg, calculators):
     # Rule 2: calculator is registered in the calculation layer.
     _need(d["calculator"] in calculators, entry, "calculator",
           f"「{d['calculator']}」未在計算層登記；已登記：{sorted(calculators)}")
+    for key in calculators[d["calculator"]]:
+        _need(key in d["params"], entry, f"params.{key}", "這個計算函式需要此參數")
 
     # Rule 3: roles.
     for role in d["inputs"]:
@@ -265,7 +286,7 @@ def _validate_indicator(iid, d, universe_cfg, calculators):
 
 def _validate_sort(entry, field, sort, sector_ids):
     _need(isinstance(sort, dict), entry, field, "必須是物件")
-    _need(sort.get("indicator") in sector_ids, entry, f"{field}.indicator",
+    _need(isinstance(sort.get("indicator"), str) and sort["indicator"] in sector_ids, entry, f"{field}.indicator",
           f"「{sort.get('indicator')}」不是已啟用的板塊範圍指標")
     _need(_is_str(sort.get("value_key")), entry, f"{field}.value_key", "必填")
     _need(sort.get("dir") in SORT_DIRS, entry, f"{field}.dir", f"只可以是 {list(SORT_DIRS)}")
@@ -281,10 +302,13 @@ def validate(indicators_cfg, universe_cfg, calculators):
     for key, text in labels.items():
         _need(_is_str(text), "ui_labels", key, "必須是非空字串")
         _check_text("ui_labels", key, text)
+    for key in REQUIRED_LABELS:
+        _need(key in labels, "ui_labels", key, "必填")
 
     inds = indicators_cfg.get("indicators")
     _need(isinstance(inds, dict) and inds, "indicators", "", "必填，至少一個指標")
-    calculators = set(calculators)
+    # `calculators`: {name: required params}; a plain collection of names is accepted too.
+    calculators = calculators if isinstance(calculators, dict) else {name: () for name in calculators}
     for iid, d in inds.items():
         _validate_indicator(iid, d, universe_cfg, calculators)
 

@@ -24,18 +24,22 @@ from .tone import tone_for
 log = logging.getLogger("pipeline.calc")
 
 _REGISTRY = {}
+_REQUIRED_PARAMS = {}
 _loaded = False
 
 RESULT_KEYS = ("status", "reason", "data_date", "state", "tone", "values", "history", "events")
 CALC_KEYS = ("state", "values", "history", "events")
 
 
-def calculator(name):
-    """Register a calculator function under `name`."""
+def calculator(name, params=()):
+    """Register a calculator function under `name`.
+    `params` lists the keys the function reads from its params, so the registry
+    can reject a config that leaves one out before anything runs."""
     def deco(fn):
         if name in _REGISTRY and _REGISTRY[name] is not fn:
             raise ValueError(f"calculator '{name}' is registered twice")
         _REGISTRY[name] = fn
+        _REQUIRED_PARAMS[name] = tuple(params)
         return fn
     return deco
 
@@ -53,9 +57,9 @@ def _load_all():
 
 
 def registered():
-    """Names of all registered calculators."""
+    """{calculator name: params it requires} for every registered calculator."""
     _load_all()
-    return set(_REGISTRY)
+    return dict(_REQUIRED_PARAMS)
 
 
 def na(reason):

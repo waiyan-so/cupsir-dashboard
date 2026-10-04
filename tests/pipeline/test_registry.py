@@ -202,3 +202,58 @@ def test_enabled_indicators_respects_enabled_and_scope(cfg):
     assert "realized_vol" not in sector
     assert "follow_through_day" in market and "follow_through_day" not in sector
     assert "relative_strength" in sector and "relative_strength" not in market
+
+
+# ---- rules added after review: params, id shape, component per scope, value types
+
+REQUIRED = {name: () for name in CALCULATORS}
+
+
+def test_missing_param_names_the_param(cfg):
+    ind, uni = cfg
+    required = dict(REQUIRED, trend_regime=("fast", "mid", "slow", "slope_window", "history_days"))
+    registry.validate(ind, uni, required)
+    del ind["indicators"]["trend_regime"]["params"]["history_days"]
+    with pytest.raises(RegistryError) as err:
+        registry.validate(ind, uni, required)
+    assert (err.value.entry, err.value.field) == ("indicators.trend_regime", "params.history_days")
+
+
+def test_shipped_config_gives_every_calculator_its_params(cfg):
+    from pipeline import calc
+    registry.validate(*cfg, calc.registered())
+    assert all(calc.registered()[d["calculator"]] for d in cfg[0]["indicators"].values())
+
+
+@pytest.mark.parametrize("bad_id", ['x" onmouseover="1', "Trend", "9lives", "a-b"])
+def test_indicator_id_must_be_a_plain_identifier(cfg, bad_id):
+    ind, uni = cfg
+    ind["indicators"][bad_id] = ind["indicators"].pop("realized_vol")
+    _fails(ind, uni, f"indicators.{bad_id}", "")
+
+
+def test_subject_id_must_be_a_plain_identifier(cfg):
+    ind, uni = cfg
+    uni["sector"]["subjects"][0]["id"] = "Tech Sector"
+    _fails(ind, uni, "universe.sector.subjects[0]", "id")
+
+
+def test_component_must_fit_its_scope(cfg):
+    ind, uni = cfg
+    ind["indicators"]["trend_regime"]["scopes"]["sector"]["component"] = "status_card"
+    _fails(ind, uni, "indicators.trend_regime", "scopes.sector.component")
+
+
+def test_wrongly_typed_values_are_config_errors_not_crashes(cfg, tmp_path):
+    ind, uni = cfg
+    ind["indicators"]["trend_regime"]["scopes"]["market"]["subjects"] = [["spy"]]
+    _fails(ind, uni, "indicators.trend_regime", "scopes.market.subjects")
+    ind, uni = registry.load_json(INDICATORS), registry.load_json(UNIVERSE)
+    ind["sector_table"]["default_sort"]["indicator"] = ["relative_strength"]
+    _fails(ind, uni, "sector_table", "default_sort.indicator")
+
+
+def test_required_ui_labels(cfg):
+    ind, uni = cfg
+    del ind["ui_labels"]["na"]
+    _fails(ind, uni, "ui_labels", "na")

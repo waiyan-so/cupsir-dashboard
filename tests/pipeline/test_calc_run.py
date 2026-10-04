@@ -89,5 +89,5 @@ def test_every_shipped_indicator_has_a_registered_calculator():
     from pipeline import registry
     names = calc.registered()
     shipped = json.loads((ROOT / "config" / "indicators.json").read_text(encoding="utf-8"))["indicators"]
-    assert {d["calculator"] for d in shipped.values()} <= names
+    assert {d["calculator"] for d in shipped.values()} <= set(names)
     registry.load(ROOT / "config" / "indicators.json", ROOT / "config" / "universe.json", names)

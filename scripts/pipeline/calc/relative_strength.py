@@ -14,7 +14,7 @@ def _ret(close, window):
     return close.iloc[-1] / close.iloc[-1 - window] - 1
 
 
-@calculator("relative_strength")
+@calculator("relative_strength", params=("short_window", "long_window", "slope_window"))
 def compute(frames, params):
     subject = frames["subject"]["close"]
     benchmark = frames["benchmark"]["close"]

@@ -70,3 +70,20 @@ def test_history_for_the_chart():
     result = calc.run(DEFN, {"subject": frame(_alternating(400))})
     assert len(result["history"]) == DEFN["params"]["history_days"]
     assert set(result["history"][0]) == {"date", "annualized_pct"}
+
+
+def test_percentile_sample_is_exactly_the_last_252_readings():
+    """One very large reading sits 252 readings back - just outside the sample. Were the
+    sample 253 long, the latest reading would no longer be the highest."""
+    need = DEFN["min_history_days"]
+    window = DEFN["params"]["window"]
+    closes = [100.0]
+    # rows: need + 1, so there are 253 readings; only the very first one contains the 20 % move
+    for i in range(1, need + 1):
+        swing = 0.20 if i == 1 else (0.03 if i > need - window else 0.001)
+        closes.append(closes[-1] * (1 + swing if i % 2 else 1 - swing))
+    result = calc.run(DEFN, {"subject": frame(closes)})
+    assert result["values"]["percentile_252d"] == 100.0
+    widened = dict(DEFN, params=dict(DEFN["params"], percentile_window=253), min_history_days=need + 1,
+                   tone_rule=None)
+    assert calc.run(widened, {"subject": frame(closes)})["values"]["percentile_253d"] < 100.0

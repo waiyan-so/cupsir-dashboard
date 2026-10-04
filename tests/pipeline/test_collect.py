@@ -139,3 +139,14 @@ def test_real_fixture_loads_as_a_priceframe():
     from helpers import ROOT
     frame = fixtures.load_csv(ROOT / "tests/pipeline/fixtures/real/SPY_2019-01-02_2020-07-01.csv")
     assert list(frame.columns) == COLUMNS and len(frame) == 377 and frame.index.tz is None
+
+
+def test_split_batch_handles_the_multi_ticker_column_layout():
+    """yfinance returns columns as (ticker, field) when several tickers are requested."""
+    good, hollow = raw(5), raw(5)
+    hollow[:] = float("nan")                                  # a ticker that came back with no data
+    batch = pd.concat({"AAA": good, "BBB": hollow}, axis=1)
+    assert isinstance(batch.columns, pd.MultiIndex)
+    out = prices.split_batch(batch, ["AAA", "BBB", "CCC"])
+    assert list(normalize_frame(out["AAA"]).columns) == COLUMNS and len(normalize_frame(out["AAA"])) == 5
+    assert out["BBB"] is None and out["CCC"] is None

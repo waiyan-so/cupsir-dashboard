@@ -38,12 +38,21 @@ def _yahoo_batch(tickers):
     import yfinance as yf
     raw = yf.download(tickers, period=LOOKBACK, interval="1d", auto_adjust=True,
                       group_by="ticker", threads=True, progress=False)
+    return split_batch(raw, tickers)
+
+
+def split_batch(raw, tickers):
+    """Split a multi-ticker download (columns = ticker x field) into one table per ticker.
+    A ticker that is absent, or whose rows are all empty, maps to None."""
     out = {}
     for ticker in tickers:
         try:
-            out[ticker] = raw[ticker] if isinstance(raw.columns, pd.MultiIndex) else raw
+            part = raw[ticker] if isinstance(raw.columns, pd.MultiIndex) else raw
         except KeyError:
-            out[ticker] = None
+            part = None
+        if part is not None and part.dropna(how="all").empty:
+            part = None
+        out[ticker] = part
     return out
 
 

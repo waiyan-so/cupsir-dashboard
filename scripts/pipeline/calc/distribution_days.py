@@ -15,7 +15,7 @@ RATIO_DIGITS = 2
 COMPARE_DIGITS = 12
 
 
-@calculator("distribution_days")
+@calculator("distribution_days", params=("decline_threshold", "window", "warning_count", "high_count", "history_days"))
 def compute(frames, params):
     df = frames["subject"]
     close, volume = df["close"], df["volume"]

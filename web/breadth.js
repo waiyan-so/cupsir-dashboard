@@ -27,7 +27,7 @@
   const warned = new Set();
   function warnOnce(kind, name) {
     const key = `${kind}:${name}`;
-    if (!warned.has(key)) { warned.add(key); console.warn(`[breadth] unknown ${kind} "${name}", showing the raw value`); }
+    if (!warned.has(key)) { warned.add(key); console.warn(`[breadth] unknown ${kind} "${name}": ${kind === 'format' ? 'showing the raw value' : 'skipped'}`); }
   }
 
   // ------------------------------------------------------------ formats
@@ -38,7 +38,8 @@
     count: v => String(v),
     pct: v => `${num(v, 2)}%`,
     signed_pct: v => `${v > 0 ? '+' : ''}${num(v, 2)}%`,
-    percentile: (v, labels) => `${Math.round(v)}${labels.percentile_unit ? ' ' + labels.percentile_unit : ''}`,
+    // A reading can never be at "0": the lowest of a sample is still one reading out of many.
+    percentile: (v, labels) => `${Math.max(1, Math.round(v))}${labels.percentile_unit ? ' ' + labels.percentile_unit : ''}`,
     number: v => Number(v).toLocaleString('en-US', { maximumFractionDigits: 4 }),
   };
 
@@ -53,7 +54,7 @@
   function formatPlain(value, labels) {
     if (value === null || value === undefined) return labels.na || 'N/A';
     if (typeof value === 'boolean') return (value ? labels.yes : labels.no) || String(value);
-    if (typeof value === 'number') return FORMATS.number(value);
+    if (typeof value === 'number') return value.toLocaleString('en-US', { maximumFractionDigits: 6 });
     return String(value);
   }
 

@@ -54,9 +54,9 @@ def _with_drops(positions_from_end, n=60):
 
 
 def test_window_is_the_last_25_trading_days():
-    # offset 24 is the oldest day inside the window, offset 26 is outside it
+    # offset 24 is the oldest day inside the window, offset 25 is the first one outside it
     assert _run(*_with_drops([24]))["values"][KEY] == 1
-    assert _run(*_with_drops([26]))["values"][KEY] == 0
+    assert _run(*_with_drops([25]))["values"][KEY] == 0
 
 
 @pytest.mark.parametrize("drops,state,tone", [

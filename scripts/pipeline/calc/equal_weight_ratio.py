@@ -10,7 +10,7 @@ RATIO_DIGITS = 6
 PCT_DIGITS = 2
 
 
-@calculator("equal_weight_ratio")
+@calculator("equal_weight_ratio", params=("roc_window", "history_days"))
 def compute(frames, params):
     ratio = frames["equal_weight"]["close"] / frames["subject"]["close"]
     roc_window = params["roc_window"]

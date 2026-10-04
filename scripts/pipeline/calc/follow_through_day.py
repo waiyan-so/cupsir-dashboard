@@ -25,7 +25,7 @@ import numpy as np
 
 from . import calculator
 from ._math import date_str, sma
-from .trend_regime import BULLISH, regime_table
+from .trend_regime import BULLISH, PARAMS as TREND_PARAMS, regime_table
 
 NONE_PENDING = "NONE_PENDING"
 WATCHING = "WATCHING_RALLY_ATTEMPT"
@@ -145,7 +145,8 @@ def replay(df, params):
     return {"events": events, "states": states, "state": state, "attempt": attempt, "last_ftd": last_ftd}
 
 
-@calculator("follow_through_day")
+@calculator("follow_through_day", params=TREND_PARAMS + (
+    "peak_window", "min_day", "min_gain", "sma_fast", "below_sma_days", "vol_avg_window", "events_days"))
 def compute(frames, params):
     df = frames["subject"]
     out = replay(df, params)

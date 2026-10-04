@@ -39,7 +39,10 @@ def _keys(params):
             f"slope{params['mid']}_{params['slope_window']}d")
 
 
-@calculator("trend_regime")
+PARAMS = ("fast", "mid", "slow", "slope_window")
+
+
+@calculator("trend_regime", params=PARAMS + ("history_days",))
 def compute(frames, params):
     table = regime_table(frames["subject"]["close"], params)
     k_fast, k_mid, k_slow, k_slope = _keys(params)

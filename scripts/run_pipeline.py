@@ -97,16 +97,54 @@ def build_sectors(universe, indicators_cfg, indicators, store):
     return {"meta": meta, "rows": rows}, cells
 
 
-def check_cells(cells, expected):
-    """Every enabled indicator has a complete Result for every subject it should cover."""
+class OutputMismatch(Exception):
+    """The registry points at something the results do not contain."""
+
+
+def _referenced_keys(scope, iid, d, table):
+    """(where in the registry, key) for every values key the registry refers to."""
+    block = d["scopes"][scope]
+    refs = [(f"scopes.{scope}.value_key", block["value_key"])]
+    if "secondary_key" in block:
+        refs.append((f"scopes.{scope}.secondary_key", block["secondary_key"]))
+    rule = d.get("tone_rule") or {}
+    if "key" in rule:
+        refs.append(("tone_rule.key", rule["key"]))
+    if scope == "sector":
+        refs += [(f"cross_section[{i}].value_key", op["value_key"]) for i, op in enumerate(d.get("cross_section", []))]
+        for name in ("default_sort", "tie_break"):
+            sort = table.get(name)
+            if sort and sort["indicator"] == iid:
+                refs.append((f"sector_table.{name}.value_key", sort["value_key"]))
+    return [(where, key) for where, key in refs if key != "state"]
+
+
+def check_cells(scope, indicators, cells, expected, table):
+    """Spec 6.1 step 7. Every enabled indicator has a complete Result for every subject it
+    should cover, and every key the registry names (value_key, tone_rule.key, chart series...)
+    really exists in what the calculator returned."""
     have = {(iid, sid) for iid, sid, _ in cells}
     missing = expected - have
     if missing:
-        raise RuntimeError(f"output is missing results for {sorted(missing)}")
+        raise OutputMismatch(f"output is missing results for {sorted(missing)}")
+    defs = dict(indicators)
     for iid, sid, result in cells:
         lacking = [k for k in calc.RESULT_KEYS if k not in result]
         if lacking:
-            raise RuntimeError(f"result {iid}/{sid} lacks {lacking}")
+            raise OutputMismatch(f"result {iid}/{sid} lacks {lacking}")
+        if result["status"] != "ok":
+            continue
+        d = defs[iid]
+        for where, key in _referenced_keys(scope, iid, d, table):
+            if key not in result["values"]:
+                raise OutputMismatch(f"indicators.{iid}.{where}: 「{key}」不在計算結果的 values 之內"
+                                     f"（現有：{sorted(result['values'])}）")
+        chart = d.get("detail_chart")
+        if chart and result["history"]:
+            for key in chart["series"]:
+                if key not in result["history"][0]:
+                    raise OutputMismatch(f"indicators.{iid}.detail_chart.series: 「{key}」不在 history 之內"
+                                         f"（現有：{sorted(result['history'][0])}）")
 
 
 def summarise(scope, cells):
@@ -181,15 +219,20 @@ def main(argv=None, data_dir=DATA_DIR, config_dir=CONFIG_DIR, fetch=None):
             expected = {(iid, sid) for iid, d in inds for sid in d["scopes"]["market"]["subjects"]}
         else:
             expected = {(iid, s["id"]) for iid, _ in inds for s in sectors.sector_subjects(universe)}
-        check_cells(cells, expected)
+        try:
+            check_cells(scope, inds, cells, expected, indicators_cfg.get("sector_table", {}))
+        except OutputMismatch as e:
+            print(f"::error::config does not match the results, nothing written: {e}")
+            return EXIT_BAD_CONFIG
         ok = summarise(scope, cells)
         payload = {"schema_version": SCHEMA_VERSION, "updated_at": updated_at, **body}
-        outputs.append((filename, payload, ok))
+        outputs.append((filename, payload, ok, len(cells)))
 
-    # 8. Write. A file with nothing computed is not written, so the last good one stays.
+    # 8. Write. A file whose every result failed is not written, so the last good one stays.
+    #    A scope with no enabled indicator is not a failure: its (empty) file is written.
     written = 0
-    for filename, payload, ok in outputs:
-        if ok == 0:
+    for filename, payload, ok, total in outputs:
+        if total and ok == 0:
             print(f"::warning::{filename}: no result could be computed, previous file kept")
             continue
         written += 1
