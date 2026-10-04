@@ -83,7 +83,11 @@ def test_common_dates_too_few_is_insufficient_history():
                "insufficient_history")
 
 
-def test_every_shipped_indicator_has_a_registered_calculator_or_is_pending():
+def test_every_shipped_indicator_has_a_registered_calculator():
+    import json
+    from helpers import ROOT
+    from pipeline import registry
     names = calc.registered()
-    for iid in ("trend_regime", "distribution_days", "equal_weight_ratio", "realized_vol", "relative_strength"):
-        assert shipped_indicator(iid)["calculator"] in names
+    shipped = json.loads((ROOT / "config" / "indicators.json").read_text(encoding="utf-8"))["indicators"]
+    assert {d["calculator"] for d in shipped.values()} <= names
+    registry.load(ROOT / "config" / "indicators.json", ROOT / "config" / "universe.json", names)

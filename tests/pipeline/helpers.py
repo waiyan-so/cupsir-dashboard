@@ -24,3 +24,9 @@ def shipped_indicator(indicator_id):
     """The indicator definition exactly as shipped in config/indicators.json."""
     cfg = json.loads((ROOT / "config" / "indicators.json").read_text(encoding="utf-8"))
     return cfg["indicators"][indicator_id]
+
+
+def real_fixture(name):
+    """A real-price CSV from tests/pipeline/fixtures/real/ (see fixtures/request.json)."""
+    path = Path(__file__).resolve().parent / "fixtures" / "real" / name
+    return pd.read_csv(path, index_col="date", parse_dates=True)

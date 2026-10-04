@@ -94,3 +94,23 @@ def test_history_boundary():
     need = DEFN["min_history_days"]
     assert _run(*_flat(need))["status"] == "ok"
     assert _run(*_flat(need - 1))["reason"] == "insufficient_history"
+
+
+def test_real_ex_dividend_days_show_the_adjustment():
+    """XLU went ex-dividend on 2026-06-22 and 2026-09-21. On unadjusted prices those days
+    carry an extra fall of about the dividend; adjusted prices (what the collection layer
+    delivers) do not. On neither date was volume higher than the day before, so neither
+    series counts a distribution day there - the counting effect is covered by the
+    hand-made case above."""
+    from helpers import real_fixture
+    adjusted = real_fixture("XLU_2026-06-01_2026-10-03.csv")
+    raw = real_fixture("XLU_2026-06-01_2026-10-03_raw.csv")
+    threshold = DEFN["params"]["decline_threshold"]
+    for day in ("2026-06-22", "2026-09-21"):
+        i = adjusted.index.get_loc(day)
+        adj_change = adjusted["close"].iloc[i] / adjusted["close"].iloc[i - 1] - 1
+        raw_change = raw["close"].iloc[i] / raw["close"].iloc[i - 1] - 1
+        assert adj_change - raw_change > 0.005        # the dividend, about 0.6-0.7 % of price
+    # 2026-06-22: unadjusted -0.09 %, adjusted +0.55 %.  2026-09-21: unadjusted -1.07 %, adjusted -0.34 %.
+    i = raw.index.get_loc("2026-09-21")
+    assert raw["close"].iloc[i] / raw["close"].iloc[i - 1] - 1 <= threshold
