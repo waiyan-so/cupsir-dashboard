@@ -31,6 +31,9 @@ jobs:
         run: |
           python scripts/build_dashboard.py
           python scripts/generate_summary.py
+      - name: Build market breadth and sector data
+        continue-on-error: true
+        run: python scripts/run_pipeline.py
       - name: Commit generated data
         run: |
           git config user.name "github-actions[bot]"

@@ -3,3 +3,5 @@ __pycache__/
 .env
 .DS_Store
 handoff.md
+.pytest_cache/
+_site/

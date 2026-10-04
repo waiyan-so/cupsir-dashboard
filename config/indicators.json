@@ -1,0 +1,193 @@
+{
+  "schema_version": 1,
+  "ui_labels": {
+    "tab_market": "整體市場",
+    "tab_sectors": "板塊",
+    "tab_cot": "COT 持倉",
+    "cot_column": "市場",
+    "group_column": "類別",
+    "cot_note": "數據每週五發布，反映當週星期二的持倉。COT Index 來自商業持倉者的淨倉位，Sentiment Index 來自小型投機者的淨倉位，兩者都是與該市場自身回望期內的最高和最低值比較（0 至 100）。",
+    "expert_view_heading": "Expert's view",
+    "sector_column": "板塊",
+    "na": "N/A",
+    "data_date": "數據日期",
+    "date": "日期",
+    "percentile_unit": "百分位",
+    "yes": "是",
+    "no": "否"
+  },
+  "sector_table": {
+    "default_sort": {"indicator": "relative_strength", "value_key": "return_63d_excess_pct", "dir": "desc"},
+    "tie_break":    {"indicator": "relative_strength", "value_key": "return_21d_excess_pct", "dir": "desc"}
+  },
+  "indicators": {
+    "trend_regime": {
+      "enabled": true,
+      "name": "Trend Regime", "name_zh": "趨勢狀態",
+      "calculator": "trend_regime",
+      "inputs": ["subject"],
+      "min_history_days": 205,
+      "params": {"fast": 21, "mid": 50, "slow": 200, "slope_window": 5, "history_days": 90},
+      "tone_rule": {"type": "state_map", "map": {"BULLISH": "positive", "NEUTRAL": "warning", "BEARISH": "negative"}},
+      "scopes": {
+        "market": {"subjects": ["spy", "qqq"], "component": "status_card", "order": 10, "value_key": "state", "format": "state_chip"},
+        "sector": {"component": "table_column", "order": 20, "column_label": "趨勢", "value_key": "state", "format": "state_chip",
+                   "sort_order": ["BULLISH", "NEUTRAL", "BEARISH"]}
+      },
+      "detail_chart": {"type": "price_with_ma", "series": ["close", "sma21", "sma50", "sma200"]},
+      "value_labels": {"close": "收市價", "sma21": "21 日線", "sma50": "50 日線", "sma200": "200 日線", "slope50_5d": "50 日線 5 日變化"},
+      "expert_view": ["收盤是否高於 21、50、200 日線", "50 日線方向是否向上", "各指數或板塊之間的趨勢狀態是否一致"],
+      "disclaimer": null,
+      "notes": "公式見規格第 3.1 節。values 和 history 的鍵名由 params 產生（sma<fast>、sma<mid>、sma<slow>、slope<mid>_<slope_window>d），改 params 時要同步改 detail_chart.series 和 value_labels。"
+    },
+    "distribution_days": {
+      "enabled": true,
+      "name": "Distribution Days", "name_zh": "出貨日",
+      "calculator": "distribution_days",
+      "inputs": ["subject"],
+      "min_history_days": 30,
+      "params": {"decline_threshold": -0.002, "window": 25, "warning_count": 3, "high_count": 5, "history_days": 90},
+      "tone_rule": {"type": "state_map", "map": {"NORMAL": "positive", "WARNING": "warning", "HIGH_PRESSURE": "negative"}},
+      "scopes": {
+        "market": {"subjects": ["spy", "qqq"], "component": "status_card", "order": 20, "value_key": "count_25d", "format": "count",
+                   "secondary_key": "state", "secondary_format": "state_chip"},
+        "sector": {"component": "table_column", "order": 30, "column_label": "出貨日 25D", "value_key": "count_25d", "format": "count"}
+      },
+      "detail_chart": {"type": "line_with_markers", "series": ["close"]},
+      "value_labels": {"count_25d": "25 日內出貨日數", "close": "收市價"},
+      "expert_view": ["25 個交易日內出貨日是否達 5 日或以上", "出貨日是否集中在最近數日", "是否同時跌穿 50 日線"],
+      "disclaimer": null,
+      "notes": "公式見規格第 3.2 節。收市價為調整後價格，避免除息日被錯計。values 的鍵名是 count_<window>d。"
+    },
+    "equal_weight_ratio": {
+      "enabled": true,
+      "name": "Equal-weight vs Cap-weight Ratio", "name_zh": "等權重比率",
+      "calculator": "equal_weight_ratio",
+      "inputs": ["subject", "equal_weight"],
+      "min_history_days": 90,
+      "params": {"roc_window": 21, "history_days": 90},
+      "tone_rule": {"type": "sign", "key": "roc_21d_pct"},
+      "scopes": {
+        "market": {"subjects": ["spy", "qqq"], "component": "status_card", "order": 30, "value_key": "roc_21d_pct", "format": "signed_pct"},
+        "sector": {"component": "table_column", "order": 40, "column_label": "Eq/Cap 比率 21D 變化", "value_key": "roc_21d_pct", "format": "signed_pct"}
+      },
+      "detail_chart": {"type": "line", "series": ["ratio"]},
+      "value_labels": {"ratio": "比率", "normalized": "標準化（圖表首日 = 100）", "roc_21d_pct": "21 日變化（%）"},
+      "expert_view": ["比率 21 日變化是否向上（參與擴散）", "價格上升時比率是否同步上升", "比率下降是否代表升勢集中於少數大型股"],
+      "disclaimer": null,
+      "notes": "公式見規格第 3.3、4.2 節。顏色規則是設計預設值 D1：21 日變化大於 0 為 positive，小於 0 為 negative。values 的鍵名是 roc_<roc_window>d_pct。"
+    },
+    "follow_through_day": {
+      "enabled": true,
+      "name": "Follow-Through Day", "name_zh": "跟進日（FTD）",
+      "calculator": "follow_through_day",
+      "inputs": ["subject"],
+      "min_history_days": 205,
+      "params": {"peak_window": 63, "min_day": 4, "min_gain": 0.0125, "sma_fast": 21, "below_sma_days": 2, "vol_avg_window": 50,
+                 "fast": 21, "mid": 50, "slow": 200, "slope_window": 5, "events_days": 90},
+      "tone_rule": {"type": "state_map", "map": {"CONFIRMED": "positive", "WATCHING_RALLY_ATTEMPT": "warning", "FAILED": "negative"}},
+      "scopes": {
+        "market": {"subjects": ["spy", "qqq"], "component": "status_card", "order": 40, "value_key": "state", "format": "state_chip"}
+      },
+      "detail_chart": null,
+      "value_labels": {"last_confirmed_date": "最近一次跟進日", "days_since": "距今交易日數", "day_count": "反彈第幾日", "above_avg_volume": "成交量高於 50 日均量"},
+      "expert_view": ["反彈是否已到第 4 日或之後", "升幅與成交量是否同時達標", "訊號出現後有否跌穿當日低位"],
+      "disclaimer": null,
+      "notes": "公式見實作指引 4.4（已併入 R1、R2、R3、R7 和 F1–F4）。F3 於 2026-10-04 經使用者修訂：CONFIRMED 期間也會找新的 Day 1，找到後狀態轉為 WATCHING，之前的跟進日保留為最近一次跟進日。R5、R6 未批准，沒有實作。門檻未經量化回測，前提只要求連續 2 日低於 21 日線，誤報率未知。每次執行都由下載回來的兩年歷史重新重播，不儲存狀態：重播起點之前的跟進日不會被知道，所以狀態有可能隨歷史窗口移動而改變；出現 63 日收市新高後會重新對齊。"
+    },
+    "realized_vol": {
+      "enabled": true,
+      "name": "Realized Volatility", "name_zh": "已實現波幅",
+      "calculator": "realized_vol",
+      "inputs": ["subject"],
+      "min_history_days": 273,
+      "params": {"window": 21, "percentile_window": 252, "annualize": 252, "history_days": 90},
+      "tone_rule": {"type": "bands", "key": "percentile_252d", "bands": [[33, "positive"], [67, "warning"], [100, "negative"]]},
+      "scopes": {
+        "sector": {"component": "table_column", "order": 50, "column_label": "已實現波幅 RV 21D",
+                   "value_key": "percentile_252d", "format": "percentile", "secondary_key": "annualized_pct", "secondary_format": "pct"}
+      },
+      "detail_chart": {"type": "line", "series": ["annualized_pct"]},
+      "value_labels": {"annualized_pct": "年化波幅（%）", "percentile_252d": "一年百分位"},
+      "expert_view": ["百分位是否處於過去一年高位", "波幅上升時趨勢狀態有否同步轉弱", "各板塊的波幅百分位是否普遍上升"],
+      "disclaimer": "板塊波幅為過去 21 個交易日的已實現波幅（Realized Volatility），量度已發生的波動；VIX 為期權市場對未來 30 日的隱含波動率（Implied Volatility）。兩者計法不同，數值不可直接比較。請看百分位（與該板塊自身過去一年相比），而非絕對數值。",
+      "notes": "公式見規格第 4.3 節。顏色規則是設計預設值 D2。bands 的判斷：數值小於或等於上限即屬該段。values 的鍵名是 percentile_<percentile_window>d。"
+    },
+    "relative_strength": {
+      "enabled": true,
+      "name": "Relative Strength", "name_zh": "板塊相對強度",
+      "calculator": "relative_strength",
+      "inputs": ["subject", "benchmark"],
+      "min_history_days": 64,
+      "params": {"short_window": 21, "long_window": 63, "slope_window": 21},
+      "tone_rule": {"type": "sign", "key": "return_63d_excess_pct"},
+      "scopes": {
+        "sector": {"component": "table_column", "order": 10, "column_label": "RS vs SPY（63D）",
+                   "value_key": "return_63d_excess_pct", "format": "signed_pct"}
+      },
+      "cross_section": [{"op": "rank", "value_key": "return_63d_excess_pct", "dir": "desc", "target_key": "rank_by_63d"}],
+      "detail_chart": null,
+      "value_labels": {"return_21d_excess_pct": "21 日超額回報（%）", "return_63d_excess_pct": "63 日超額回報（%）", "rs_slope_21d": "RS 線 21 日斜率", "rank_by_63d": "63 日排名"},
+      "expert_view": ["63 日超額回報排名是否靠前", "21 日與 63 日方向是否一致", "領先板塊有否出現輪換"],
+      "disclaimer": null,
+      "notes": "公式見規格第 4.4 節。rank_by_63d 由板塊處理層按 cross_section 補入。values 的鍵名是 return_<window>d_excess_pct 和 rs_slope_<slope_window>d。"
+    },
+    "cot_index_1y": {
+      "enabled": true,
+      "name": "COT Index (1 year)", "name_zh": "COT 持倉指數（1 年）",
+      "source": "cftc",
+      "calculator": "cot_index",
+      "inputs": ["positions"],
+      "min_history_days": 52,
+      "params": {"lookback": 52, "history_points": 52, "extreme_high": 80, "extreme_low": 20, "lean_high": 70, "lean_low": 30},
+      "tone_rule": {"type": "state_map", "map": {"EXTREME_LONG": "positive", "EXTREME_SHORT": "negative", "LONG_LEAN": "positive", "SHORT_LEAN": "warning"}},
+      "scopes": {
+        "cot": {"component": "table_column", "order": 10, "column_label": "COT／情緒（1 年）",
+                "value_key": "cot_index", "format": "number", "secondary_key": "sentiment_index", "secondary_format": "number"}
+      },
+      "detail_chart": {"type": "line", "series": ["cot_index", "sentiment_index"], "levels": [80, 20], "y_range": [0, 100]},
+      "value_labels": {"cot_index": "COT Index（商業持倉者）", "sentiment_index": "Sentiment Index（小型投機者）", "commercial_net": "商業持倉者淨倉位（張）", "nonreportable_net": "小型投機者淨倉位（張）"},
+      "expert_view": ["商業持倉者 COT Index 是否達 80 或以上、20 或以下", "小型投機者 Sentiment Index 是否處於相反方向的極端", "6 個月、1 年、3 年三個回望期的讀數是否一致"],
+      "disclaimer": null,
+      "notes": "公式見實作指引 5.4。min_history_days 的單位是資料行數（週數）。回望窗口必須滿 lookback 行才有值。狀態描述商業持倉者在該市場的倉位方向，不是對股市的看法。門檻數值與現有 build_dashboard.py 的 cot_signal() 相同。"
+    },
+    "cot_index_3y": {
+      "enabled": true,
+      "name": "COT Index (3 years)", "name_zh": "COT 持倉指數（3 年）",
+      "source": "cftc",
+      "calculator": "cot_index",
+      "inputs": ["positions"],
+      "min_history_days": 156,
+      "params": {"lookback": 156, "history_points": 52, "extreme_high": 80, "extreme_low": 20, "lean_high": 70, "lean_low": 30},
+      "tone_rule": {"type": "state_map", "map": {"EXTREME_LONG": "positive", "EXTREME_SHORT": "negative", "LONG_LEAN": "positive", "SHORT_LEAN": "warning"}},
+      "scopes": {
+        "cot": {"component": "table_column", "order": 20, "column_label": "COT／情緒（3 年）",
+                "value_key": "cot_index", "format": "number", "secondary_key": "sentiment_index", "secondary_format": "number"}
+      },
+      "detail_chart": {"type": "line", "series": ["cot_index", "sentiment_index"], "levels": [80, 20], "y_range": [0, 100]},
+      "value_labels": {"cot_index": "COT Index（商業持倉者）", "sentiment_index": "Sentiment Index（小型投機者）", "commercial_net": "商業持倉者淨倉位（張）", "nonreportable_net": "小型投機者淨倉位（張）"},
+      "expert_view": ["商業持倉者 COT Index 是否達 80 或以上、20 或以下", "小型投機者 Sentiment Index 是否處於相反方向的極端", "6 個月、1 年、3 年三個回望期的讀數是否一致"],
+      "disclaimer": null,
+      "notes": "公式見實作指引 5.4。min_history_days 的單位是資料行數（週數）。回望窗口必須滿 lookback 行才有值。狀態描述商業持倉者在該市場的倉位方向，不是對股市的看法。門檻數值與現有 build_dashboard.py 的 cot_signal() 相同。"
+    },
+    "cot_index_6m": {
+      "enabled": true,
+      "name": "COT Index (6 months)", "name_zh": "COT 持倉指數（6 個月）",
+      "source": "cftc",
+      "calculator": "cot_index",
+      "inputs": ["positions"],
+      "min_history_days": 26,
+      "params": {"lookback": 26, "history_points": 52, "extreme_high": 80, "extreme_low": 20, "lean_high": 70, "lean_low": 30},
+      "tone_rule": {"type": "state_map", "map": {"EXTREME_LONG": "positive", "EXTREME_SHORT": "negative", "LONG_LEAN": "positive", "SHORT_LEAN": "warning"}},
+      "scopes": {
+        "cot": {"component": "table_column", "order": 30, "column_label": "COT／情緒（6 個月）",
+                "value_key": "cot_index", "format": "number", "secondary_key": "sentiment_index", "secondary_format": "number"}
+      },
+      "detail_chart": {"type": "line", "series": ["cot_index", "sentiment_index"], "levels": [80, 20], "y_range": [0, 100]},
+      "value_labels": {"cot_index": "COT Index（商業持倉者）", "sentiment_index": "Sentiment Index（小型投機者）", "commercial_net": "商業持倉者淨倉位（張）", "nonreportable_net": "小型投機者淨倉位（張）"},
+      "expert_view": ["商業持倉者 COT Index 是否達 80 或以上、20 或以下", "小型投機者 Sentiment Index 是否處於相反方向的極端", "6 個月、1 年、3 年三個回望期的讀數是否一致"],
+      "disclaimer": null,
+      "notes": "公式見實作指引 5.4。min_history_days 的單位是資料行數（週數）。回望窗口必須滿 lookback 行才有值。狀態描述商業持倉者在該市場的倉位方向，不是對股市的看法。門檻數值與現有 build_dashboard.py 的 cot_signal() 相同。"
+    }
+  }
+}

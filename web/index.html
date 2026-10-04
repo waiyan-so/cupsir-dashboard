@@ -18,12 +18,33 @@
       <article class="panel"><h2>未來兩周經濟事件</h2><div id="events"></div></article>
       <article class="panel"><h2>市場新聞與重要講話</h2><div id="news"></div></article>
     </section>
-    <section class="indicator-layout">
-      <aside class="panel"><h2>指標</h2><div id="indicatorList"></div></aside>
-      <article class="panel"><div id="indicatorDetail"><p>正在讀取指標資料。</p></div></article>
-    </section>
+    <div class="tabs">
+      <button class="tab active" data-tab="market">整體市場</button>
+      <button class="tab" data-tab="sectors">板塊</button>
+      <button class="tab" data-tab="cot">COT 持倉</button>
+    </div>
+    <div id="marketTab" class="tab-panel">
+      <section id="breadthCards" class="breadth-cards"></section>
+      <section class="indicator-layout">
+        <aside class="panel"><h2>指標</h2><div id="indicatorList"></div></aside>
+        <article class="panel"><div id="indicatorDetail"><p>正在讀取指標資料。</p></div></article>
+      </section>
+    </div>
+    <div id="sectorsTab" class="tab-panel" hidden>
+      <section class="panel breadth-table-panel">
+        <div id="sectorTable"></div>
+        <div id="sectorDetail"></div>
+      </section>
+    </div>
+    <div id="cotTab" class="tab-panel" hidden>
+      <section class="panel breadth-table-panel">
+        <div id="cotTable"></div>
+        <div id="cotDetail"></div>
+      </section>
+    </div>
     <section class="panel"><h2>AI / 規則式研究摘要</h2><div id="summary"></div></section>
   </main>
   <script src="app.js"></script>
+  <script src="breadth.js"></script>
 </body>
 </html>

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "market": {
+    "subjects": [
+      {"id": "spy", "name_zh": "S&P 500", "roles": {"subject": "SPY", "equal_weight": "RSP"}},
+      {"id": "qqq", "name_zh": "Nasdaq 100", "roles": {"subject": "QQQ", "equal_weight": "QQQE"}}
+    ]
+  },
+  "sector": {
+    "subjects": [
+      {"id": "technology", "name_zh": "科技", "roles": {"subject": "XLK", "equal_weight": "RSPT", "benchmark": "SPY"}},
+      {"id": "financials", "name_zh": "金融", "roles": {"subject": "XLF", "equal_weight": "RSPF", "benchmark": "SPY"}},
+      {"id": "health_care", "name_zh": "醫療保健", "roles": {"subject": "XLV", "equal_weight": "RSPH", "benchmark": "SPY"}},
+      {"id": "industrials", "name_zh": "工業", "roles": {"subject": "XLI", "equal_weight": "RSPN", "benchmark": "SPY"}},
+      {"id": "energy", "name_zh": "能源", "roles": {"subject": "XLE", "equal_weight": "RSPG", "benchmark": "SPY"}},
+      {"id": "materials", "name_zh": "原材料", "roles": {"subject": "XLB", "equal_weight": "RSPM", "benchmark": "SPY"}},
+      {"id": "utilities", "name_zh": "公用事業", "roles": {"subject": "XLU", "equal_weight": "RSPU", "benchmark": "SPY"}},
+      {"id": "real_estate", "name_zh": "房地產", "roles": {"subject": "XLRE", "equal_weight": "RSPR", "benchmark": "SPY"}},
+      {"id": "communication", "name_zh": "通訊服務", "roles": {"subject": "XLC", "equal_weight": "RSPC", "benchmark": "SPY"}},
+      {"id": "consumer_discretionary", "name_zh": "非必需消費", "roles": {"subject": "XLY", "equal_weight": "RSPD", "benchmark": "SPY"}},
+      {"id": "consumer_staples", "name_zh": "必需消費", "roles": {"subject": "XLP", "equal_weight": "RSPS", "benchmark": "SPY"}}
+    ]
+  },
+  "cot": {
+    "groups": {"agriculture": "農產品", "energy": "能源", "metals": "金屬", "financial": "金融"},
+    "subjects": [
+      {"id": "wheat", "name_zh": "小麥", "group": "agriculture", "cftc_code": "001602", "cftc_name": "WHEAT-SRW - CHICAGO BOARD OF TRADE"},
+      {"id": "soybeans", "name_zh": "大豆", "group": "agriculture", "cftc_code": "005602", "cftc_name": "SOYBEANS - CHICAGO BOARD OF TRADE"},
+      {"id": "sugar", "name_zh": "糖", "group": "agriculture", "cftc_code": "080732", "cftc_name": "SUGAR NO. 11 - ICE FUTURES U.S."},
+      {"id": "cotton", "name_zh": "棉花", "group": "agriculture", "cftc_code": "033661", "cftc_name": "COTTON NO. 2 - ICE FUTURES U.S."},
+      {"id": "coffee", "name_zh": "咖啡", "group": "agriculture", "cftc_code": "083731", "cftc_name": "COFFEE C - ICE FUTURES U.S."},
+      {"id": "crude_oil", "name_zh": "WTI 原油", "group": "energy", "cftc_code": "067651", "cftc_name": "WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE"},
+      {"id": "gasoline", "name_zh": "汽油", "group": "energy", "cftc_code": "111659", "cftc_name": "GASOLINE RBOB - NEW YORK MERCANTILE EXCHANGE"},
+      {"id": "heating_oil", "name_zh": "取暖油", "group": "energy", "cftc_code": "022651", "cftc_name": "NY HARBOR ULSD - NEW YORK MERCANTILE EXCHANGE"},
+      {"id": "gold", "name_zh": "黃金", "group": "metals", "cftc_code": "088691", "cftc_name": "GOLD - COMMODITY EXCHANGE INC."},
+      {"id": "platinum", "name_zh": "鉑金", "group": "metals", "cftc_code": "076651", "cftc_name": "PLATINUM - NEW YORK MERCANTILE EXCHANGE"},
+      {"id": "palladium", "name_zh": "鈀金", "group": "metals", "cftc_code": "075651", "cftc_name": "PALLADIUM - NEW YORK MERCANTILE EXCHANGE"},
+      {"id": "copper", "name_zh": "銅", "group": "metals", "cftc_code": "085692", "cftc_name": "COPPER- #1 - COMMODITY EXCHANGE INC."},
+      {"id": "sp500", "name_zh": "E-mini S&P 500", "group": "financial", "cftc_code": "13874A", "cftc_name": "E-MINI S&P 500 - CHICAGO MERCANTILE EXCHANGE"},
+      {"id": "russell2000", "name_zh": "E-mini Russell 2000", "group": "financial", "cftc_code": "239742", "cftc_name": "RUSSELL E-MINI - CHICAGO MERCANTILE EXCHANGE"},
+      {"id": "ust10y", "name_zh": "10 年期美國國債", "group": "financial", "cftc_code": "043602", "cftc_name": "UST 10Y NOTE - CHICAGO BOARD OF TRADE"},
+      {"id": "usd_index", "name_zh": "美元指數", "group": "financial", "cftc_code": "098662", "cftc_name": "USD INDEX - ICE FUTURES U.S."}
+    ]
+  }
+}
