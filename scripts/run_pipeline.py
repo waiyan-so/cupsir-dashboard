@@ -22,7 +22,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from pipeline import calc, registry, sectors
-from pipeline.collect import cftc, fixtures, prices
+from pipeline.collect import FAILED, PriceStore, cftc, fixtures, prices
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_DIR = ROOT / "config"
@@ -199,6 +199,30 @@ def write_json(path, payload):
     os.replace(tmp, path)
 
 
+def _fetch(label, fetcher, keys):
+    """Call a collection adapter. If it raises, every key is failed: one source going
+    wrong must not stop the outputs that do not depend on it."""
+    try:
+        return fetcher(keys)
+    except Exception as e:  # noqa: BLE001
+        print(f"::warning::{label}: the adapter raised {type(e).__name__}: {e}")
+        store = PriceStore()
+        for key in keys:
+            store.fail(key, FAILED, f"{type(e).__name__}: {e}")
+        return store
+
+
+def _check_market_names(universe, positions):
+    """Warn when the CFTC file's name for a code is not the name written in universe.json.
+    Matching is by code only; this is a guard against a mistyped code."""
+    reported = getattr(positions, "names", {}) or {}
+    for subject in registry.subjects(universe, "cot"):
+        name = reported.get(subject["cftc_code"])
+        if name and name.lower() != subject["cftc_name"].strip().lower():
+            print(f"::warning::cot / {subject['id']}: code {subject['cftc_code']} is named "
+                  f"'{name}' in the CFTC file, universe.json says '{subject['cftc_name']}'")
+
+
 def _report_store(label, needed, store):
     _say(f"{label}: {len(needed)} needed, {store.ok_count()} ok")
     for key, message in sorted(store.errors.items()):
@@ -234,10 +258,11 @@ def main(argv=None, data_dir=DATA_DIR, config_dir=CONFIG_DIR, fetch=None, fetch_
         store = fixtures.load_prices(args.offline, tickers)
         positions = fixtures.load_positions(args.offline, codes)
     else:
-        store = (fetch or prices.fetch_prices)(tickers)
-        positions = (fetch_cftc or cftc.fetch_positions)(codes)
+        store = _fetch("tickers", fetch or prices.fetch_prices, tickers)
+        positions = _fetch("cftc codes", fetch_cftc or cftc.fetch_positions, codes)
     _report_store("tickers", tickers, store)
     _report_store("cftc codes", codes, positions)
+    _check_market_names(universe, positions)
 
     # 4-7. Compute both scopes, build the payloads, check them.
     updated_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
@@ -261,23 +286,22 @@ def main(argv=None, data_dir=DATA_DIR, config_dir=CONFIG_DIR, fetch=None, fetch_
         payload = {"schema_version": SCHEMA_VERSION, "updated_at": updated_at, **body}
         outputs.append((filename, payload, ok, len(cells)))
 
-    # 8. Write. A file whose every result failed is not written, so the last good one stays.
-    #    A scope with no enabled indicator is not a failure: its (empty) file is written.
-    written = 0
+    # 8. Write. Something was expected but nothing at all could be computed: write nothing.
+    if sum(total for _, _, _, total in outputs) and not sum(ok for _, _, ok, _ in outputs):
+        print("::error::no data could be computed, nothing written")
+        return EXIT_NO_DATA
+    #    Otherwise each file stands on its own. A file whose every result failed is not
+    #    written, so its last good version stays. A scope with nothing enabled gets its
+    #    (empty) file, so switched-off columns leave the page.
     for filename, payload, ok, total in outputs:
         if total and ok == 0:
             print(f"::warning::{filename}: no result could be computed, previous file kept")
-            continue
-        written += 1
-        if args.dry_run:
+        elif args.dry_run:
             _say(f"dry run: {filename} not written")
         else:
             data_dir.mkdir(parents=True, exist_ok=True)
             write_json(data_dir / filename, payload)
             _say(f"wrote {filename}")
-    if written == 0:
-        print("::error::no data could be computed, nothing written")
-        return EXIT_NO_DATA
     return EXIT_OK
 
 

@@ -9,6 +9,9 @@ The window must be full - no value is given on fewer than `lookback` rows -
 and it counts rows, not calendar weeks (the CFTC occasionally skips a week).
 When the window's highest and lowest readings are equal there is no value.
 
+The state is decided on the index as shown (one decimal), so the label never
+disagrees with the number beside it.
+
 States describe the commercial traders' positioning in that one market. They
 are not a view on the stock market and not a buy or sell instruction.
 """
@@ -51,6 +54,8 @@ def classify(cot, sentiment, params):
 @calculator("cot_index", params=("lookback", "history_points", "extreme_high", "extreme_low", "lean_high", "lean_low"))
 def compute(frames, params):
     positions = frames["positions"]
+    if len(positions) < params["lookback"]:
+        raise ValueError(f"need {params['lookback']} rows for a full window, have {len(positions)}")
     cot = window_index(positions["commercial_net"], params["lookback"])
     sentiment = window_index(positions["nonreportable_net"], params["lookback"])
 

@@ -385,3 +385,46 @@ def test_cot_results_do_not_touch_dashboard_json(tmp_path, offline_dir):
     before = (data / "dashboard.json").read_bytes()
     run(tmp_path, "--offline", str(offline_dir), data=data)
     assert (data / "dashboard.json").read_bytes() == before
+
+
+# ---- added after the WP2 review
+
+def _stores(offline_dir):
+    """The two stores an online run would get, built from the offline files."""
+    from conftest import all_cftc_codes, all_tickers
+    from pipeline.collect import fixtures
+    return fixtures.load_prices(offline_dir, all_tickers()), fixtures.load_positions(offline_dir, all_cftc_codes())
+
+
+def test_an_adapter_that_raises_does_not_stop_the_other_source(tmp_path, offline_dir):
+    prices_store, _ = _stores(offline_dir)
+
+    def broken(codes):
+        raise RuntimeError("unexpected")
+
+    code = run_pipeline.main([], data_dir=tmp_path / "data", fetch=lambda t: prices_store, fetch_cftc=broken)
+    assert code == 0
+    assert (tmp_path / "data" / MARKET).exists() and (tmp_path / "data" / SECTORS).exists()
+    assert not (tmp_path / "data" / COT).exists()
+
+
+def test_market_name_that_differs_from_the_config_is_warned_about(tmp_path, offline_dir, capsys):
+    prices_store, positions = _stores(offline_dir)
+    universe = json.loads((ROOT / "config" / "universe.json").read_text(encoding="utf-8"))
+    gold = next(s for s in universe["cot"]["subjects"] if s["id"] == "gold")
+    positions.names = {s["cftc_code"]: s["cftc_name"].lower() for s in universe["cot"]["subjects"]}   # case differs: fine
+    positions.names[gold["cftc_code"]] = "SILVER - COMMODITY EXCHANGE INC."
+    code = run_pipeline.main([], data_dir=tmp_path / "data", fetch=lambda t: prices_store, fetch_cftc=lambda c: positions)
+    out = capsys.readouterr().out
+    assert code == 0
+    assert out.count("is named") == 1 and "cot / gold" in out and "SILVER" in out
+
+
+def test_nothing_computed_writes_nothing_even_when_a_scope_is_switched_off(tmp_path, offline_dir):
+    def cot_off(cfg):
+        for d in cfg["indicators"].values():
+            if "cot" in d["scopes"]:
+                d["enabled"] = False
+    shutil.rmtree(offline_dir / "prices")
+    code, data = run(tmp_path, "--offline", str(offline_dir), "--registry", registry_with(tmp_path, cot_off))
+    assert code == 1 and not data.exists()

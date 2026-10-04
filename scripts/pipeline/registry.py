@@ -168,6 +168,7 @@ def _validate_cot_universe(universe_cfg):
               f"只可以是 {list(groups)}")
         # Codes can start with a zero, so they must stay text: as a number the zero is lost.
         _need(_is_str(s.get("cftc_code")), where, "cftc_code", "必填，而且必須是字串（保留前導零）")
+        _need(s["cftc_code"] == s["cftc_code"].strip(), where, "cftc_code", "前後不可有空白")
         _need(s["cftc_code"] not in seen_codes, where, "cftc_code", "合約代碼重複")
         seen_codes.add(s["cftc_code"])
         _need(_is_str(s.get("cftc_name")), where, "cftc_name", "必填")

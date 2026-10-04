@@ -328,3 +328,9 @@ def test_shipped_cot_universe_has_sixteen_markets_with_distinct_text_codes(cfg):
     codes = [s["cftc_code"] for s in subjects]
     assert len(set(codes)) == 16 and all(isinstance(c, str) and len(c) == 6 for c in codes)
     assert {"043602", "001602", "067651", "13874A"} <= set(codes)
+
+
+def test_contract_code_with_surrounding_spaces_is_rejected(cfg):
+    ind, uni = cfg
+    uni["cot"]["subjects"][0]["cftc_code"] = " 001602"
+    _fails(ind, uni, "universe.cot.wheat", "cftc_code")

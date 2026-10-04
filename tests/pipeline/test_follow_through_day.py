@@ -141,6 +141,20 @@ def test_f3_revised_a_new_day1_is_found_while_confirmed():
     assert dict(out["states"])[df.index[16].strftime("%Y-%m-%d")] == "CONFIRMED"
 
 
+def test_f3_revised_an_attempt_begun_while_confirmed_and_then_undercut_ends_in_none_pending():
+    """Known consequence of the revision: once a new attempt starts, the earlier FTD is no
+    longer tracked. If that attempt is undercut the state is NONE_PENDING, and a later close
+    below the earlier FTD's low produces no `failed` event."""
+    # day 17 = Day 1 found while CONFIRMED (rally low 101.3 on day 16); day 18 undercuts it
+    df = series(extra=[103.5, 102.0, 101.8, 102.6, 101.5, 100.0], lows={18: 101.2})
+    out = replay(df, P)
+    assert events(df) == [(DAY1, "day1", 1), (DAY4, "ftd", 4), (17, "day1", 1), (18, "reset", 1)]
+    assert dict(out["states"])[df.index[18].strftime("%Y-%m-%d")] == "NONE_PENDING"
+    assert out["state"] == "NONE_PENDING"               # day 19 closes at 100.0, below the FTD low of 101.0
+    assert [e for e in out["events"] if e["type"] == "failed"] == []
+    assert out["last_ftd"]["index"] == DAY4
+
+
 def test_the_ftd_day_itself_never_starts_a_new_attempt():
     out = replay(series(), P)
     assert out["state"] == "CONFIRMED" and out["attempt"] is None

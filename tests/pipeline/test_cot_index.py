@@ -112,3 +112,18 @@ def test_three_shipped_lookbacks_share_one_calculator():
 
 def test_no_download_gives_fetch_failed():
     assert calc.run(DEFN_1Y, {"positions": None})["reason"] == "fetch_failed"
+
+
+def test_registry_lookback_longer_than_min_history_is_an_error_not_an_empty_ok():
+    wrong = dict(defn(10), min_history_days=3)
+    assert calc.run(wrong, {"positions": positions([1, 2, 3, 4])})["reason"] == "calc_error"
+
+
+def test_state_follows_the_displayed_one_decimal_value():
+    """79.96 is shown as 80.0 and is labelled as 80: the label never contradicts the number."""
+    # window 0 .. 10000; 7996 -> 79.96 -> shown 80.0
+    commercial = [0, 10000, 7996]
+    small = [10000, 0, 2004]                                  # 20.04 -> shown 20.0
+    result = calc.run(defn(3), {"positions": positions(commercial, small)})
+    assert result["values"]["cot_index"] == 80.0 and result["values"]["sentiment_index"] == 20.0
+    assert result["state"] == "EXTREME_LONG"

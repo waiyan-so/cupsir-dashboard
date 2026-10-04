@@ -76,15 +76,17 @@ def download_year(year, get=None):
 
 
 def parse(raw, codes):
-    """{code: PositionFrame} for the wanted codes found in a raw yearly table (or several
-    stacked). Codes with no rows are left out."""
+    """{code: PositionFrame} for the wanted codes found in one raw yearly table.
+    Codes with no rows are left out."""
+    raw = raw.reset_index(drop=True)
     code_col = find_column(raw, CODE_COLUMN)
     date_col = find_column(raw, DATE_COLUMN)
     cols = {key: find_column(raw, name) for key, name in POSITION_COLUMNS.items()}
 
-    table = raw[raw[code_col].astype(str).str.strip().isin(set(codes))]
+    file_codes = raw[code_col].astype(str).str.strip()
+    table = raw[file_codes.isin(set(codes))]
     out = {}
-    for code, part in table.groupby(table[code_col].astype(str).str.strip()):
+    for code, part in table.groupby(file_codes[table.index]):
         numbers = {key: pd.to_numeric(part[col].astype(str).str.replace(",", "").str.strip(), errors="coerce")
                    for key, col in cols.items()}
         frame = pd.DataFrame({
@@ -93,44 +95,75 @@ def parse(raw, codes):
         })
         frame.index = pd.to_datetime(part[date_col].astype(str).str.strip(), format=DATE_FORMAT, errors="coerce")
         frame.index.name = "date"
-        frame = frame[frame.index.notna()].dropna()
-        frame = frame[~frame.index.duplicated(keep="last")].sort_index()
-        if not frame.empty:
-            out[code] = frame[COLUMNS]
+        usable = frame[frame.index.notna()].dropna()
+        if len(usable) < len(frame):
+            print(f"[collect] CFTC code {code}: {len(frame) - len(usable)} row(s) with an unreadable date or number dropped")
+        if not usable.empty:
+            out[code] = _one_row_per_date(usable, code)[COLUMNS]
     return out
+
+
+def _one_row_per_date(frame, code):
+    """Sort by date; if a date appears twice keep the later row and say so."""
+    repeated = int(frame.index.duplicated(keep="last").sum())
+    if repeated:
+        print(f"[collect] CFTC code {code}: {repeated} repeated report date(s), kept the last row of each")
+    return frame[~frame.index.duplicated(keep="last")].sort_index()
+
+
+def latest_names(raw, codes):
+    """{code: market name on the newest row of that code}. For checking only, never for matching."""
+    raw = raw.reset_index(drop=True)
+    code_col = find_column(raw, CODE_COLUMN)
+    date_col = find_column(raw, DATE_COLUMN)
+    name_col = find_column(raw, NAME_COLUMN)
+    file_codes = raw[code_col].astype(str).str.strip()
+    table = raw[file_codes.isin(set(codes))]
+    newest = table.assign(_code=file_codes[table.index]).sort_values(date_col).groupby("_code").tail(1)
+    return {row["_code"]: str(row[name_col]).strip() for _, row in newest.iterrows()}
 
 
 def fetch_positions(codes, now=None, download=None):
     """Download the yearly files once and return a PositionStore for `codes`.
-    A year that fails to download is skipped; the other years are still used."""
+
+    A series must never have a hole in the middle or stop months ago and still look
+    healthy, because the rolling window counts rows:
+      * the current year's file is required. Without it every code is failed, so the
+        last good output stays in place (this is also what happens in the first days
+        of January, before the new year's file exists);
+      * older years are used only as an unbroken run back from the current year. A year
+        that cannot be downloaded or read cuts the series there; long lookbacks then
+        come out as insufficient_history instead of spanning the hole.
+    The store also carries .names: {code: market name in the newest file}.
+    """
     codes = sorted(set(codes))
     store = PositionStore()
+    store.names = {}
     if not codes:
         return store
     this_year = (now or datetime.now(timezone.utc)).year
     download = download or download_year
 
-    tables, errors = [], []
-    for year in range(this_year - YEARS_BACK, this_year + 1):
+    by_year, problems = {}, []
+    for year in range(this_year, this_year - YEARS_BACK - 1, -1):     # newest first
         try:
-            tables.append(download(year))
-        except Exception as e:  # noqa: BLE001 - one year missing must not stop the rest
-            errors.append(f"{year}: {type(e).__name__}: {e}")
-            print(f"[collect] CFTC {year} file failed - {type(e).__name__}: {e}")
+            raw = download(year)
+            by_year[year] = parse(raw, codes)
+            if year == this_year:
+                store.names = latest_names(raw, codes)
+        except Exception as e:  # noqa: BLE001
+            problems.append(f"{year}: {type(e).__name__}: {e}")
+            print(f"::warning::CFTC {year} file unusable - {type(e).__name__}: {e}")
+            break                                                     # nothing older is used past a hole
 
-    if not tables:
+    if this_year not in by_year:
         for code in codes:
-            store.fail(code, FAILED, "no CFTC yearly file could be downloaded | " + " || ".join(errors))
-        return store
-    try:
-        frames = parse(pd.concat(tables, ignore_index=True), codes)
-    except Exception as e:  # noqa: BLE001
-        for code in codes:
-            store.fail(code, FAILED, f"{type(e).__name__}: {e}")
+            store.fail(code, FAILED, "the current year's CFTC file could not be used | " + " || ".join(problems))
         return store
     for code in codes:
-        if code in frames:
-            store.put(code, frames[code])
+        parts = [by_year[year][code] for year in sorted(by_year) if code in by_year[year]]
+        if parts:
+            store.put(code, _one_row_per_date(pd.concat(parts), code))
         else:
             store.fail(code, EMPTY, "contract market code not found in the downloaded files")
     return store
