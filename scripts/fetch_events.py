@@ -2,7 +2,10 @@
 Build the coming-two-weeks economic event calendar.
 
 Design choice (kept deliberately simple, not scraped):
-  - NFP dates are computed exactly (always the 1st Friday of the month).
+  - NFP dates come from the BLS's own published schedule, per year, in
+    NFP_DAYS. It is usually the 1st Friday of the month but not always: BLS
+    moves it around holidays (2 July 2026 is a Thursday, January's is the
+    second Friday), so "first Friday" is not used.
   - FOMC dates are a hardcoded, verified list per year in FOMC_DATES (the Fed
     publishes these ~1-2 years ahead:
     https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm).
@@ -129,6 +132,15 @@ MONTHLY_RELEASES = {
     },
 }
 
+# The Employment Situation (non-farm payrolls): {year: day-of-month for Jan..Dec}.
+# 2026 from https://www.bls.gov/schedule/news_release/empsit.htm (accessed
+# 2026-10-05; February is the 11th, the date BLS actually released on after
+# rescheduling) - the same days as the OMB schedule above for every other month.
+# 2027: not published yet on 2026-10-05, so deliberately absent.
+NFP_DAYS = {
+    2026: [9, 11, 6, 3, 8, 5, 2, 7, 4, 2, 6, 4],
+}
+
 # Add exact dates for anything else (JOLTS, Consumer Confidence, UMich, Beige
 # Book, Industrial Production, Empire State/Philly Fed, ...) here once known:
 # MANUAL_EVENTS = [{"date": date(2026, 10, 30), "title_zh": "...", "importance": 2, "notes": "..."}]
@@ -159,14 +171,7 @@ def _month_add(d: date, months: int) -> date:
 
 
 def nfp_dates(window_start: date, window_end: date) -> list:
-    out = []
-    cur = date(window_start.year, window_start.month, 1)
-    while cur <= window_end:
-        d = _nth_weekday(cur.year, cur.month, 4, 1)  # 4 = Friday
-        if window_start <= d <= window_end:
-            out.append(d)
-        cur = _month_add(cur, 1)
-    return out
+    return monthly_release_dates(NFP_DAYS, window_start, window_end, "nfp")
 
 
 def qra_dates(window_start: date, window_end: date) -> list:

@@ -20,6 +20,14 @@ def test_every_monthly_table_has_twelve_valid_days_per_year():
                 assert 1 <= day <= calendar.monthrange(year, month)[1], (name, year, month)
 
 
+def test_nfp_table_has_twelve_valid_days_per_year():
+    assert fe.NFP_DAYS
+    for year, days in fe.NFP_DAYS.items():
+        assert len(days) == 12, year
+        for month, day in enumerate(days, start=1):
+            assert 1 <= day <= calendar.monthrange(year, month)[1], (year, month)
+
+
 def test_fomc_dates_sit_in_their_own_year_and_on_a_wednesday():
     for year, dates in fe.FOMC_DATES.items():
         assert len(dates) == 8, year
@@ -109,3 +117,29 @@ def test_main_prints_one_warning_line(monkeypatch, tmp_path, capsys):
     out = capsys.readouterr().out
     assert out.count("::warning::") == 1
     assert (tmp_path / "events.json").exists()
+
+
+# ---------------------------------------------------------------- NFP: official dates, not "first Friday"
+
+NFP = "非農就業報告（NFP）"
+
+
+def nfp_dates_seen(today):
+    return [e["date"] for e in fe.build_events(today) if e["title_zh"] == NFP]
+
+
+def test_nfp_follows_the_bls_schedule_when_it_is_not_the_first_friday():
+    # 3 July 2026 is the first Friday and a federal holiday; BLS releases on Thursday the 2nd.
+    assert nfp_dates_seen(date(2026, 6, 25)) == ["2026-07-02"]
+
+
+def test_nfp_dates_for_the_rest_of_2026():
+    assert nfp_dates_seen(date(2026, 10, 1)) == ["2026-10-02"]
+    assert nfp_dates_seen(date(2026, 11, 1)) == ["2026-11-06"]
+    assert nfp_dates_seen(date(2026, 12, 1)) == ["2026-12-04"]
+
+
+def test_nfp_is_not_invented_for_a_year_without_a_schedule():
+    # Before the fix this printed "2027-01-01", New Year's Day.
+    assert nfp_dates_seen(date(2026, 12, 20)) == []
+    assert "nfp" in fe.missing_years_warning()
