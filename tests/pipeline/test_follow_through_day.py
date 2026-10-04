@@ -1,4 +1,5 @@
-"""Follow-Through Day state machine (implementation guide 4.4: R1, R2, R3, R7, F1-F4).
+"""Follow-Through Day state machine (implementation guide 4.4: R1, R2, R3, R7, F1-F4;
+F3 as revised by the owner on 2026-10-04).
 
 Hand-made series with small windows so every step can be checked by eye.
 Day index:  0-6 rise to the peak (106 on day 6), 7-9 decline, 9 is the low
@@ -128,13 +129,21 @@ def test_f3_confirmed_ends_at_a_new_closing_high_and_keeps_the_date():
     assert result["values"]["day_count"] is None
 
 
-def test_f3_no_new_day1_is_sought_while_confirmed():
+def test_f3_revised_a_new_day1_is_found_while_confirmed():
     # After the FTD: a dip with two closes below the fast average and a higher close after,
-    # never closing below the FTD day's low (101.0).
+    # never closing below the FTD day's low (101.0). The owner's revision of F3 (2026-10-04)
+    # lets this start a new attempt; the earlier FTD remains the last confirmed date.
     df = series(extra=[103.5, 102.0, 101.8, 102.6])
     out = replay(df, P)
-    assert events(df) == [(DAY1, "day1", 1), (DAY4, "ftd", 4)]
-    assert out["state"] == "CONFIRMED"
+    assert events(df) == [(DAY1, "day1", 1), (DAY4, "ftd", 4), (17, "day1", 1)]
+    assert out["state"] == "WATCHING_RALLY_ATTEMPT"
+    assert out["last_ftd"]["index"] == DAY4
+    assert dict(out["states"])[df.index[16].strftime("%Y-%m-%d")] == "CONFIRMED"
+
+
+def test_the_ftd_day_itself_never_starts_a_new_attempt():
+    out = replay(series(), P)
+    assert out["state"] == "CONFIRMED" and out["attempt"] is None
 
 
 def test_step4_close_below_the_ftd_low_fails_and_f4_a_new_day1_follows():

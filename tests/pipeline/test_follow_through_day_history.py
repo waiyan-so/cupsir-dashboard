@@ -2,17 +2,15 @@
 Fixed tests on real SPY / QQQ bars: the three documented cases of spec section 8.
 
 Expected dates come from reports about the indexes (S&P 500, Nasdaq), not the
-ETFs. Two of the five expectations do NOT hold on ETF data with the approved
-formula. They are marked xfail(strict) and each has a companion test that
-pins down the reason, so the difference stays visible and is never papered
-over by changing a threshold:
+ETFs. One of the five expectations does NOT hold on ETF data. It is marked
+xfail(strict) and has a companion test that pins down the reason, so the
+difference stays visible and is never papered over by changing a threshold:
 
   SPY 2020-04-02  gain and day count qualify, but SPY's volume was lower than
                   the day before. The formula confirms on 2020-04-06 instead.
-  SPY 2023-01-06  the day itself qualifies on gain and volume, but SPY was
-                  still CONFIRMED from its 2022-10-21 FTD (never closed below
-                  that day's low, never made a 63-day closing high), and
-                  default F3 does not look for a new Day 1 while CONFIRMED.
+
+SPY 2023-01-06 did not hold under the first version of default F3 (no new
+Day 1 while CONFIRMED). The owner revised F3 on 2026-10-04; it holds now.
 """
 import pytest
 
@@ -79,22 +77,25 @@ def test_qqq_2023_01_06_is_an_ftd():
     assert _on(out, "2023-01-06") == [("ftd", 6)]
 
 
-@pytest.mark.xfail(strict=True, reason="SPY was still CONFIRMED from 2022-10-21 (default F3); see the next test")
-def test_spy_2023_01_06_is_an_ftd():
-    _, out = _replay(SPY_2023)
-    assert "2023-01-06" in _ftd_dates(out)
-
-
-def test_spy_2023_01_06_qualifies_on_the_day_but_state_was_still_confirmed():
+def test_spy_2023_01_06_is_an_ftd_on_day_9():
     df, out = _replay(SPY_2023)
-    gain = df.loc["2023-01-06", "close"] / df.loc["2023-01-05", "close"] - 1
-    assert gain >= PARAMS["min_gain"]                                         # +2.29 %
-    assert df.loc["2023-01-06", "volume"] > df.loc["2023-01-05", "volume"]
-    states = dict(out["states"])
+    # The 2022-10-21 FTD never failed (lowest later close 352.26 against that day's low of 345.16)
+    # and SPY made no 63-day closing high, so the state was still CONFIRMED in December 2022.
     assert _on(out, "2022-10-21") == [("ftd", 5)]
-    assert all(states[d.strftime("%Y-%m-%d")] == "CONFIRMED"
-               for d in df.loc["2022-10-21":"2023-01-06"].index)
-    assert [e for e in out["events"] if "2022-10-22" <= e["date"] <= "2023-01-06"] == []
+    assert [e for e in out["events"] if e["type"] == "failed" and "2022-10-22" <= e["date"] <= "2023-01-06"] == []
+    # F3 as revised: the December correction still starts a new attempt.
+    assert _on(out, "2022-12-23") == [("day1", 1)]
+    assert _on(out, "2023-01-06") == [("ftd", 9)]
+
+
+def test_revised_f3_adds_only_that_one_ftd_in_both_real_windows():
+    """What the change did to the four real windows: one more FTD (SPY 2023-01-06), nothing else moved."""
+    assert _ftd_dates(_replay(SPY_2020)[1]) == ["2020-04-06"]
+    assert _ftd_dates(_replay(QQQ_2020)[1]) == ["2020-04-02"]
+    assert _ftd_dates(_replay(SPY_2023)[1]) == ["2022-05-27", "2022-06-24", "2022-10-21", "2023-01-06",
+                                                 "2023-03-29", "2023-08-29", "2023-11-10"]
+    assert _ftd_dates(_replay(QQQ_2023)[1]) == ["2022-05-27", "2022-06-24", "2022-10-21", "2023-01-06",
+                                                 "2023-08-29", "2023-10-06", "2023-11-01"]
 
 
 # ---- case 3: 2023-11-01

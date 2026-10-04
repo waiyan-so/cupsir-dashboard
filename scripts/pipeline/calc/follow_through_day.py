@@ -6,6 +6,12 @@ Formula: implementation guide section 4.4, which replaces spec 3.4 steps 1-4
 with the approved revisions R1, R2, R3, R7 and the defaults F1-F4.
 R5 (late tag) and R6 (market-level date) are not approved and not built.
 
+F3 as revised by the owner on 2026-10-04: a new Day 1 is also looked for
+while the state is CONFIRMED. When one is found the state moves to WATCHING
+and the earlier FTD stays as last_confirmed_date. (The first version did not
+look for Day 1 while CONFIRMED, which hid SPY's 2023-01-06 follow-through
+day behind its still-standing 2022-10-21 one.)
+
 On trading day t:
   peak      = the day with the highest close in the last `peak_window` days,
               t included (the most recent one if several tie)            [R3]
@@ -128,8 +134,9 @@ def replay(df, params):
                     state = CONFIRMED
                     attempt = None
 
-        # 4. Look for Day 1 of a new attempt.
-        if attempt is None and state != CONFIRMED and not new_high:
+        # 4. Look for Day 1 of a new attempt - also while CONFIRMED (F3 as revised), but not
+        #    on the day an FTD was just confirmed.
+        if attempt is None and not new_high and not (ftd is not None and ftd["index"] == t):
             low_i = peak + 1 + _last_argmin(low[peak + 1:t + 1])
             if (low_i < t
                     and close[t] > close[t - 1]
