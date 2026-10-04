@@ -123,8 +123,17 @@ def main():
                 "embed": cfg.get("embed"), "history": []
             })
 
+    # Every source down at once (network outage, all providers failing): keep the
+    # last good file rather than replace it with a page of N/A. One source failing
+    # still writes - the others are fresh and the failed ones show as unavailable.
+    if output["indicators"] and all(x["value"] == "N/A" for x in output["indicators"]):
+        print("::warning::every dashboard indicator came back without a value (all data sources failed); "
+              "data/dashboard.json was left unchanged")
+        return False
+
     output["overall_signal"] = "BULLISH" if output["total_score"] >= 3 else ("BEARISH" if output["total_score"] <= -3 else "NEUTRAL")
     (DATA / "dashboard.json").write_text(json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8")
+    return True
 
 
 if __name__ == "__main__":
