@@ -44,3 +44,4 @@
 .breadth-table-panel{margin-bottom:16px}
 .breadth-cards>.muted{margin-top:8px}
 .subject-block.stacked{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.breadth-table th.text-col,.breadth-table td.text-col{text-align:left;font-weight:400}

@@ -1,5 +1,5 @@
 /*
- * Presentation layer for the market breadth cards and the sector table.
+ * Presentation layer for the market breadth cards, the sector table and the COT table.
  *
  * Everything drawn here comes from the `meta` block of the JSON files: which
  * indicators exist, where each one appears, how a value is formatted, which
@@ -22,6 +22,7 @@
   // The green / yellow / red of the page are reserved for states and are not used for lines.
   const SERIES_COLORS = ['#3987e5', '#d95926', '#199e70', '#c98500'];
   const NAME_COLUMN = '__name';
+  const GROUP_COLUMN = '__group';
 
   const $ = (sel, root) => (root || document).querySelector(sel);
   const warned = new Set();
@@ -280,7 +281,7 @@
     });
   }
 
-  // ------------------------------------------------------------ table view (sector table)
+  // ------------------------------------------------------------ table view (sector table, COT table)
 
   function sortKey(spec, ind, row) {
     const result = row.results[spec.indicator];
@@ -304,11 +305,19 @@
     return spec.dir === 'desc' ? -diff : diff;
   }
 
-  function renderTable(payload, tableSel, detailSel, nameLabelKey) {
-    const tableBox = $(tableSel), detailBox = $(detailSel);
+  /*
+   * One table for any payload with `meta.indicators` (columns) and `rows`.
+   *   opts: { table, detail: selectors; nameLabel, note: keys of meta.ui_labels }
+   * A "group" column appears when the payload has meta.groups (id -> display name).
+   */
+  function renderTable(payload, opts) {
+    const tableBox = $(opts.table), detailBox = $(opts.detail);
     const meta = payload.meta, labels = meta.ui_labels || {};
     const inds = byComponent(meta.indicators, 'table_column');
     const indById = Object.fromEntries(inds.map(i => [i.id, i]));
+    const groups = meta.groups || null;
+    const groupIds = groups ? Object.keys(groups) : [];
+    const caption = row => (row.tickers || {}).subject || (row.cftc || {}).code || '';
     let sort = meta.default_sort ? Object.assign({ column: meta.default_sort.indicator }, meta.default_sort) : null;
     let openRow = null;
 
@@ -318,6 +327,9 @@
         let diff = 0;
         if (sort && sort.column === NAME_COLUMN) {
           diff = a.row.name_zh.localeCompare(b.row.name_zh);
+          if (sort.dir === 'desc') diff = -diff;
+        } else if (sort && sort.column === GROUP_COLUMN) {
+          diff = groupIds.indexOf(a.row.group) - groupIds.indexOf(b.row.group);
           if (sort.dir === 'desc') diff = -diff;
         } else if (sort) {
           diff = compareRows(a.row, b.row, sort, indById[sort.indicator]);
@@ -330,12 +342,15 @@
 
     function draw() {
       const arrow = col => (sort && sort.column === col ? (sort.dir === 'desc' ? ' ▼' : ' ▲') : '');
-      const head = `<th data-col="${NAME_COLUMN}">${esc(labels[nameLabelKey] || '')}${arrow(NAME_COLUMN)}</th>`
+      const head = `<th data-col="${NAME_COLUMN}">${esc(labels[opts.nameLabel] || '')}${arrow(NAME_COLUMN)}</th>`
+        + (groups ? `<th data-col="${GROUP_COLUMN}" class="text-col">${esc(labels.group_column || '')}${arrow(GROUP_COLUMN)}</th>` : '')
         + inds.map(ind => `<th data-col="${esc(ind.id)}">${esc(ind.column_label)}${arrow(ind.id)}</th>`).join('');
       const body = sortedRows().map(row => `<tr data-id="${esc(row.id)}" class="${row.id === openRow ? 'active' : ''}">
-        <td>${esc(row.name_zh)}<small>${esc((row.tickers || {}).subject || '')}</small></td>
+        <td>${esc(row.name_zh)}<small>${esc(caption(row))}</small></td>
+        ${groups ? `<td class="text-col">${esc(groups[row.group] || row.group || '')}</td>` : ''}
         ${inds.map(ind => COMPONENTS.table_column(ind, row, labels)).join('')}</tr>`).join('');
-      const notes = inds.filter(ind => ind.disclaimer).map(ind => `<p class="muted breadth-note">${esc(ind.disclaimer)}</p>`).join('');
+      const notes = (opts.note && labels[opts.note] ? `<p class="muted breadth-note">${esc(labels[opts.note])}</p>` : '')
+        + [...new Set(inds.filter(ind => ind.disclaimer).map(ind => ind.disclaimer))].map(text => `<p class="muted breadth-note">${esc(text)}</p>`).join('');
       const all = payload.rows.flatMap(row => inds.map(ind => row.results[ind.id]));
       tableBox.innerHTML = `<div class="table-scroll"><table class="breadth-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>${notes}${dataDateLine(all, labels)}`;
 
@@ -343,7 +358,7 @@
         const col = th.dataset.col;
         if (sort && sort.column === col) {
           sort = Object.assign({}, sort, { dir: sort.dir === 'desc' ? 'asc' : 'desc' });
-        } else if (col === NAME_COLUMN) {
+        } else if (col === NAME_COLUMN || col === GROUP_COLUMN) {
           sort = { column: col, dir: 'asc' };
         } else {
           const ind = indById[col];
@@ -362,17 +377,22 @@
       destroyChartsIn(detailBox);
       const row = payload.rows.find(r => r.id === openRow);
       if (!row) { detailBox.innerHTML = ''; return; }
+      // When every column carries the same checklist (one calculator, several lookbacks),
+      // show the charts side by side and the checklist once.
+      const viewOf = ind => JSON.stringify([ind.expert_view, ind.disclaimer]);
+      const sharedView = inds.length > 1 && inds.every(ind => viewOf(ind) === viewOf(inds[0]));
       const blocks = inds.map(ind => {
         const result = row.results[ind.id];
-        return `<div class="subject-block stacked">
+        return `<div class="subject-block${sharedView ? '' : ' stacked'}">
           <div class="subject-head"><b>${esc(ind.name_zh)} <small class="muted-inline">${esc(ind.name)}</small></b><span class="chip ${toneClass(result)}">${esc(mainText(ind, result, labels))}</span></div>
           ${chartSlot(ind, result, ind.id)}
           ${valuesList(ind, result, labels)}
-          ${expertView(ind, labels)}
+          ${sharedView ? '' : expertView(ind, labels)}
         </div>`;
       }).join('');
-      const tickers = Object.values(row.tickers || {}).join(' · ');
-      detailBox.innerHTML = `<div class="detail-head breadth-detail-head"><div><h2>${esc(row.name_zh)}</h2><p class="muted">${esc(tickers)}</p></div></div>${blocks}`;
+      const subtitle = row.tickers ? Object.values(row.tickers).join(' · ') : (row.cftc || {}).name || '';
+      detailBox.innerHTML = `<div class="detail-head breadth-detail-head"><div><h2>${esc(row.name_zh)}</h2><p class="muted">${esc(subtitle)}</p></div></div>`
+        + (sharedView ? `<div class="subject-grid">${blocks}</div>${expertView(inds[0], labels)}` : blocks);
       mountCharts(detailBox, labels, id => ({ ind: indById[id], result: row.results[id] }));
     }
 
@@ -383,7 +403,8 @@
 
   const SOURCES = [
     { file: 'data/market_breadth.json', box: '#breadthCards', render: renderMarket },
-    { file: 'data/sectors.json', box: '#sectorTable', render: p => renderTable(p, '#sectorTable', '#sectorDetail', 'sector_column') },
+    { file: 'data/sectors.json', box: '#sectorTable', render: p => renderTable(p, { table: '#sectorTable', detail: '#sectorDetail', nameLabel: 'sector_column' }) },
+    { file: 'data/cot.json', box: '#cotTable', render: p => renderTable(p, { table: '#cotTable', detail: '#cotDetail', nameLabel: 'cot_column', note: 'cot_note' }) },
   ];
 
   // Each file loads on its own: one failing never affects the other or the existing page.
