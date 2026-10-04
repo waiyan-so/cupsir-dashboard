@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "market": {
+    "subjects": [
+      {"id": "spy", "name_zh": "S&P 500",    "roles": {"subject": "SPY", "equal_weight": "RSP"}},
+      {"id": "qqq", "name_zh": "Nasdaq 100", "roles": {"subject": "QQQ", "equal_weight": "QQQE"}}
+    ]
+  },
+  "sector": {
+    "subjects": [
+      {"id": "technology",             "name_zh": "科技",       "roles": {"subject": "XLK",  "equal_weight": "RSPT", "benchmark": "SPY"}},
+      {"id": "financials",             "name_zh": "金融",       "roles": {"subject": "XLF",  "equal_weight": "RSPF", "benchmark": "SPY"}},
+      {"id": "health_care",            "name_zh": "醫療保健",   "roles": {"subject": "XLV",  "equal_weight": "RSPH", "benchmark": "SPY"}},
+      {"id": "industrials",            "name_zh": "工業",       "roles": {"subject": "XLI",  "equal_weight": "RSPN", "benchmark": "SPY"}},
+      {"id": "energy",                 "name_zh": "能源",       "roles": {"subject": "XLE",  "equal_weight": "RSPG", "benchmark": "SPY"}},
+      {"id": "materials",              "name_zh": "原材料",     "roles": {"subject": "XLB",  "equal_weight": "RSPM", "benchmark": "SPY"}},
+      {"id": "utilities",              "name_zh": "公用事業",   "roles": {"subject": "XLU",  "equal_weight": "RSPU", "benchmark": "SPY"}},
+      {"id": "real_estate",            "name_zh": "房地產",     "roles": {"subject": "XLRE", "equal_weight": "RSPR", "benchmark": "SPY"}},
+      {"id": "communication",          "name_zh": "通訊服務",   "roles": {"subject": "XLC",  "equal_weight": "RSPC", "benchmark": "SPY"}},
+      {"id": "consumer_discretionary", "name_zh": "非必需消費", "roles": {"subject": "XLY",  "equal_weight": "RSPD", "benchmark": "SPY"}},
+      {"id": "consumer_staples",       "name_zh": "必需消費",   "roles": {"subject": "XLP",  "equal_weight": "RSPS", "benchmark": "SPY"}}
+    ]
+  }
+}
