@@ -3,6 +3,10 @@
   "ui_labels": {
     "tab_market": "整體市場",
     "tab_sectors": "板塊",
+    "tab_cot": "COT 持倉",
+    "cot_column": "市場",
+    "group_column": "類別",
+    "cot_note": "數據每週五發布，反映當週星期二的持倉。COT Index 來自商業持倉者的淨倉位，Sentiment Index 來自小型投機者的淨倉位，兩者都是與該市場自身回望期內的最高和最低值比較（0 至 100）。",
     "expert_view_heading": "Expert's view",
     "sector_column": "板塊",
     "na": "N/A",
@@ -127,6 +131,63 @@
       "expert_view": ["63 日超額回報排名是否靠前", "21 日與 63 日方向是否一致", "領先板塊有否出現輪換"],
       "disclaimer": null,
       "notes": "公式見規格第 4.4 節。rank_by_63d 由板塊處理層按 cross_section 補入。values 的鍵名是 return_<window>d_excess_pct 和 rs_slope_<slope_window>d。"
+    },
+    "cot_index_1y": {
+      "enabled": true,
+      "name": "COT Index (1 year)", "name_zh": "COT 持倉指數（1 年）",
+      "source": "cftc",
+      "calculator": "cot_index",
+      "inputs": ["positions"],
+      "min_history_days": 52,
+      "params": {"lookback": 52, "history_points": 52, "extreme_high": 80, "extreme_low": 20, "lean_high": 70, "lean_low": 30},
+      "tone_rule": {"type": "state_map", "map": {"EXTREME_LONG": "positive", "EXTREME_SHORT": "negative", "LONG_LEAN": "positive", "SHORT_LEAN": "warning"}},
+      "scopes": {
+        "cot": {"component": "table_column", "order": 10, "column_label": "COT／情緒（1 年）",
+                "value_key": "cot_index", "format": "number", "secondary_key": "sentiment_index", "secondary_format": "number"}
+      },
+      "detail_chart": {"type": "line", "series": ["cot_index", "sentiment_index"], "levels": [80, 20], "y_range": [0, 100]},
+      "value_labels": {"cot_index": "COT Index（商業持倉者）", "sentiment_index": "Sentiment Index（小型投機者）", "commercial_net": "商業持倉者淨倉位（張）", "nonreportable_net": "小型投機者淨倉位（張）"},
+      "expert_view": ["商業持倉者 COT Index 是否達 80 或以上、20 或以下", "小型投機者 Sentiment Index 是否處於相反方向的極端", "6 個月、1 年、3 年三個回望期的讀數是否一致"],
+      "disclaimer": null,
+      "notes": "公式見實作指引 5.4。min_history_days 的單位是資料行數（週數）。回望窗口必須滿 lookback 行才有值。狀態描述商業持倉者在該市場的倉位方向，不是對股市的看法。門檻數值與現有 build_dashboard.py 的 cot_signal() 相同。"
+    },
+    "cot_index_3y": {
+      "enabled": true,
+      "name": "COT Index (3 years)", "name_zh": "COT 持倉指數（3 年）",
+      "source": "cftc",
+      "calculator": "cot_index",
+      "inputs": ["positions"],
+      "min_history_days": 156,
+      "params": {"lookback": 156, "history_points": 52, "extreme_high": 80, "extreme_low": 20, "lean_high": 70, "lean_low": 30},
+      "tone_rule": {"type": "state_map", "map": {"EXTREME_LONG": "positive", "EXTREME_SHORT": "negative", "LONG_LEAN": "positive", "SHORT_LEAN": "warning"}},
+      "scopes": {
+        "cot": {"component": "table_column", "order": 20, "column_label": "COT／情緒（3 年）",
+                "value_key": "cot_index", "format": "number", "secondary_key": "sentiment_index", "secondary_format": "number"}
+      },
+      "detail_chart": {"type": "line", "series": ["cot_index", "sentiment_index"], "levels": [80, 20], "y_range": [0, 100]},
+      "value_labels": {"cot_index": "COT Index（商業持倉者）", "sentiment_index": "Sentiment Index（小型投機者）", "commercial_net": "商業持倉者淨倉位（張）", "nonreportable_net": "小型投機者淨倉位（張）"},
+      "expert_view": ["商業持倉者 COT Index 是否達 80 或以上、20 或以下", "小型投機者 Sentiment Index 是否處於相反方向的極端", "6 個月、1 年、3 年三個回望期的讀數是否一致"],
+      "disclaimer": null,
+      "notes": "公式見實作指引 5.4。min_history_days 的單位是資料行數（週數）。回望窗口必須滿 lookback 行才有值。狀態描述商業持倉者在該市場的倉位方向，不是對股市的看法。門檻數值與現有 build_dashboard.py 的 cot_signal() 相同。"
+    },
+    "cot_index_6m": {
+      "enabled": true,
+      "name": "COT Index (6 months)", "name_zh": "COT 持倉指數（6 個月）",
+      "source": "cftc",
+      "calculator": "cot_index",
+      "inputs": ["positions"],
+      "min_history_days": 26,
+      "params": {"lookback": 26, "history_points": 52, "extreme_high": 80, "extreme_low": 20, "lean_high": 70, "lean_low": 30},
+      "tone_rule": {"type": "state_map", "map": {"EXTREME_LONG": "positive", "EXTREME_SHORT": "negative", "LONG_LEAN": "positive", "SHORT_LEAN": "warning"}},
+      "scopes": {
+        "cot": {"component": "table_column", "order": 30, "column_label": "COT／情緒（6 個月）",
+                "value_key": "cot_index", "format": "number", "secondary_key": "sentiment_index", "secondary_format": "number"}
+      },
+      "detail_chart": {"type": "line", "series": ["cot_index", "sentiment_index"], "levels": [80, 20], "y_range": [0, 100]},
+      "value_labels": {"cot_index": "COT Index（商業持倉者）", "sentiment_index": "Sentiment Index（小型投機者）", "commercial_net": "商業持倉者淨倉位（張）", "nonreportable_net": "小型投機者淨倉位（張）"},
+      "expert_view": ["商業持倉者 COT Index 是否達 80 或以上、20 或以下", "小型投機者 Sentiment Index 是否處於相反方向的極端", "6 個月、1 年、3 年三個回望期的讀數是否一致"],
+      "disclaimer": null,
+      "notes": "公式見實作指引 5.4。min_history_days 的單位是資料行數（週數）。回望窗口必須滿 lookback 行才有值。狀態描述商業持倉者在該市場的倉位方向，不是對股市的看法。門檻數值與現有 build_dashboard.py 的 cot_signal() 相同。"
     }
   }
 }

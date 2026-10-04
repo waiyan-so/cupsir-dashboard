@@ -54,6 +54,31 @@ def write_offline_prices(directory, tickers, rows=OFFLINE_ROWS, seed=7):
     return Path(directory)
 
 
+OFFLINE_WEEKS = 260
+
+
+def all_cftc_codes():
+    universe = json.loads((ROOT / "config" / "universe.json").read_text(encoding="utf-8"))
+    return [s["cftc_code"] for s in universe["cot"]["subjects"]]
+
+
+def write_offline_positions(directory, codes, weeks=OFFLINE_WEEKS, seed=101):
+    """Deterministic made-up weekly net positions, one CSV per contract code, in DIR/cftc/."""
+    folder = Path(directory) / "cftc"
+    folder.mkdir(parents=True, exist_ok=True)
+    index = pd.date_range(end="2026-09-29", periods=weeks, freq="W-TUE")
+    for n, code in enumerate(codes):
+        rng = np.random.default_rng(seed + n)
+        frame = pd.DataFrame({
+            "commercial_net": np.cumsum(rng.normal(0, 9000, weeks)).round(),
+            "nonreportable_net": np.cumsum(rng.normal(0, 2500, weeks)).round(),
+        }, index=index)
+        frame.index.name = "date"
+        frame.to_csv(folder / f"{code}.csv")
+    return Path(directory)
+
+
 @pytest.fixture
 def offline_dir(tmp_path):
+    write_offline_positions(tmp_path / "offline", all_cftc_codes())
     return write_offline_prices(tmp_path / "offline", all_tickers())

@@ -13,8 +13,10 @@ ROOT = Path(__file__).resolve().parents[2]
 INDICATORS = ROOT / "config" / "indicators.json"
 UNIVERSE = ROOT / "config" / "universe.json"
 
-CALCULATORS = {"trend_regime", "distribution_days", "equal_weight_ratio",
-               "follow_through_day", "realized_vol", "relative_strength"}
+PRICE_INDICATORS = {"trend_regime", "distribution_days", "equal_weight_ratio",
+                    "follow_through_day", "realized_vol", "relative_strength"}
+COT_INDICATORS = {"cot_index_1y", "cot_index_3y", "cot_index_6m"}
+CALCULATORS = PRICE_INDICATORS | {"cot_index"}
 
 
 @pytest.fixture
@@ -34,8 +36,10 @@ def test_shipped_config_is_valid(cfg):
     registry.validate(*cfg, CALCULATORS)
 
 
-def test_shipped_config_has_the_six_indicators(cfg):
-    assert set(cfg[0]["indicators"]) == CALCULATORS
+def test_shipped_config_has_the_six_price_indicators_and_three_cot_lookbacks(cfg):
+    assert set(cfg[0]["indicators"]) == PRICE_INDICATORS | COT_INDICATORS
+    # one calculator, three registry entries that differ only in their parameters
+    assert {cfg[0]["indicators"][i]["calculator"] for i in COT_INDICATORS} == {"cot_index"}
 
 
 # ---- rule 1: required fields present, ids unique
@@ -257,3 +261,70 @@ def test_required_ui_labels(cfg):
     ind, uni = cfg
     del ind["ui_labels"]["na"]
     _fails(ind, uni, "ui_labels", "na")
+
+
+# ---- WP2: the CFTC source, the positions role and the cot scope (guide 5.3)
+
+def test_cot_indicator_cannot_use_a_price_role(cfg):
+    ind, uni = cfg
+    ind["indicators"]["cot_index_1y"]["inputs"] = ["subject"]
+    _fails(ind, uni, "indicators.cot_index_1y", "inputs")
+
+
+def test_price_indicator_cannot_use_the_positions_role(cfg):
+    ind, uni = cfg
+    ind["indicators"]["trend_regime"]["inputs"] = ["positions"]
+    _fails(ind, uni, "indicators.trend_regime", "inputs")
+
+
+def test_price_indicator_cannot_appear_in_the_cot_scope(cfg):
+    ind, uni = cfg
+    ind["indicators"]["trend_regime"]["scopes"]["cot"] = dict(ind["indicators"]["cot_index_1y"]["scopes"]["cot"], order=99)
+    _fails(ind, uni, "indicators.trend_regime", "scopes.cot")
+
+
+def test_unknown_source(cfg):
+    ind, uni = cfg
+    ind["indicators"]["cot_index_1y"]["source"] = "bloomberg"
+    _fails(ind, uni, "indicators.cot_index_1y", "source")
+
+
+def test_contract_code_must_be_text_to_keep_its_leading_zero(cfg):
+    ind, uni = cfg
+    uni["cot"]["subjects"][0]["cftc_code"] = 1602
+    _fails(ind, uni, "universe.cot.wheat", "cftc_code")
+
+
+def test_duplicate_contract_code(cfg):
+    ind, uni = cfg
+    uni["cot"]["subjects"][1]["cftc_code"] = uni["cot"]["subjects"][0]["cftc_code"]
+    _fails(ind, uni, "universe.cot.soybeans", "cftc_code")
+
+
+def test_cot_group_must_be_declared(cfg):
+    ind, uni = cfg
+    uni["cot"]["subjects"][0]["group"] = "livestock"
+    _fails(ind, uni, "universe.cot.wheat", "group")
+
+
+def test_cot_indicator_needs_the_cot_universe(cfg):
+    ind, uni = cfg
+    del uni["cot"]
+    _fails(ind, uni, "indicators.cot_index_1y", "scopes.cot")
+
+
+def test_chart_levels_and_y_range_shape(cfg):
+    ind, uni = cfg
+    ind["indicators"]["cot_index_1y"]["detail_chart"]["y_range"] = [100, 0]
+    _fails(ind, uni, "indicators.cot_index_1y", "detail_chart.y_range")
+    ind, uni = registry.load_json(INDICATORS), registry.load_json(UNIVERSE)
+    ind["indicators"]["cot_index_1y"]["detail_chart"]["levels"] = ["80"]
+    _fails(ind, uni, "indicators.cot_index_1y", "detail_chart.levels")
+
+
+def test_shipped_cot_universe_has_sixteen_markets_with_distinct_text_codes(cfg):
+    subjects = cfg[1]["cot"]["subjects"]
+    assert len(subjects) == 16
+    codes = [s["cftc_code"] for s in subjects]
+    assert len(set(codes)) == 16 and all(isinstance(c, str) and len(c) == 6 for c in codes)
+    assert {"043602", "001602", "067651", "13874A"} <= set(codes)

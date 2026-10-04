@@ -1,6 +1,6 @@
 """
 Orchestration layer (spec section 6): the single entry point of the market
-breadth / sector pipeline and the only code that writes data/.
+breadth / sector / COT pipeline and the only code that writes data/.
 
     python scripts/run_pipeline.py                 normal run
     python scripts/run_pipeline.py --dry-run       run everything, write nothing
@@ -22,7 +22,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from pipeline import calc, registry, sectors
-from pipeline.collect import fixtures, prices
+from pipeline.collect import cftc, fixtures, prices
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_DIR = ROOT / "config"
@@ -31,6 +31,7 @@ DATA_DIR = ROOT / "data"
 SCHEMA_VERSION = 2
 MARKET_FILE = "market_breadth.json"
 SECTOR_FILE = "sectors.json"
+COT_FILE = "cot.json"
 
 EXIT_OK, EXIT_NO_DATA, EXIT_BAD_CONFIG = 0, 1, 2
 
@@ -92,6 +93,28 @@ def build_sectors(universe, indicators_cfg, indicators, store):
         "default_sort": table.get("default_sort"),
         "tie_break": table.get("tie_break"),
         "indicators": _meta_indicators(indicators, "sector"),
+    }
+    cells = [(iid, row["id"], row["results"][iid]) for row in rows for iid, _ in indicators]
+    return {"meta": meta, "rows": rows}, cells
+
+
+def build_cot(universe, indicators_cfg, indicators, store):
+    """One row per COT market. Markets are not compared with each other, so there is no
+    layer of its own for them: the orchestrator calls the calculation layer directly."""
+    rows = []
+    for subject in registry.subjects(universe, "cot"):
+        frame = store.get(subject["cftc_code"])
+        results = {iid: calc.run(d, {"positions": frame}) for iid, d in indicators}
+        rows.append({"id": subject["id"], "name_zh": subject["name_zh"], "group": subject["group"],
+                     "cftc": {"code": subject["cftc_code"], "name": subject["cftc_name"],
+                              "rows": 0 if frame is None else len(frame)},
+                     "results": results})
+    meta = {
+        "ui_labels": indicators_cfg["ui_labels"],
+        "default_sort": None,
+        "tie_break": None,
+        "groups": universe.get("cot", {}).get("groups", {}),
+        "indicators": _meta_indicators(indicators, "cot"),
     }
     cells = [(iid, row["id"], row["results"][iid]) for row in rows for iid, _ in indicators]
     return {"meta": meta, "rows": rows}, cells
@@ -176,7 +199,13 @@ def write_json(path, payload):
     os.replace(tmp, path)
 
 
-def main(argv=None, data_dir=DATA_DIR, config_dir=CONFIG_DIR, fetch=None):
+def _report_store(label, needed, store):
+    _say(f"{label}: {len(needed)} needed, {store.ok_count()} ok")
+    for key, message in sorted(store.errors.items()):
+        print(f"::warning::{label} {key}: {store.status[key]} - {message}")
+
+
+def main(argv=None, data_dir=DATA_DIR, config_dir=CONFIG_DIR, fetch=None, fetch_cftc=None):
     parser = argparse.ArgumentParser(description="Build market breadth and sector data.")
     parser.add_argument("--dry-run", action="store_true", help="run everything but write no file")
     parser.add_argument("--offline", metavar="DIR", help="read CSV files in DIR instead of the network")
@@ -196,29 +225,33 @@ def main(argv=None, data_dir=DATA_DIR, config_dir=CONFIG_DIR, fetch=None):
 
     market_inds = registry.enabled_indicators(indicators_cfg, "market")
     sector_inds = registry.enabled_indicators(indicators_cfg, "sector")
+    cot_inds = registry.enabled_indicators(indicators_cfg, "cot")
 
-    # 2-3. Work out which tickers are needed and fetch each one once.
+    # 2-3. Work out what each source must deliver and fetch every item once.
     tickers = _market_tickers(universe, market_inds) | sectors.required_tickers(universe, sector_inds)
+    codes = {s["cftc_code"] for s in registry.subjects(universe, "cot")} if cot_inds else set()
     if args.offline:
         store = fixtures.load_prices(args.offline, tickers)
+        positions = fixtures.load_positions(args.offline, codes)
     else:
         store = (fetch or prices.fetch_prices)(tickers)
-    _say(f"tickers: {len(tickers)} needed, {store.ok_count()} ok")
-    for ticker, message in sorted(store.errors.items()):
-        print(f"::warning::ticker {ticker}: {store.status[ticker]} - {message}")
+        positions = (fetch_cftc or cftc.fetch_positions)(codes)
+    _report_store("tickers", tickers, store)
+    _report_store("cftc codes", codes, positions)
 
     # 4-7. Compute both scopes, build the payloads, check them.
     updated_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     outputs = []
-    for scope, filename, builder, inds in (
-        ("market", MARKET_FILE, build_market, market_inds),
-        ("sector", SECTOR_FILE, build_sectors, sector_inds),
+    for scope, filename, builder, inds, source in (
+        ("market", MARKET_FILE, build_market, market_inds, store),
+        ("sector", SECTOR_FILE, build_sectors, sector_inds, store),
+        ("cot", COT_FILE, build_cot, cot_inds, positions),
     ):
-        body, cells = builder(universe, indicators_cfg, inds, store)
+        body, cells = builder(universe, indicators_cfg, inds, source)
         if scope == "market":
             expected = {(iid, sid) for iid, d in inds for sid in d["scopes"]["market"]["subjects"]}
         else:
-            expected = {(iid, s["id"]) for iid, _ in inds for s in sectors.sector_subjects(universe)}
+            expected = {(iid, s["id"]) for iid, _ in inds for s in registry.subjects(universe, scope)}
         try:
             check_cells(scope, inds, cells, expected, indicators_cfg.get("sector_table", {}))
         except OutputMismatch as e:

@@ -72,8 +72,7 @@ def download_year(year, get=None):
         names = [n for n in archive.namelist() if n.lower().endswith((".txt", ".csv"))]
         if not names:
             raise RuntimeError(f"no data file in the zip; it holds {archive.namelist()[:5]}")
-        with archive.open(names[0]) as handle:
-            return pd.read_csv(handle, dtype=str, low_memory=False)
+        return pd.read_csv(io.BytesIO(archive.read(names[0])), dtype=str, low_memory=False)
 
 
 def parse(raw, codes):

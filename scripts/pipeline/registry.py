@@ -16,11 +16,18 @@ import json
 import re
 from pathlib import Path
 
-ROLES = ("subject", "equal_weight", "benchmark")
-SCOPES = ("market", "sector")
+# Each data source has its own roles and its own scopes (guide 5.3, S2-S5).
+SOURCES = ("prices", "cftc")
+DEFAULT_SOURCE = "prices"
+ROLES_OF_SOURCE = {"prices": ("subject", "equal_weight", "benchmark"), "cftc": ("positions",)}
+SCOPES_OF_SOURCE = {"prices": ("market", "sector"), "cftc": ("cot",)}
+ROLES = tuple(role for roles in ROLES_OF_SOURCE.values() for role in roles)
+SCOPES = ("market", "sector", "cot")
+PRICE_SCOPES = SCOPES_OF_SOURCE["prices"]
+COT_SCOPE = "cot"
 COMPONENTS = ("status_card", "table_column")
 # Where each component can appear: cards on the market tab, columns in a table.
-COMPONENT_OF_SCOPE = {"market": "status_card", "sector": "table_column"}
+COMPONENT_OF_SCOPE = {"market": "status_card", "sector": "table_column", "cot": "table_column"}
 FORMATS = ("state_chip", "count", "pct", "signed_pct", "percentile", "number")
 CHART_TYPES = ("line", "price_with_ma", "line_with_markers")
 TONE_RULE_TYPES = ("state_map", "sign", "bands")
@@ -137,9 +144,39 @@ def subjects(universe_cfg, scope):
 
 # ---------------------------------------------------------------- universe
 
+def _validate_cot_universe(universe_cfg):
+    """The cot scope is optional. Its subjects carry a CFTC contract market code, not tickers."""
+    block = universe_cfg.get(COT_SCOPE)
+    if block is None:
+        return
+    _need(isinstance(block, dict) and isinstance(block.get("subjects"), list),
+          "universe", f"{COT_SCOPE}.subjects", "必須是清單")
+    groups = block.get("groups")
+    _need(isinstance(groups, dict) and groups and all(_is_str(v) for v in groups.values()),
+          "universe", f"{COT_SCOPE}.groups", "必填，「類別 id: 顯示名稱」")
+    seen_ids, seen_codes = set(), set()
+    for i, s in enumerate(block["subjects"]):
+        where = f"universe.{COT_SCOPE}.subjects[{i}]"
+        _need(isinstance(s, dict), where, "", "必須是物件")
+        _need(_is_id(s.get("id")), where, "id", "必填，只可以用小寫英文字母、數字和底線")
+        where = f"universe.{COT_SCOPE}.{s['id']}"
+        _need(s["id"] not in seen_ids, where, "id", "id 重複")
+        seen_ids.add(s["id"])
+        _need(_is_str(s.get("name_zh")), where, "name_zh", "必填")
+        _check_text(where, "name_zh", s["name_zh"])
+        _need(isinstance(s.get("group"), str) and s["group"] in groups, where, "group",
+              f"只可以是 {list(groups)}")
+        # Codes can start with a zero, so they must stay text: as a number the zero is lost.
+        _need(_is_str(s.get("cftc_code")), where, "cftc_code", "必填，而且必須是字串（保留前導零）")
+        _need(s["cftc_code"] not in seen_codes, where, "cftc_code", "合約代碼重複")
+        seen_codes.add(s["cftc_code"])
+        _need(_is_str(s.get("cftc_name")), where, "cftc_name", "必填")
+
+
 def validate_universe(universe_cfg):
     _need(isinstance(universe_cfg, dict), "universe", "", "頂層必須是物件")
-    for scope in SCOPES:
+    _validate_cot_universe(universe_cfg)
+    for scope in PRICE_SCOPES:
         block = universe_cfg.get(scope)
         _need(isinstance(block, dict) and isinstance(block.get("subjects"), list),
               "universe", f"{scope}.subjects", "必須是清單")
@@ -156,7 +193,8 @@ def validate_universe(universe_cfg):
             roles = s.get("roles")
             _need(isinstance(roles, dict) and roles, where, "roles", "必填，而且不可為空")
             for role, ticker in roles.items():
-                _need(role in ROLES, where, f"roles.{role}", f"角色名只可以是 {list(ROLES)}")
+                _need(role in ROLES_OF_SOURCE["prices"], where, f"roles.{role}",
+                      f"角色名只可以是 {list(ROLES_OF_SOURCE['prices'])}")
                 _need(_is_str(ticker), where, f"roles.{role}", "ticker 必須是非空字串")
             _need("subject" in roles, where, "roles.subject", "每個標的至少要有 subject 角色")
 
@@ -214,6 +252,8 @@ def _validate_scope(entry, scope, block, universe_cfg):
     else:
         _need(_is_str(block.get("column_label")), entry, f"{field}.column_label", "必填")
         _check_text(entry, f"{field}.column_label", block["column_label"])
+    if scope == COT_SCOPE:
+        _need(universe_cfg.get(COT_SCOPE) is not None, entry, field, "universe.json 沒有 cot 範圍")
 
 
 def _validate_indicator(iid, d, universe_cfg, calculators):
@@ -241,13 +281,19 @@ def _validate_indicator(iid, d, universe_cfg, calculators):
     for key in calculators[d["calculator"]]:
         _need(key in d["params"], entry, f"params.{key}", "這個計算函式需要此參數")
 
-    # Rule 3: roles.
+    # Rule 3: roles. Which roles and scopes are allowed depends on the data source.
+    source = d.get("source", DEFAULT_SOURCE)
+    _need(source in SOURCES, entry, "source", f"只可以是 {list(SOURCES)}")
     for role in d["inputs"]:
         _need(role in ROLES, entry, "inputs", f"「{role}」不是角色名；只可以是 {list(ROLES)}")
+        _need(role in ROLES_OF_SOURCE[source], entry, "inputs",
+              f"來源 {source} 的角色只可以是 {list(ROLES_OF_SOURCE[source])}")
 
     # Rules 3 and 4: scopes.
     for scope, block in d["scopes"].items():
         _need(scope in SCOPES, entry, f"scopes.{scope}", f"範圍只可以是 {list(SCOPES)}")
+        _need(scope in SCOPES_OF_SOURCE[source], entry, f"scopes.{scope}",
+              f"來源 {source} 的範圍只可以是 {list(SCOPES_OF_SOURCE[source])}")
         _validate_scope(entry, scope, block, universe_cfg)
 
     # Rule 4: the remaining enumerations.
@@ -260,6 +306,13 @@ def _validate_indicator(iid, d, universe_cfg, calculators):
         series = chart.get("series")
         _need(isinstance(series, list) and series and all(_is_str(x) for x in series), entry,
               "detail_chart.series", "必填，非空的字串清單")
+        if "levels" in chart:
+            _need(isinstance(chart["levels"], list) and all(_is_num(x) for x in chart["levels"]), entry,
+                  "detail_chart.levels", "必須是數值清單")
+        if "y_range" in chart:
+            yr = chart["y_range"]
+            _need(isinstance(yr, list) and len(yr) == 2 and all(_is_num(x) for x in yr) and yr[0] < yr[1],
+                  entry, "detail_chart.y_range", "格式是 [最小值, 最大值]")
     if "cross_section" in d:
         cs = d["cross_section"]
         _need(isinstance(cs, list), entry, "cross_section", "必須是清單")

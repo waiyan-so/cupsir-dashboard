@@ -11,7 +11,8 @@ from pipeline.calc._math import sma
 from helpers import ROOT
 
 ENVELOPE = set(calc.RESULT_KEYS)
-MARKET, SECTORS = "market_breadth.json", "sectors.json"
+MARKET, SECTORS, COT = "market_breadth.json", "sectors.json", "cot.json"
+NEW_FILES = (MARKET, SECTORS, COT)
 
 
 def run(tmp_path, *argv, data=None):
@@ -74,23 +75,23 @@ def test_offline_run_writes_both_files_with_the_documented_shape(tmp_path, offli
             assert result["data_date"] == "2026-10-02"
 
 
-def test_only_the_two_new_files_are_written(tmp_path, offline_dir):
+def test_only_the_three_new_files_are_written(tmp_path, offline_dir):
     data = tmp_path / "data"
     shutil.copytree(ROOT / "data", data)
     before = {p.name: p.read_bytes() for p in data.iterdir()}
     code, _ = run(tmp_path, "--offline", str(offline_dir), data=data)
     assert code == 0
     after = {p.name: p.read_bytes() for p in data.iterdir()}
-    assert set(after) - set(before) <= {MARKET, SECTORS}
+    assert set(after) - set(before) <= set(NEW_FILES)
     for name, content in before.items():
-        if name not in (MARKET, SECTORS):
+        if name not in NEW_FILES:
             assert after[name] == content, f"{name} was modified"
 
 
 def test_two_runs_on_the_same_input_differ_only_in_updated_at(tmp_path, offline_dir):
     _, first = run(tmp_path, "--offline", str(offline_dir), data=tmp_path / "a")
     _, second = run(tmp_path, "--offline", str(offline_dir), data=tmp_path / "b")
-    for name in (MARKET, SECTORS):
+    for name in NEW_FILES:
         a, b = load(first, name), load(second, name)
         a.pop("updated_at"), b.pop("updated_at")
         assert a == b
@@ -298,3 +299,89 @@ def test_scope_with_no_enabled_indicator_gets_an_empty_file_not_a_failure(tmp_pa
     sector = load(data, SECTORS)
     assert sector["meta"]["indicators"] == [] and all(r["results"] == {} for r in sector["rows"])
     assert load(data, MARKET)["results"]["trend_regime"]["spy"]["status"] == "ok"
+
+
+# ---- WP2: COT scope (implementation guide section 5)
+
+def test_cot_file_shape(tmp_path, offline_dir):
+    code, data = run(tmp_path, "--offline", str(offline_dir))
+    assert code == 0
+    cot = load(data, COT)
+    assert cot["schema_version"] == 2 and set(cot) == {"schema_version", "updated_at", "meta", "rows"}
+    meta = cot["meta"]
+    assert [i["id"] for i in meta["indicators"]] == ["cot_index_1y", "cot_index_3y", "cot_index_6m"]
+    assert meta["default_sort"] is None                      # default order = the order in universe.json
+    assert meta["groups"] == {"agriculture": "農產品", "energy": "能源", "metals": "金屬", "financial": "金融"}
+    assert meta["ui_labels"]["tab_cot"] == "COT 持倉"
+    for ind in meta["indicators"]:
+        assert ind["detail_chart"] == {"type": "line", "series": ["cot_index", "sentiment_index"],
+                                       "levels": [80, 20], "y_range": [0, 100]}
+        assert not {"params", "notes", "calculator", "source", "inputs"} & set(ind)
+    universe = json.loads((ROOT / "config" / "universe.json").read_text(encoding="utf-8"))
+    assert [r["id"] for r in cot["rows"]] == [s["id"] for s in universe["cot"]["subjects"]]
+    assert len(cot["rows"]) == 16
+    for row in cot["rows"]:
+        assert set(row) == {"id", "name_zh", "group", "cftc", "results"}
+        assert set(row["cftc"]) == {"code", "name", "rows"} and row["cftc"]["rows"] == 260
+        for result in row["results"].values():
+            assert set(result) == ENVELOPE and result["status"] == "ok"
+            assert result["data_date"] == "2026-09-29"
+            assert len(result["history"]) == 52
+
+
+def test_cot_market_with_short_history_blanks_only_the_long_lookback(tmp_path, offline_dir):
+    cot_before = load(run(tmp_path, "--offline", str(offline_dir), data=tmp_path / "ref")[1], COT)
+    code_of = {r["id"]: r["cftc"]["code"] for r in cot_before["rows"]}
+    path = offline_dir / "cftc" / f"{code_of['gold']}.csv"
+    lines = path.read_text(encoding="utf-8").splitlines()
+    path.write_text("\n".join([lines[0]] + lines[-100:]) + "\n", encoding="utf-8")     # 100 weeks
+    _, data = run(tmp_path, "--offline", str(offline_dir))
+    gold = next(r for r in load(data, COT)["rows"] if r["id"] == "gold")
+    assert gold["results"]["cot_index_3y"]["reason"] == "insufficient_history"           # needs 156 rows
+    assert gold["results"]["cot_index_1y"]["status"] == "ok"
+    assert gold["results"]["cot_index_6m"]["status"] == "ok"
+    assert gold["cftc"]["rows"] == 100
+
+
+def test_cftc_down_keeps_the_old_cot_file_and_still_writes_the_other_two(tmp_path, offline_dir):
+    code, data = run(tmp_path, "--offline", str(offline_dir))
+    cot_before = (data / COT).read_bytes()
+    stamp = load(data, SECTORS)["updated_at"]
+    shutil.rmtree(offline_dir / "cftc")
+    (data / MARKET).unlink()
+    code, _ = run(tmp_path, "--offline", str(offline_dir), data=data)
+    assert code == 0
+    assert (data / COT).read_bytes() == cot_before
+    assert (data / MARKET).exists() and load(data, SECTORS)["updated_at"] >= stamp
+
+
+def test_prices_down_still_writes_the_cot_file(tmp_path, offline_dir):
+    shutil.rmtree(offline_dir / "prices")
+    code, data = run(tmp_path, "--offline", str(offline_dir))
+    assert code == 0
+    assert (data / COT).exists() and not (data / MARKET).exists() and not (data / SECTORS).exists()
+
+
+def test_adding_a_cot_market_needs_only_a_universe_entry(tmp_path, offline_dir):
+    """Guide 5.6: a new market is one line in universe.json - no .py or .js change."""
+    config = tmp_path / "config"
+    shutil.copytree(ROOT / "config", config)
+    universe = json.loads((config / "universe.json").read_text(encoding="utf-8"))
+    universe["cot"]["subjects"].append({"id": "silver", "name_zh": "白銀", "group": "metals",
+                                        "cftc_code": "084691", "cftc_name": "SILVER - COMMODITY EXCHANGE INC."})
+    (config / "universe.json").write_text(json.dumps(universe, ensure_ascii=False), encoding="utf-8")
+    source = offline_dir / "cftc" / f"{universe['cot']['subjects'][0]['cftc_code']}.csv"
+    shutil.copy(source, offline_dir / "cftc" / "084691.csv")
+    code = run_pipeline.main(["--offline", str(offline_dir)], data_dir=tmp_path / "data", config_dir=config)
+    assert code == 0
+    rows = load(tmp_path / "data", COT)["rows"]
+    assert len(rows) == 17 and rows[-1]["id"] == "silver"
+    assert all(r["status"] == "ok" for r in rows[-1]["results"].values())
+
+
+def test_cot_results_do_not_touch_dashboard_json(tmp_path, offline_dir):
+    data = tmp_path / "data"
+    shutil.copytree(ROOT / "data", data)
+    before = (data / "dashboard.json").read_bytes()
+    run(tmp_path, "--offline", str(offline_dir), data=data)
+    assert (data / "dashboard.json").read_bytes() == before

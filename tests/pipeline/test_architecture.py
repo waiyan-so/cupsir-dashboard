@@ -77,6 +77,16 @@ def test_4_no_ticker_is_spelled_out_in_code():
             assert not re.search(rf"""["'`]{re.escape(ticker)}["'`]""", text), f"{path.name} names {ticker}"
 
 
+def test_4b_no_contract_code_is_spelled_out_in_code():
+    universe = json.loads((ROOT / "config" / "universe.json").read_text(encoding="utf-8"))
+    codes = {s["cftc_code"] for s in universe["cot"]["subjects"]}
+    files = sources(PIPELINE) + [ORCHESTRATOR] + ([FRONT_END] if FRONT_END.exists() else [])
+    for path in files:
+        text = path.read_text(encoding="utf-8")
+        for code in codes:
+            assert code not in text, f"{path.name} names contract code {code}"
+
+
 def test_5_front_end_names_no_indicator():
     if not FRONT_END.exists():
         return
