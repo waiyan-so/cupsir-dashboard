@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-05 02:09 UTC",
+  "updated_at": "2026-10-05 01:37 UTC",
   "overall_signal": "BULLISH",
   "total_score": 6,
   "category_labels": {
@@ -162,8 +162,7 @@
           0.3,
           0.5
         ],
-        "y_range": null,
-        "points": null
+        "y_range": null
       }
     },
     {
@@ -316,8 +315,7 @@
           0,
           0.3
         ],
-        "y_range": null,
-        "points": null
+        "y_range": null
       }
     },
     {
@@ -470,8 +468,7 @@
           3.5,
           5
         ],
-        "y_range": null,
-        "points": null
+        "y_range": null
       }
     },
     {
@@ -625,8 +622,7 @@
           1.5,
           3
         ],
-        "y_range": null,
-        "points": 12
+        "y_range": null
       }
     },
     {
@@ -780,8 +776,7 @@
           30,
           45
         ],
-        "y_range": null,
-        "points": null
+        "y_range": null
       }
     },
     {
@@ -930,8 +925,7 @@
       ],
       "chart": {
         "levels": [],
-        "y_range": null,
-        "points": null
+        "y_range": null
       }
     },
     {
@@ -1080,8 +1074,7 @@
       ],
       "chart": {
         "levels": [],
-        "y_range": null,
-        "points": null
+        "y_range": null
       }
     },
     {
@@ -1230,8 +1223,7 @@
       ],
       "chart": {
         "levels": [],
-        "y_range": null,
-        "points": null
+        "y_range": null
       }
     },
     {
@@ -1386,8 +1378,7 @@
         "y_range": [
           0,
           100
-        ],
-        "points": null
+        ]
       }
     },
     {
@@ -1542,8 +1533,7 @@
         "y_range": [
           0,
           100
-        ],
-        "points": null
+        ]
       }
     },
     {
@@ -1698,8 +1688,7 @@
         "y_range": [
           0,
           100
-        ],
-        "points": null
+        ]
       }
     },
     {
@@ -1854,8 +1843,7 @@
         "y_range": [
           0,
           100
-        ],
-        "points": null
+        ]
       }
     },
     {
@@ -2010,8 +1998,7 @@
         "y_range": [
           0,
           100
-        ],
-        "points": null
+        ]
       }
     }
   ]
