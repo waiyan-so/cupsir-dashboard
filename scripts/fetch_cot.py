@@ -167,18 +167,31 @@ def _cot_index(series: pd.Series, lookback: int = 52) -> pd.Series:
     return (series - lo) / (hi - lo) * 100
 
 
-def _resolve_market(df_all: pd.DataFrame, needle: str) -> pd.DataFrame:
-    market_lower = df_all["market"].str.lower()
-    # startswith, not contains: CFTC market names are "<CONTRACT> - <EXCHANGE>",
-    # and `contains` risks silently blending an unrelated market that happens to
-    # share a substring into the same net-position series.
-    mdf = df_all[market_lower.str.startswith(needle.lower(), na=False)].copy()
+def _norm_name(name) -> str:
+    """A market name with case and repeated spaces ignored."""
+    return " ".join(str(name).split()).casefold()
+
+
+def _resolve_market(df_all: pd.DataFrame, market_name: str) -> pd.DataFrame:
+    """Rows of the one market whose full CFTC name is `market_name`.
+
+    The whole name must match ("<CONTRACT> - <EXCHANGE>"). A prefix can match
+    a market nobody meant - the same contract on another exchange, or a
+    different contract whose name merely starts the same way - and the old
+    rule then kept whichever had the most rows (undefined on a tie). After
+    NYMEX renamed its crude contract, the oil prefix matched only the ICE
+    Europe one. No match returns no rows (the indicator shows N/A) and says so in a
+    "::warning::" line with the nearest names in the file.
+    """
+    wanted = _norm_name(market_name)
+    names = df_all["market"].map(_norm_name)
+    mdf = df_all[names == wanted].copy()
     if mdf.empty:
+        contract = wanted.split(" - ")[0]
+        similar = sorted({str(n) for n, key in zip(df_all["market"], names) if key.startswith(contract)})[:5]
+        hint = f"; names in the file starting the same way: {similar}" if similar else ""
+        print(f"::warning::COT market '{market_name}' is not in the CFTC file - check cot_market in scripts/config.py{hint}")
         return mdf
-    matched_names = mdf["market"].unique().tolist()
-    if len(matched_names) > 1:
-        top_name = mdf["market"].value_counts().idxmax()
-        mdf = mdf[mdf["market"] == top_name].copy()
     return mdf.sort_values("date").reset_index(drop=True)
 
 

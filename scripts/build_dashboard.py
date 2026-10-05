@@ -4,7 +4,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 import requests
 import yfinance as yf
-from config import INDICATORS, CATEGORY_LABELS, CATEGORY_ORDER
+from config import (INDICATORS, CATEGORY_LABELS, CATEGORY_ORDER, INTERPRETATION_TEXT, FETCH_FAILED_TEXT,
+                    QUARTER_DATE_TEXT, QUARTER_NAMES)
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
@@ -29,6 +30,19 @@ def fred_observations(series_id, limit=60):
 def market_observations(ticker, period="3mo"):
     h = yf.Ticker(ticker).history(period=period)["Close"].dropna()
     return [{"date": d.strftime("%Y-%m-%d"), "value": round(float(v), 3)} for d, v in h.items()]
+
+
+def display_date(iso_date, cfg):
+    """The data date as shown on the page. A "date_as": "quarter" series is dated by
+    the first day of the quarter its value is for, so show the quarter instead of
+    that day; every other date is shown as it is. History points keep real dates."""
+    if cfg.get("date_as") != "quarter":
+        return iso_date
+    try:
+        year, month = int(iso_date[:4]), int(iso_date[5:7])
+        return QUARTER_DATE_TEXT.format(year=year, quarter=QUARTER_NAMES[(month - 1) // 3])
+    except (ValueError, IndexError):
+        return iso_date
 
 
 def signal(indicator_id, value, history):
@@ -90,7 +104,7 @@ def main():
                 history = list(reversed(fred_observations(cfg["series_id"])))
                 value = history[-1]["value"]
                 label, color = signal(iid, value, history)
-                data_date = history[-1]["date"]
+                data_date = display_date(history[-1]["date"], cfg)
             elif cfg["source"] == "market":
                 history = market_observations(cfg["ticker"])
                 value = history[-1]["value"]
@@ -110,7 +124,7 @@ def main():
                 "id": iid, "category": cfg["category"], "name": cfg["name"], "name_zh": cfg["name_zh"],
                 "value": round(value, 3) if isinstance(value, float) else value, "unit": cfg.get("unit", ""),
                 "data_date": data_date, "signal": label, "signal_color": color,
-                "interpretation": f"CupSir framework classification: {label}.", "checklist": cfg["checklist"],
+                "interpretation": INTERPRETATION_TEXT.format(signal=label), "checklist": cfg["checklist"],
                 "source_name": {"fred": "FRED", "market": "Yahoo Finance", "cot": "CFTC"}.get(cfg["source"], "Source"),
                 "source_url": cfg["source_url"], "embed": cfg.get("embed"), "history": history[-30:]
             })
@@ -118,13 +132,22 @@ def main():
             output["indicators"].append({
                 "id": iid, "category": cfg["category"], "name": cfg["name"], "name_zh": cfg["name_zh"],
                 "value": "N/A", "unit": cfg.get("unit", ""), "data_date": "N/A", "signal": "UNAVAILABLE",
-                "signal_color": "warning", "interpretation": f"Data fetch failed: {str(e)[:120]}",
+                "signal_color": "warning", "interpretation": FETCH_FAILED_TEXT.format(error=str(e)[:120]),
                 "checklist": cfg["checklist"], "source_name": "Source", "source_url": cfg["source_url"],
                 "embed": cfg.get("embed"), "history": []
             })
 
+    # Every source down at once (network outage, all providers failing): keep the
+    # last good file rather than replace it with a page of N/A. One source failing
+    # still writes - the others are fresh and the failed ones show as unavailable.
+    if output["indicators"] and all(x["value"] == "N/A" for x in output["indicators"]):
+        print("::warning::every dashboard indicator came back without a value (all data sources failed); "
+              "data/dashboard.json was left unchanged")
+        return False
+
     output["overall_signal"] = "BULLISH" if output["total_score"] >= 3 else ("BEARISH" if output["total_score"] <= -3 else "NEUTRAL")
     (DATA / "dashboard.json").write_text(json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8")
+    return True
 
 
 if __name__ == "__main__":

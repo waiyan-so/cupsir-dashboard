@@ -8,6 +8,12 @@ on:
 permissions:
   contents: write
 
+# One refresh per branch at a time: a manual run that overlaps the scheduled one
+# waits for it instead of racing it to the push.
+concurrency:
+  group: update-data-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   refresh:
     runs-on: ubuntu-latest
@@ -40,4 +46,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/
           git diff --cached --quiet || git commit -m "chore: refresh dashboard data"
+          # Someone may have pushed to this branch while the job ran; replay the
+          # data commit on top of theirs rather than have the push rejected.
+          git pull --rebase --autostash origin "$GITHUB_REF_NAME"
           git push
