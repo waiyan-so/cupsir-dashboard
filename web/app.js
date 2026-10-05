@@ -17,8 +17,11 @@ const LEVEL_GUTTER = 38;        // room on the right of the plot for the level l
 const LEVEL_LABEL_GAP = 13;     // two level labels closer than this would overlap; the second is skipped
 
 // What the chart needs beyond the history: dashed levels and, for COT, a fixed 0-100 axis.
+// A dashboard.json written before the "chart" entry existed (the page can be deployed ahead
+// of the next data refresh) gets what the COT chart always drew, and plain lines elsewhere.
+const COT_CHART_BEFORE_SPEC = { levels: [80, 20], y_range: [0, 100] };
 function chartSpec(x) {
-  const c = x.chart || {};
+  const c = x.chart || (x.category === 'cot' ? COT_CHART_BEFORE_SPEC : {});
   return { levels: Array.isArray(c.levels) ? c.levels : [], yRange: Array.isArray(c.y_range) ? c.y_range : null };
 }
 

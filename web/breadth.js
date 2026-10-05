@@ -327,7 +327,10 @@
     const caption = row => (row.tickers || {}).subject || (row.cftc || {}).code || '';
     const defaultSort = meta.default_sort ? Object.assign({ column: meta.default_sort.indicator }, meta.default_sort) : null;
     const canSwitch = !!(toggleBox && labels.view_list && labels.view_table);
-    let view = 'list';
+    // The list needs something to show beside each row and a way back to the table. A file
+    // written before the registry had either (the page can be deployed ahead of the next
+    // data refresh) opens as the table, exactly as it did before.
+    let view = canSwitch && listSpecs.length ? 'list' : 'table';
     let sort = defaultSort;
     let openRow = null;
 
