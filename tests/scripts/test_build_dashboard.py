@@ -262,3 +262,44 @@ def test_no_checklist_still_describes_the_old_tff_approximation():
     for cfg in bd.INDICATORS.values():
         text = " ".join(cfg["checklist"])
         assert "Dealer" not in text and "槓桿基金" not in text
+
+
+# ---------------------------------------------------------------- X3: only the S&P 500 COT counts
+
+def score_with_cot(data_dir, monkeypatch, cot_index, sentiment):
+    """total_score with every COT market at the same reading, and the same run with no COT file."""
+    monkeypatch.setattr(bd, "fred_observations", fred_rows)
+    monkeypatch.setattr(bd, "market_observations", market_rows)
+    bd.main()
+    without = json.loads((data_dir / "dashboard.json").read_text(encoding="utf-8"))["total_score"]
+    write_cot(data_dir, [cot_row(m, cot_index=cot_index, sentiment=sentiment) for m in COT_IDS.values()])
+    bd.main()
+    out = json.loads((data_dir / "dashboard.json").read_text(encoding="utf-8"))
+    return out, out["total_score"] - without
+
+
+def test_only_the_sp500_cot_indicator_is_scored():
+    scored = [iid for iid in COT_IDS if bd.INDICATORS[iid].get("scored", True)]
+    assert scored == ["cot_sp500"]
+    for iid, cfg in bd.INDICATORS.items():
+        if cfg["source"] != "cot":
+            assert cfg.get("scored", True), iid
+
+
+def test_five_bullish_cot_markets_add_one_point_not_five(data_dir, monkeypatch):
+    out, added = score_with_cot(data_dir, monkeypatch, cot_index=85.0, sentiment=15.0)
+    assert added == 1
+    assert all(x["signal_color"] == "positive" for x in out["indicators"] if x["category"] == "cot")
+
+
+def test_five_crowded_long_cot_markets_take_one_point_off(data_dir, monkeypatch):
+    out, added = score_with_cot(data_dir, monkeypatch, cot_index=15.0, sentiment=85.0)
+    assert added == -1
+
+
+def test_unscored_indicators_are_still_shown_with_their_signal(data_dir, monkeypatch):
+    out, _ = score_with_cot(data_dir, monkeypatch, cot_index=85.0, sentiment=15.0)
+    shown = {x["id"]: x["signal"] for x in out["indicators"]}
+    for iid in COT_IDS:
+        assert shown[iid] == "STRONG BUY (SMART MONEY)"
+    assert len(out["indicators"]) == len(bd.INDICATORS)

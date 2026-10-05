@@ -11,6 +11,10 @@ Each indicator dict:
                  differ from the COT tab. Contract codes live only in universe.json.
   embed        - {"type": "fred"|"tradingview", "target": <series_id or TradingView symbol>}
                  drives the live chart iframe/widget in the detail panel
+  scored       - False for an indicator that is shown but left out of the overall score
+                 (default: counted). Of the COT indicators only the S&P 500 one counts:
+                 the others describe positioning in their own market (bonds, gold, oil,
+                 the dollar), which is not a view on equities.
   date_as      - "quarter" when the source dates each value by the first day of the
                  quarter it is for; the detail panel then shows the quarter, not that day
   summary_label - short market name used when the research summary lists the COT
@@ -91,14 +95,14 @@ INDICATORS = {
     },
     "cot_10y": {
         "category": "cot", "name": "10Y Treasury COT", "name_zh": "10年期國債 COT", "summary_label": "10年債",
-        "source": "cot", "cot_id": "ust10y", "unit": "index",
+        "source": "cot", "cot_id": "ust10y", "unit": "index", "scored": False,
         "checklist": ["商業持倉者 COT Index 是否 ≥80 或 ≤20", "小型投機者 Sentiment Index 是否反向極端", "是否與孳息曲線走勢背馳"],
         "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders",
         "embed": {"type": "tradingview", "target": "CBOT:ZN1!"},
     },
     "cot_gold": {
         "category": "cot", "name": "Gold COT", "name_zh": "黃金 COT", "summary_label": "黃金",
-        "source": "cot", "cot_id": "gold", "unit": "index",
+        "source": "cot", "cot_id": "gold", "unit": "index", "scored": False,
         "checklist": ["商業持倉者 COT Index 是否 ≥80 或 ≤20", "小型投機者 Sentiment Index 是否反向極端", "是否與避險需求走勢一致"],
         "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders",
         "embed": {"type": "tradingview", "target": "COMEX:GC1!"},
@@ -107,14 +111,14 @@ INDICATORS = {
         "category": "cot", "name": "Oil COT", "name_zh": "原油 COT", "summary_label": "原油",
         # crude_oil is the NYMEX WTI contract (CL), the one the framework names and the
         # one the oil price indicator above tracks - not ICE Futures Europe's look-alike.
-        "source": "cot", "cot_id": "crude_oil", "unit": "index",
+        "source": "cot", "cot_id": "crude_oil", "unit": "index", "scored": False,
         "checklist": ["商業持倉者 COT Index 是否 ≥80 或 ≤20", "小型投機者 Sentiment Index 是否反向極端", "是否與油價週期判斷一致"],
         "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders",
         "embed": {"type": "tradingview", "target": "NYMEX:CL1!"},
     },
     "cot_dxy": {
         "category": "cot", "name": "DXY COT", "name_zh": "美元指數 COT", "summary_label": "美元",
-        "source": "cot", "cot_id": "usd_index", "unit": "index",
+        "source": "cot", "cot_id": "usd_index", "unit": "index", "scored": False,
         "checklist": ["商業持倉者 COT Index 是否 ≥80 或 ≤20", "小型投機者 Sentiment Index 是否反向極端", "是否與風險資產走勢背馳"],
         "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders",
         "embed": {"type": "tradingview", "target": "TVC:DXY"},

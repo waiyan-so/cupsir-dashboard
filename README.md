@@ -10,12 +10,12 @@ The page is in Traditional Chinese.
 |---|---|---|
 | Economic calendar | Events in the next 14 days: NFP, FOMC, FOMC minutes, QRA and eleven monthly releases | `data/events.json` |
 | News | Macro and market headlines from NewsAPI | `data/news.json` |
-| Tab 整體市場 | Status cards for market breadth (trend regime, distribution days, equal-weight ratio, follow-through day, for SPY and QQQ), then 13 indicators in three groups: macro (4), market temperature (4), COT positioning (5). The 13 feed the overall signal and score in the header | `data/market_breadth.json`, `data/dashboard.json` |
+| Tab 整體市場 | Status cards for market breadth (trend regime, distribution days, equal-weight ratio, follow-through day, for SPY and QQQ), then 13 indicators in three groups: macro (4), market temperature (4), COT positioning (5). Nine of them feed the overall signal and score in the header: the four macro, the four market and the S&P 500 COT. The other four COT indicators are shown but not scored | `data/market_breadth.json`, `data/dashboard.json` |
 | Tab 板塊 | 11 sectors by 5 indicators: relative strength, trend regime, distribution days, equal-weight ratio, realized volatility | `data/sectors.json` |
 | Tab COT 持倉 | 16 futures markets by 3 lookbacks (6 months, 1 year, 3 years): COT Index and Sentiment Index from the CFTC Legacy report | `data/cot.json` |
 | Research summary | Rule-based text built from the 13 indicators | `data/summary.json` |
 
-The breadth, sector and COT tabs do not feed the overall score.
+The breadth, sector and COT tabs do not add to the overall score. The one link is the S&P 500 COT indicator on the first tab, which shows the COT tab's one-year reading for that market.
 
 ## How it works
 

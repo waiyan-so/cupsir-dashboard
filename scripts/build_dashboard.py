@@ -151,7 +151,8 @@ def main():
             else:
                 raise RuntimeError(f"Unknown source for {iid}")
 
-            output["total_score"] += score_map.get(color, 0)
+            if cfg.get("scored", True):
+                output["total_score"] += score_map.get(color, 0)
             output["indicators"].append({
                 "id": iid, "category": cfg["category"], "name": cfg["name"], "name_zh": cfg["name_zh"],
                 "value": round(value, 3) if isinstance(value, float) else value, "unit": cfg.get("unit", ""),
