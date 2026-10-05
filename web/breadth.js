@@ -24,12 +24,29 @@
   const SERIES_COLORS = ['#3987e5', '#d95926', '#199e70', '#c98500'];
   const NAME_COLUMN = '__name';
   const GROUP_COLUMN = '__group';
+  const VIEWS = ['list', 'table'];
+  const VIEW_STORAGE_PREFIX = 'cupsir-dashboard.view.';
 
   const $ = (sel, root) => (root || document).querySelector(sel);
   const warned = new Set();
   function warnOnce(kind, name) {
     const key = `${kind}:${name}`;
     if (!warned.has(key)) { warned.add(key); console.warn(`[breadth] unknown ${kind} "${name}": ${kind === 'format' ? 'showing the raw value' : 'skipped'}`); }
+  }
+
+  // The view last chosen on a tab is kept in this browser, so a reload opens the same one.
+  // Storage can be unavailable (private window, blocked site data): then nothing is
+  // remembered and the tab opens in its default view, as if no choice had been made.
+  function storedView(name) {
+    if (!name) return null;
+    try {
+      const value = window.localStorage.getItem(VIEW_STORAGE_PREFIX + name);
+      return VIEWS.includes(value) ? value : null;
+    } catch (err) { return null; }
+  }
+  function storeView(name, view) {
+    if (!name) return;
+    try { window.localStorage.setItem(VIEW_STORAGE_PREFIX + name, view); } catch (err) { /* not remembered */ }
   }
 
   // ------------------------------------------------------------ formats
@@ -313,8 +330,10 @@
    *           meta.groups), the selected row's charts stacked on the right. A row shows the
    *           values of the indicators that carry a `list` entry in the registry.
    *   table - every row against every indicator, sortable; a clicked row opens below it.
-   * The two buttons that switch view appear when meta.ui_labels has both view names.
-   *   opts: { toggle, split, table, detail: selectors; nameLabel, note: keys of meta.ui_labels }
+   * The two buttons that switch view appear when meta.ui_labels has both view names. The
+   * view picked with them is remembered per tab (opts.remember) and used on the next load.
+   *   opts: { toggle, split, table, detail: selectors; nameLabel, note: keys of meta.ui_labels;
+   *           remember: name under which this tab's view choice is stored }
    */
   function renderRows(payload, opts) {
     const toggleBox = $(opts.toggle), splitBox = $(opts.split), tableBox = $(opts.table), detailBox = $(opts.detail);
@@ -329,8 +348,10 @@
     const canSwitch = !!(toggleBox && labels.view_list && labels.view_table);
     // The list needs something to show beside each row and a way back to the table. A file
     // written before the registry had either (the page can be deployed ahead of the next
-    // data refresh) opens as the table, exactly as it did before.
-    let view = canSwitch && listSpecs.length ? 'list' : 'table';
+    // data refresh) opens as the table, exactly as it did before. With both views on offer,
+    // the one chosen last time wins over the default (the list).
+    const canList = canSwitch && listSpecs.length > 0;
+    let view = canList ? (storedView(opts.remember) || 'list') : 'table';
     let sort = defaultSort;
     let openRow = null;
 
@@ -366,7 +387,11 @@
       if (!canSwitch) return;
       const button = name => `<button data-view="${name}" class="${view === name ? 'active' : ''}">${esc(labels[`view_${name}`])}</button>`;
       toggleBox.innerHTML = button('list') + button('table');
-      toggleBox.querySelectorAll('button').forEach(b => b.onclick = () => { if (b.dataset.view !== view) setView(b.dataset.view); });
+      toggleBox.querySelectorAll('button').forEach(b => b.onclick = () => {
+        if (b.dataset.view === view) return;
+        setView(b.dataset.view);
+        storeView(opts.remember, view);
+      });
     }
 
     function drawTable() {
@@ -477,8 +502,8 @@
 
   const SOURCES = [
     { file: 'data/market_breadth.json', box: '#breadthCards', render: renderMarket },
-    { file: 'data/sectors.json', box: '#sectorTable', render: p => renderRows(p, { toggle: '#sectorView', split: '#sectorSplit', table: '#sectorTable', detail: '#sectorDetail', nameLabel: 'sector_column' }) },
-    { file: 'data/cot.json', box: '#cotTable', render: p => renderRows(p, { toggle: '#cotView', split: '#cotSplit', table: '#cotTable', detail: '#cotDetail', nameLabel: 'cot_column', note: 'cot_note' }) },
+    { file: 'data/sectors.json', box: '#sectorTable', render: p => renderRows(p, { toggle: '#sectorView', split: '#sectorSplit', table: '#sectorTable', detail: '#sectorDetail', nameLabel: 'sector_column', remember: 'sectors' }) },
+    { file: 'data/cot.json', box: '#cotTable', render: p => renderRows(p, { toggle: '#cotView', split: '#cotSplit', table: '#cotTable', detail: '#cotDetail', nameLabel: 'cot_column', note: 'cot_note', remember: 'cot' }) },
   ];
 
   // Each file loads on its own: one failing never affects the other or the existing page.
