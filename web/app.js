@@ -16,21 +16,28 @@ const DETAIL_CHART_HEIGHT = 220;
 const LEVEL_GUTTER = 38;        // room on the right of the plot for the level labels
 const LEVEL_LABEL_GAP = 13;     // two level labels closer than this would overlap; the second is skipped
 
-// What the chart needs beyond the history: dashed levels and, for COT, a fixed 0-100 axis.
+// What the chart needs beyond the history: dashed levels, for COT a fixed 0-100 axis, and
+// for a series whose older points would flatten the recent ones, how many points to draw.
 // A dashboard.json written before the "chart" entry existed (the page can be deployed ahead
 // of the next data refresh) gets what the COT chart always drew, and plain lines elsewhere.
 const COT_CHART_BEFORE_SPEC = { levels: [80, 20], y_range: [0, 100] };
 function chartSpec(x) {
   const c = x.chart || (x.category === 'cot' ? COT_CHART_BEFORE_SPEC : {});
-  return { levels: Array.isArray(c.levels) ? c.levels : [], yRange: Array.isArray(c.y_range) ? c.y_range : null };
+  return {
+    levels: Array.isArray(c.levels) ? c.levels : [],
+    yRange: Array.isArray(c.y_range) ? c.y_range : null,
+    points: Number.isInteger(c.points) && c.points > 0 ? c.points : null,
+  };
 }
 
 function renderDetail(x) {
   const isCot = x.category === 'cot';
   const spec = chartSpec(x);
-  const series = (x.history || []).slice(isCot ? -COT_CHART_WEEKS : 0).filter(p => Number.isFinite(Number(p.value)));
+  // The latest `points` of the history when the indicator sets it; COT keeps its 13 weeks.
+  const shown = spec.points || (isCot ? COT_CHART_WEEKS : 0);
+  const series = (x.history || []).slice(shown ? -shown : 0).filter(p => Number.isFinite(Number(p.value)));
   const hasChart = series.length > 1 && typeof uPlot !== 'undefined';
-  const history = (x.history || []).map(p => `<div class="bar-row"><span>${esc(p.date)}</span><div class="bar"><i style="width:${Math.min(Math.abs(Number(p.value) || 0) * 5, 100)}%"></i></div><b>${esc(p.value)}</b></div>`).join('') || '<p class="muted">沒有可顯示的歷史資料。</p>';
+  const history = (x.history || []).slice(spec.points ? -spec.points : 0).map(p => `<div class="bar-row"><span>${esc(p.date)}</span><div class="bar"><i style="width:${Math.min(Math.abs(Number(p.value) || 0) * 5, 100)}%"></i></div><b>${esc(p.value)}</b></div>`).join('') || '<p class="muted">沒有可顯示的歷史資料。</p>';
   const chartTitle = isCot
     ? 'COT Index 走勢（近 3 個月，虛線 = 80／20 極端水平）'
     : `最近數值走勢${spec.levels.length ? '（虛線 = 訊號門檻）' : ''}`;

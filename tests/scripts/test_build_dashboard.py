@@ -444,12 +444,38 @@ def test_which_indicators_have_levels():
     relative = {iid for iid, cfg in bd.INDICATORS.items() if cfg["source"] == "market"} - {"vix"}
     assert with_levels == set(bd.INDICATORS) - relative
     for iid in COT_IDS:
-        assert bd.chart_spec(bd.INDICATORS[iid]) == {"levels": [80, 20], "y_range": [0, 100]}
+        assert bd.chart_spec(bd.INDICATORS[iid]) == {"levels": [80, 20], "y_range": [0, 100], "points": None}
 
 
 def test_every_indicator_in_the_file_carries_a_chart_spec(data_dir, monkeypatch):
     use_sources(monkeypatch, fred=boom)                      # failed indicators carry it too
     bd.main()
     for item in json.loads((data_dir / "dashboard.json").read_text(encoding="utf-8"))["indicators"]:
-        assert set(item["chart"]) == {"levels", "y_range"}, item["id"]
+        assert set(item["chart"]) == {"levels", "y_range", "points"}, item["id"]
         assert item["chart"]["levels"] == bd.chart_spec(bd.INDICATORS[item["id"]])["levels"]
+        assert item["chart"]["points"] == bd.INDICATORS[item["id"]].get("chart", {}).get("points")
+
+
+# ---------------------------------------------------------------- Q6: how much of the history a chart draws
+
+def test_gdpnow_draws_its_last_twelve_quarters_and_nothing_else_is_narrowed():
+    narrowed = {iid: bd.chart_spec(cfg)["points"] for iid, cfg in bd.INDICATORS.items()
+                if bd.chart_spec(cfg)["points"] is not None}
+    assert narrowed == {"gdpnow": 12}
+
+
+def test_a_chart_never_asks_for_more_points_than_the_file_keeps():
+    for iid, cfg in bd.INDICATORS.items():
+        points = bd.chart_spec(cfg)["points"]
+        assert points is None or (isinstance(points, int) and 2 <= points <= bd.HISTORY_POINTS), iid
+
+
+def test_narrowing_the_chart_leaves_the_stored_history_whole(data_dir, monkeypatch):
+    def long_fred(series_id, limit=60):                      # 40 quarters, newest first
+        return [{"date": f"{2026 - i // 4}-{10 - 3 * (i % 4):02d}-01", "value": float(i)} for i in range(40)]
+    use_sources(monkeypatch, fred=long_fred)
+    bd.main()
+    item = {x["id"]: x for x in json.loads((data_dir / "dashboard.json").read_text(encoding="utf-8"))["indicators"]}["gdpnow"]
+    assert len(item["history"]) == bd.HISTORY_POINTS
+    assert item["history"][-1] == {"date": "2026-10-01", "value": 0.0}
+    assert item["chart"]["points"] == 12

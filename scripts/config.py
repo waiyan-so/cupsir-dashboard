@@ -26,6 +26,10 @@ Each indicator dict:
                              signal compares the series with its own past (dollar index,
                              copper, oil) have no fixed level and omit this.
                  "y_range" - fixed [min, max] for the y axis; omitted = fitted to the data
+                 "points"  - how many of the latest history points the chart draws; omitted =
+                             all that are stored. The file keeps the same history either way;
+                             this only narrows what is drawn, for a series whose older points
+                             would flatten the recent ones
   scored       - False for an indicator that is shown but left out of the overall score
                  (default: counted). Of the COT indicators only the S&P 500 one counts:
                  the others describe positioning in their own market (bonds, gold, oil,
@@ -67,7 +71,10 @@ INDICATORS = {
         # GDPNow is mirrored on FRED under series id GDPNOW - no separate Excel scraper needed.
         # FRED dates each GDPNow value by the first day of the quarter being estimated,
         # so the raw date looks months old while the estimate itself is current.
-        "source": "fred", "series_id": "GDPNOW", "unit": "%", "date_as": "quarter", "chart": {"levels": [-1, 0, 1.5, 3]},
+        # One point per quarter: the chart shows the last 12 quarters. The stored history reaches
+        # back past 2020, whose -32% and +37% quarters press every later reading into a flat line.
+        "source": "fred", "series_id": "GDPNOW", "unit": "%", "date_as": "quarter",
+        "chart": {"levels": [-1, 0, 1.5, 3], "points": 12},
         "checklist": ["是否連續兩季為負（技術性衰退）", "與官方 GDP 方向是否一致", "增長率所處區間（強/中性/疲弱/收縮）"],
         "source_url": "https://www.atlantafed.org/cqer/research/gdpnow",
         "embed": {"type": "fred", "target": "GDPNOW"},

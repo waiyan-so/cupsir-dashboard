@@ -65,7 +65,7 @@ FOMC minutes (meeting day plus 21 days) and the QRA estimate (first Wednesday of
 
 Edit `scripts/config.py`: names, FRED series, Yahoo tickers, checklist wording. Signal thresholds are in `signal()` and `cot_signal()` in `scripts/build_dashboard.py`.
 
-An indicator's `chart` entry lists the levels drawn as dashed lines on its chart. They must be the same numbers as the thresholds in `signal()`; a test fails if they drift apart, so change both together.
+An indicator's `chart` entry lists the levels drawn as dashed lines on its chart. They must be the same numbers as the thresholds in `signal()`; a test fails if they drift apart, so change both together. An optional `points` in the same entry makes the chart draw only that many of the latest values (GDPNow draws its last 12 quarters, so that 2020 does not flatten the line); the data file still keeps 30 values for every indicator.
 
 A market indicator's `bar_rule` says which daily price is safe to show. VIX uses the day's close once the US session has ended. Copper, oil and the dollar index trade almost round the clock and their price for the current day keeps changing for hours after the close, so they always show the last completed day: one trading day behind VIX, but final.
 
