@@ -130,6 +130,8 @@ def _referenced_keys(scope, iid, d, table):
     refs = [(f"scopes.{scope}.value_key", block["value_key"])]
     if "secondary_key" in block:
         refs.append((f"scopes.{scope}.secondary_key", block["secondary_key"]))
+    if "list" in block:
+        refs.append((f"scopes.{scope}.list.value_key", block["list"]["value_key"]))
     rule = d.get("tone_rule") or {}
     if "key" in rule:
         refs.append(("tone_rule.key", rule["key"]))

@@ -18,6 +18,14 @@ Each indicator dict:
                  differ from the COT tab. Contract codes live only in universe.json.
   embed        - {"type": "fred"|"tradingview", "target": <series_id or TradingView symbol>}
                  drives the live chart iframe/widget in the detail panel
+  chart        - what the detail panel's line chart adds to the history line:
+                 "levels"  - values drawn as dashed lines. For "fred" and "market"
+                             indicators these are the values at which signal() changes its
+                             answer (a test checks the two agree), so the chart shows how
+                             far the reading is from the next signal. Indicators whose
+                             signal compares the series with its own past (dollar index,
+                             copper, oil) have no fixed level and omit this.
+                 "y_range" - fixed [min, max] for the y axis; omitted = fitted to the data
   scored       - False for an indicator that is shown but left out of the overall score
                  (default: counted). Of the COT indicators only the S&P 500 one counts:
                  the others describe positioning in their own market (bonds, gold, oil,
@@ -28,25 +36,28 @@ Each indicator dict:
                  markets (source == "cot")
 """
 
+# COT Index and Sentiment Index run from 0 to 100; 80 and 20 are the extreme readings.
+COT_CHART = {"levels": [80, 20], "y_range": [0, 100]}
+
 INDICATORS = {
     # ---- 一、宏觀環境 (macro) ----
     "sahm_rule": {
         "category": "macro", "name": "Sahm Rule", "name_zh": "薩姆規則",
-        "source": "fred", "series_id": "SAHMREALTIME", "unit": "%",
+        "source": "fred", "series_id": "SAHMREALTIME", "unit": "%", "chart": {"levels": [0.3, 0.5]},
         "checklist": ["是否接近 0.5 衰退閾值", "是否連續上升", "與 NFP 和 JOLTS 是否一致"],
         "source_url": "https://fred.stlouisfed.org/series/SAHMREALTIME",
         "embed": {"type": "fred", "target": "SAHMREALTIME"},
     },
     "yield_curve": {
         "category": "macro", "name": "10Y-2Y Treasury Spread", "name_zh": "十年減兩年孳息差",
-        "source": "fred", "series_id": "T10Y2Y", "unit": "%",
+        "source": "fred", "series_id": "T10Y2Y", "unit": "%", "chart": {"levels": [-0.5, 0, 0.3]},
         "checklist": ["是否倒掛", "是否處於倒掛後正常化階段", "確認是 Bull 還是 Bear Steepening"],
         "source_url": "https://fred.stlouisfed.org/series/T10Y2Y",
         "embed": {"type": "fred", "target": "T10Y2Y"},
     },
     "hy_spread": {
         "category": "macro", "name": "High Yield Credit Spread", "name_zh": "高收益信用差",
-        "source": "fred", "series_id": "BAMLH0A0HYM2", "unit": "%",
+        "source": "fred", "series_id": "BAMLH0A0HYM2", "unit": "%", "chart": {"levels": [2.5, 3.5, 5]},
         "checklist": ["是否突破 3.5%", "是否快速擴大", "與 VIX 及股市方向是否一致"],
         "source_url": "https://fred.stlouisfed.org/series/BAMLH0A0HYM2",
         "embed": {"type": "fred", "target": "BAMLH0A0HYM2"},
@@ -56,7 +67,7 @@ INDICATORS = {
         # GDPNow is mirrored on FRED under series id GDPNOW - no separate Excel scraper needed.
         # FRED dates each GDPNow value by the first day of the quarter being estimated,
         # so the raw date looks months old while the estimate itself is current.
-        "source": "fred", "series_id": "GDPNOW", "unit": "%", "date_as": "quarter",
+        "source": "fred", "series_id": "GDPNOW", "unit": "%", "date_as": "quarter", "chart": {"levels": [-1, 0, 1.5, 3]},
         "checklist": ["是否連續兩季為負（技術性衰退）", "與官方 GDP 方向是否一致", "增長率所處區間（強/中性/疲弱/收縮）"],
         "source_url": "https://www.atlantafed.org/cqer/research/gdpnow",
         "embed": {"type": "fred", "target": "GDPNOW"},
@@ -65,7 +76,7 @@ INDICATORS = {
     # ---- 二、市場溫度 (market) ----
     "vix": {
         "category": "market", "name": "CBOE Volatility Index", "name_zh": "VIX 波動率指數",
-        "source": "market", "ticker": "^VIX", "unit": "", "bar_rule": "session_close",
+        "source": "market", "ticker": "^VIX", "unit": "", "bar_rule": "session_close", "chart": {"levels": [15, 20, 30, 45]},
         "checklist": ["是否在 20 至 30 的不明朗區間", "是否超過 30 或 45", "恐慌後是否開始回落"],
         "source_url": "https://www.cboe.com/tradable_products/vix/",
         "embed": {"type": "tradingview", "target": "TVC:VIX"},
@@ -95,21 +106,21 @@ INDICATORS = {
     # ---- 三、COT 聰明錢持倉 (cot) ----
     "cot_sp500": {
         "category": "cot", "name": "S&P 500 COT", "name_zh": "S&P 500 COT 持倉", "summary_label": "S&P 500",
-        "source": "cot", "cot_id": "sp500", "unit": "index",
+        "source": "cot", "cot_id": "sp500", "unit": "index", "chart": COT_CHART,
         "checklist": ["商業持倉者 COT Index 是否 ≥80 或 ≤20", "小型投機者 Sentiment Index 是否反向極端", "確認是否出現極端擠擁"],
         "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders",
         "embed": {"type": "tradingview", "target": "SP:SPX"},
     },
     "cot_10y": {
         "category": "cot", "name": "10Y Treasury COT", "name_zh": "10年期國債 COT", "summary_label": "10年債",
-        "source": "cot", "cot_id": "ust10y", "unit": "index", "scored": False,
+        "source": "cot", "cot_id": "ust10y", "unit": "index", "chart": COT_CHART, "scored": False,
         "checklist": ["商業持倉者 COT Index 是否 ≥80 或 ≤20", "小型投機者 Sentiment Index 是否反向極端", "是否與孳息曲線走勢背馳"],
         "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders",
         "embed": {"type": "tradingview", "target": "CBOT:ZN1!"},
     },
     "cot_gold": {
         "category": "cot", "name": "Gold COT", "name_zh": "黃金 COT", "summary_label": "黃金",
-        "source": "cot", "cot_id": "gold", "unit": "index", "scored": False,
+        "source": "cot", "cot_id": "gold", "unit": "index", "chart": COT_CHART, "scored": False,
         "checklist": ["商業持倉者 COT Index 是否 ≥80 或 ≤20", "小型投機者 Sentiment Index 是否反向極端", "是否與避險需求走勢一致"],
         "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders",
         "embed": {"type": "tradingview", "target": "COMEX:GC1!"},
@@ -118,14 +129,14 @@ INDICATORS = {
         "category": "cot", "name": "Oil COT", "name_zh": "原油 COT", "summary_label": "原油",
         # crude_oil is the NYMEX WTI contract (CL), the one the framework names and the
         # one the oil price indicator above tracks - not ICE Futures Europe's look-alike.
-        "source": "cot", "cot_id": "crude_oil", "unit": "index", "scored": False,
+        "source": "cot", "cot_id": "crude_oil", "unit": "index", "chart": COT_CHART, "scored": False,
         "checklist": ["商業持倉者 COT Index 是否 ≥80 或 ≤20", "小型投機者 Sentiment Index 是否反向極端", "是否與油價週期判斷一致"],
         "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders",
         "embed": {"type": "tradingview", "target": "NYMEX:CL1!"},
     },
     "cot_dxy": {
         "category": "cot", "name": "DXY COT", "name_zh": "美元指數 COT", "summary_label": "美元",
-        "source": "cot", "cot_id": "usd_index", "unit": "index", "scored": False,
+        "source": "cot", "cot_id": "usd_index", "unit": "index", "chart": COT_CHART, "scored": False,
         "checklist": ["商業持倉者 COT Index 是否 ≥80 或 ≤20", "小型投機者 Sentiment Index 是否反向極端", "是否與風險資產走勢背馳"],
         "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders",
         "embed": {"type": "tradingview", "target": "TVC:DXY"},

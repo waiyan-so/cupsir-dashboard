@@ -39,7 +39,7 @@ def use_sources(monkeypatch, fred=fred_rows, market=market_rows, cot=cot_rows):
 
 BASELINE_KEYS = ["updated_at", "overall_signal", "total_score", "category_labels", "category_order", "indicators"]
 INDICATOR_KEYS = ["id", "category", "name", "name_zh", "value", "unit", "data_date", "signal", "signal_color",
-                  "interpretation", "checklist", "source_name", "source_url", "embed", "history"]
+                  "interpretation", "checklist", "source_name", "source_url", "embed", "history", "chart"]
 
 
 def test_the_file_keeps_its_structure(data_dir, monkeypatch):
@@ -409,3 +409,47 @@ def test_main_passes_each_indicators_rule(data_dir, monkeypatch):
     use_sources(monkeypatch, market=spy)
     bd.main()
     assert seen == {cfg["ticker"]: cfg["bar_rule"] for cfg in bd.INDICATORS.values() if cfg["source"] == "market"}
+
+
+# ---------------------------------------------------------------- chart levels drawn on the detail chart
+
+FIXED_RULE = [iid for iid, cfg in bd.INDICATORS.items()
+              if cfg["source"] == "fred" or (cfg["source"] == "market" and cfg.get("chart"))]
+
+
+def change_points(iid, lo=-60.0, hi=120.0, step=0.01):
+    """Values at which signal() changes its label, found by scanning (rounded to the step)."""
+    points, previous = [], None
+    n = int(round((hi - lo) / step))
+    for i in range(n + 1):
+        value = round(lo + i * step, 2)
+        label = bd.signal(iid, value, [])[0]
+        if previous is not None and label != previous:
+            points.append(value)
+        previous = label
+    return points
+
+
+@pytest.mark.parametrize("iid", FIXED_RULE)
+def test_chart_levels_are_exactly_where_the_signal_changes(iid):
+    levels = sorted(bd.INDICATORS[iid]["chart"]["levels"])
+    found = change_points(iid)
+    assert len(found) == len(levels), (iid, found, levels)
+    for level, point in zip(levels, found):
+        assert abs(level - point) <= 0.011, (iid, level, point)
+
+
+def test_which_indicators_have_levels():
+    with_levels = {iid for iid, cfg in bd.INDICATORS.items() if bd.chart_spec(cfg)["levels"]}
+    relative = {iid for iid, cfg in bd.INDICATORS.items() if cfg["source"] == "market"} - {"vix"}
+    assert with_levels == set(bd.INDICATORS) - relative
+    for iid in COT_IDS:
+        assert bd.chart_spec(bd.INDICATORS[iid]) == {"levels": [80, 20], "y_range": [0, 100]}
+
+
+def test_every_indicator_in_the_file_carries_a_chart_spec(data_dir, monkeypatch):
+    use_sources(monkeypatch, fred=boom)                      # failed indicators carry it too
+    bd.main()
+    for item in json.loads((data_dir / "dashboard.json").read_text(encoding="utf-8"))["indicators"]:
+        assert set(item["chart"]) == {"levels", "y_range"}, item["id"]
+        assert item["chart"]["levels"] == bd.chart_spec(bd.INDICATORS[item["id"]])["levels"]

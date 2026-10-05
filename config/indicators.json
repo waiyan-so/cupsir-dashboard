@@ -14,7 +14,9 @@
     "date": "日期",
     "percentile_unit": "百分位",
     "yes": "是",
-    "no": "否"
+    "no": "否",
+    "view_list": "列表檢視",
+    "view_table": "表格檢視"
   },
   "sector_table": {
     "default_sort": {"indicator": "relative_strength", "value_key": "return_63d_excess_pct", "dir": "desc"},
@@ -32,7 +34,8 @@
       "scopes": {
         "market": {"subjects": ["spy", "qqq"], "component": "status_card", "order": 10, "value_key": "state", "format": "state_chip"},
         "sector": {"component": "table_column", "order": 20, "column_label": "趨勢", "value_key": "state", "format": "state_chip",
-                   "sort_order": ["BULLISH", "NEUTRAL", "BEARISH"]}
+                   "sort_order": ["BULLISH", "NEUTRAL", "BEARISH"],
+                   "list": {"order": 20, "value_key": "state", "format": "state_chip"}}
       },
       "detail_chart": {"type": "price_with_ma", "series": ["close", "sma21", "sma50", "sma200"]},
       "value_labels": {"close": "收市價", "sma21": "21 日線", "sma50": "50 日線", "sma200": "200 日線", "slope50_5d": "50 日線 5 日變化"},
@@ -123,7 +126,8 @@
       "tone_rule": {"type": "sign", "key": "return_63d_excess_pct"},
       "scopes": {
         "sector": {"component": "table_column", "order": 10, "column_label": "RS vs SPY（63D）",
-                   "value_key": "return_63d_excess_pct", "format": "signed_pct"}
+                   "value_key": "return_63d_excess_pct", "format": "signed_pct",
+                   "list": {"order": 10, "value_key": "rank_by_63d", "format": "rank"}}
       },
       "cross_section": [{"op": "rank", "value_key": "return_63d_excess_pct", "dir": "desc", "target_key": "rank_by_63d"}],
       "detail_chart": null,
@@ -143,7 +147,8 @@
       "tone_rule": {"type": "state_map", "map": {"EXTREME_LONG": "positive", "EXTREME_SHORT": "negative", "LONG_LEAN": "positive", "SHORT_LEAN": "warning"}},
       "scopes": {
         "cot": {"component": "table_column", "order": 10, "column_label": "COT／情緒（1 年）",
-                "value_key": "cot_index", "format": "number", "secondary_key": "sentiment_index", "secondary_format": "number"}
+                "value_key": "cot_index", "format": "number", "secondary_key": "sentiment_index", "secondary_format": "number",
+                "list": {"order": 10, "value_key": "cot_index", "format": "number"}}
       },
       "detail_chart": {"type": "line", "series": ["cot_index", "sentiment_index"], "levels": [80, 20], "y_range": [0, 100]},
       "value_labels": {"cot_index": "COT Index（商業持倉者）", "sentiment_index": "Sentiment Index（小型投機者）", "commercial_net": "商業持倉者淨倉位（張）", "nonreportable_net": "小型投機者淨倉位（張）"},
