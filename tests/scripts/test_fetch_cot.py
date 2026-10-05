@@ -81,3 +81,7 @@ def test_every_cot_indicator_names_a_full_market():
         contract, _, exchange = name.partition(" - ")
         assert contract and exchange, name
     assert len(set(names)) == len(names)
+
+
+def test_the_oil_indicator_follows_the_nymex_contract():
+    assert INDICATORS["cot_oil"]["cot_market"] == "WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE"

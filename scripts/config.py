@@ -104,12 +104,11 @@ INDICATORS = {
     },
     "cot_oil": {
         "category": "cot", "name": "Oil COT", "name_zh": "原油 COT", "summary_label": "原油",
-        # This is the ICE Futures Europe WTI contract - the one the old prefix
-        # "CRUDE OIL, LIGHT SWEET" resolved to, kept so this indicator's value does
-        # not change here. The NYMEX contract has been named
-        # "WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE" since 2022-02-08; switching
-        # to it is a separate, owner-approved change (issue X1).
-        "source": "cot", "report": "legacy", "cot_market": "CRUDE OIL, LIGHT SWEET-WTI - ICE FUTURES EUROPE", "unit": "index",
+        # The NYMEX WTI contract (CL), the one the framework names and the one the oil
+        # price indicator above tracks. NYMEX has called it "WTI-PHYSICAL" since
+        # 2022-02-08; before that it was "CRUDE OIL, LIGHT SWEET". Not the ICE Futures
+        # Europe look-alike "CRUDE OIL, LIGHT SWEET-WTI", which this used to follow.
+        "source": "cot", "report": "legacy", "cot_market": "WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE", "unit": "index",
         "checklist": ["商業持倉者 COT Index 是否 ≥80 或 ≤20", "小型投機者 Sentiment Index 是否反向極端", "是否與油價週期判斷一致"],
         "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders",
         "embed": {"type": "tradingview", "target": "NYMEX:CL1!"},
