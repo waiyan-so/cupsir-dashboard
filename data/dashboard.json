@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-10-05 00:48 UTC",
+  "updated_at": "2026-10-02 23:25 UTC",
   "overall_signal": "BULLISH",
-  "total_score": 6,
+  "total_score": 7,
   "category_labels": {
     "macro": "一、宏觀環境",
     "market": "二、市場溫度",
@@ -23,7 +23,7 @@
       "data_date": "2026-09-01",
       "signal": "NORMAL",
       "signal_color": "positive",
-      "interpretation": "CupSir 框架分類：NORMAL。",
+      "interpretation": "CupSir framework classification: NORMAL.",
       "checklist": [
         "是否接近 0.5 衰退閾值",
         "是否連續上升",
@@ -156,14 +156,7 @@
           "date": "2026-09-01",
           "value": 0.0
         }
-      ],
-      "chart": {
-        "levels": [
-          0.3,
-          0.5
-        ],
-        "y_range": null
-      }
+      ]
     },
     {
       "id": "yield_curve",
@@ -175,7 +168,7 @@
       "data_date": "2026-10-02",
       "signal": "NORMAL",
       "signal_color": "positive",
-      "interpretation": "CupSir 框架分類：NORMAL。",
+      "interpretation": "CupSir framework classification: NORMAL.",
       "checklist": [
         "是否倒掛",
         "是否處於倒掛後正常化階段",
@@ -308,15 +301,7 @@
           "date": "2026-10-02",
           "value": 0.45
         }
-      ],
-      "chart": {
-        "levels": [
-          -0.5,
-          0,
-          0.3
-        ],
-        "y_range": null
-      }
+      ]
     },
     {
       "id": "hy_spread",
@@ -328,7 +313,7 @@
       "data_date": "2026-10-01",
       "signal": "NORMAL",
       "signal_color": "positive",
-      "interpretation": "CupSir 框架分類：NORMAL。",
+      "interpretation": "CupSir framework classification: NORMAL.",
       "checklist": [
         "是否突破 3.5%",
         "是否快速擴大",
@@ -461,15 +446,7 @@
           "date": "2026-10-01",
           "value": 3.24
         }
-      ],
-      "chart": {
-        "levels": [
-          2.5,
-          3.5,
-          5
-        ],
-        "y_range": null
-      }
+      ]
     },
     {
       "id": "gdpnow",
@@ -478,10 +455,10 @@
       "name_zh": "GDPNow 實時預估",
       "value": 3.677,
       "unit": "%",
-      "data_date": "2026 年第三季",
+      "data_date": "2026-07-01",
       "signal": "STRONG",
       "signal_color": "positive",
-      "interpretation": "CupSir 框架分類：STRONG。",
+      "interpretation": "CupSir framework classification: STRONG.",
       "checklist": [
         "是否連續兩季為負（技術性衰退）",
         "與官方 GDP 方向是否一致",
@@ -614,16 +591,7 @@
           "date": "2026-07-01",
           "value": 3.6773
         }
-      ],
-      "chart": {
-        "levels": [
-          -1,
-          0,
-          1.5,
-          3
-        ],
-        "y_range": null
-      }
+      ]
     },
     {
       "id": "vix",
@@ -635,7 +603,7 @@
       "data_date": "2026-10-02",
       "signal": "NEUTRAL",
       "signal_color": "positive",
-      "interpretation": "CupSir 框架分類：NEUTRAL。",
+      "interpretation": "CupSir framework classification: NEUTRAL.",
       "checklist": [
         "是否在 20 至 30 的不明朗區間",
         "是否超過 30 或 45",
@@ -768,28 +736,19 @@
           "date": "2026-10-02",
           "value": 15.31
         }
-      ],
-      "chart": {
-        "levels": [
-          15,
-          20,
-          30,
-          45
-        ],
-        "y_range": null
-      }
+      ]
     },
     {
       "id": "dxy",
       "category": "market",
       "name": "US Dollar Index",
       "name_zh": "美元指數 DXY",
-      "value": 101.93,
+      "value": 101.924,
       "unit": "",
       "data_date": "2026-10-02",
       "signal": "USD STRENGTHENING",
       "signal_color": "warning",
-      "interpretation": "CupSir 框架分類：USD STRENGTHENING。",
+      "interpretation": "CupSir framework classification: USD STRENGTHENING.",
       "checklist": [
         "檢查一個月升跌幅",
         "美元急升是否壓制風險資產",
@@ -920,25 +879,21 @@
         },
         {
           "date": "2026-10-02",
-          "value": 101.93
+          "value": 101.924
         }
-      ],
-      "chart": {
-        "levels": [],
-        "y_range": null
-      }
+      ]
     },
     {
       "id": "copper",
       "category": "market",
       "name": "Copper Futures",
       "name_zh": "銅價",
-      "value": 6.492,
+      "value": 6.579,
       "unit": "USD",
       "data_date": "2026-10-02",
       "signal": "NEUTRAL",
       "signal_color": "warning",
-      "interpretation": "CupSir 框架分類：NEUTRAL。",
+      "interpretation": "CupSir framework classification: NEUTRAL.",
       "checklist": [
         "距三個月低位的反彈幅度",
         "是否形成底部",
@@ -1069,25 +1024,21 @@
         },
         {
           "date": "2026-10-02",
-          "value": 6.492
+          "value": 6.579
         }
-      ],
-      "chart": {
-        "levels": [],
-        "y_range": null
-      }
+      ]
     },
     {
       "id": "oil",
       "category": "market",
       "name": "WTI Crude Oil",
       "name_zh": "WTI 原油",
-      "value": 91.11,
+      "value": 91.26,
       "unit": "USD",
       "data_date": "2026-10-02",
       "signal": "DECLINING",
       "signal_color": "warning",
-      "interpretation": "CupSir 框架分類：DECLINING。",
+      "interpretation": "CupSir framework classification: DECLINING.",
       "checklist": [
         "距六個月高位的跌幅",
         "油價是否仍處於高位",
@@ -1218,28 +1169,24 @@
         },
         {
           "date": "2026-10-02",
-          "value": 91.11
+          "value": 91.26
         }
-      ],
-      "chart": {
-        "levels": [],
-        "y_range": null
-      }
+      ]
     },
     {
       "id": "cot_sp500",
       "category": "cot",
       "name": "S&P 500 COT",
       "name_zh": "S&P 500 COT 持倉",
-      "value": 70.4,
+      "value": 75.4,
       "unit": "index",
       "data_date": "2026-09-29",
       "signal": "BULLISH LEAN",
       "signal_color": "positive",
-      "interpretation": "CupSir 框架分類：BULLISH LEAN。",
+      "interpretation": "CupSir framework classification: BULLISH LEAN.",
       "checklist": [
-        "商業持倉者 COT Index 是否 ≥80 或 ≤20",
-        "小型投機者 Sentiment Index 是否反向極端",
+        "機構方(Dealer+Asset Manager)COT Index 是否 ≥80 或 ≤20",
+        "槓桿基金 Sentiment Index 是否反向極端",
         "確認是否出現極端擠擁"
       ],
       "source_name": "CFTC",
@@ -1251,150 +1198,140 @@
       "history": [
         {
           "date": "2026-03-10",
-          "value": 76.4
+          "value": 74.2
         },
         {
           "date": "2026-03-17",
-          "value": 39.6
+          "value": 60.2
         },
         {
           "date": "2026-03-24",
-          "value": 27.8
+          "value": 58.8
         },
         {
           "date": "2026-03-31",
-          "value": 9.6
+          "value": 26.1
         },
         {
           "date": "2026-04-07",
-          "value": 17.9
+          "value": 30.7
         },
         {
           "date": "2026-04-14",
-          "value": 52.1
+          "value": 86.7
         },
         {
           "date": "2026-04-21",
-          "value": 37.4
+          "value": 79.9
         },
         {
           "date": "2026-04-28",
-          "value": 32.3
+          "value": 75.6
         },
         {
           "date": "2026-05-05",
-          "value": 36.3
+          "value": 79.9
         },
         {
           "date": "2026-05-12",
-          "value": 53.3
+          "value": 87.1
         },
         {
           "date": "2026-05-19",
-          "value": 48.4
-        },
-        {
-          "date": "2026-05-26",
-          "value": 57.2
-        },
-        {
-          "date": "2026-06-02",
-          "value": 87.0
-        },
-        {
-          "date": "2026-06-09",
           "value": 76.5
         },
         {
+          "date": "2026-05-26",
+          "value": 90.2
+        },
+        {
+          "date": "2026-06-02",
+          "value": 100.0
+        },
+        {
+          "date": "2026-06-09",
+          "value": 76.8
+        },
+        {
           "date": "2026-06-16",
-          "value": 60.0
+          "value": 98.7
         },
         {
           "date": "2026-06-23",
-          "value": 0.0
+          "value": 52.8
         },
         {
           "date": "2026-06-30",
-          "value": 0.0
+          "value": 48.3
         },
         {
           "date": "2026-07-07",
-          "value": 9.6
+          "value": 53.8
         },
         {
           "date": "2026-07-14",
-          "value": 0.0
+          "value": 51.6
         },
         {
           "date": "2026-07-21",
-          "value": 0.0
+          "value": 37.6
         },
         {
           "date": "2026-07-28",
-          "value": 4.6
+          "value": 34.3
         },
         {
           "date": "2026-08-04",
-          "value": 9.4
+          "value": 46.6
         },
         {
           "date": "2026-08-11",
-          "value": 0.0
+          "value": 27.2
         },
         {
           "date": "2026-08-18",
-          "value": 10.4
+          "value": 30.0
         },
         {
           "date": "2026-08-25",
-          "value": 28.3
+          "value": 36.0
         },
         {
           "date": "2026-09-01",
-          "value": 39.2
+          "value": 44.0
         },
         {
           "date": "2026-09-08",
-          "value": 33.4
+          "value": 49.1
         },
         {
           "date": "2026-09-15",
-          "value": 60.0
+          "value": 39.6
         },
         {
           "date": "2026-09-22",
-          "value": 67.8
+          "value": 76.7
         },
         {
           "date": "2026-09-29",
-          "value": 70.4
+          "value": 75.4
         }
-      ],
-      "chart": {
-        "levels": [
-          80,
-          20
-        ],
-        "y_range": [
-          0,
-          100
-        ]
-      }
+      ]
     },
     {
       "id": "cot_10y",
       "category": "cot",
       "name": "10Y Treasury COT",
       "name_zh": "10年期國債 COT",
-      "value": 71.2,
+      "value": 74.6,
       "unit": "index",
       "data_date": "2026-09-29",
       "signal": "BULLISH LEAN",
       "signal_color": "positive",
-      "interpretation": "CupSir 框架分類：BULLISH LEAN。",
+      "interpretation": "CupSir framework classification: BULLISH LEAN.",
       "checklist": [
-        "商業持倉者 COT Index 是否 ≥80 或 ≤20",
-        "小型投機者 Sentiment Index 是否反向極端",
+        "機構方(Dealer+Asset Manager)COT Index 是否 ≥80 或 ≤20",
+        "槓桿基金 Sentiment Index 是否反向極端",
         "是否與孳息曲線走勢背馳"
       ],
       "source_name": "CFTC",
@@ -1406,47 +1343,47 @@
       "history": [
         {
           "date": "2026-03-10",
-          "value": 0.0
+          "value": 36.5
         },
         {
           "date": "2026-03-17",
-          "value": 12.8
+          "value": 34.6
         },
         {
           "date": "2026-03-24",
-          "value": 24.6
+          "value": 16.3
         },
         {
           "date": "2026-03-31",
-          "value": 60.0
+          "value": 35.2
         },
         {
           "date": "2026-04-07",
-          "value": 87.3
+          "value": 36.3
         },
         {
           "date": "2026-04-14",
-          "value": 75.3
+          "value": 36.2
         },
         {
           "date": "2026-04-21",
-          "value": 66.3
+          "value": 33.7
         },
         {
           "date": "2026-04-28",
-          "value": 72.4
+          "value": 35.9
         },
         {
           "date": "2026-05-05",
-          "value": 72.2
+          "value": 24.5
         },
         {
           "date": "2026-05-12",
-          "value": 68.3
+          "value": 20.2
         },
         {
           "date": "2026-05-19",
-          "value": 83.5
+          "value": 30.1
         },
         {
           "date": "2026-05-26",
@@ -1454,87 +1391,77 @@
         },
         {
           "date": "2026-06-02",
-          "value": 93.7
+          "value": 47.6
         },
         {
           "date": "2026-06-09",
-          "value": 100.0
+          "value": 53.6
         },
         {
           "date": "2026-06-16",
-          "value": 100.0
+          "value": 68.6
         },
         {
           "date": "2026-06-23",
-          "value": 83.5
+          "value": 46.6
         },
         {
           "date": "2026-06-30",
-          "value": 74.2
+          "value": 53.3
         },
         {
           "date": "2026-07-07",
-          "value": 75.2
+          "value": 53.3
         },
         {
           "date": "2026-07-14",
-          "value": 77.8
+          "value": 64.5
         },
         {
           "date": "2026-07-21",
-          "value": 99.7
+          "value": 64.7
         },
         {
           "date": "2026-07-28",
-          "value": 99.7
+          "value": 85.6
         },
         {
           "date": "2026-08-04",
-          "value": 100.0
+          "value": 90.9
         },
         {
           "date": "2026-08-11",
-          "value": 83.7
+          "value": 74.1
         },
         {
           "date": "2026-08-18",
-          "value": 83.8
+          "value": 76.7
         },
         {
           "date": "2026-08-25",
-          "value": 55.9
+          "value": 63.3
         },
         {
           "date": "2026-09-01",
-          "value": 78.0
+          "value": 70.6
         },
         {
           "date": "2026-09-08",
-          "value": 68.5
+          "value": 54.9
         },
         {
           "date": "2026-09-15",
-          "value": 65.8
+          "value": 52.9
         },
         {
           "date": "2026-09-22",
-          "value": 66.1
+          "value": 59.0
         },
         {
           "date": "2026-09-29",
-          "value": 71.2
+          "value": 74.6
         }
-      ],
-      "chart": {
-        "levels": [
-          80,
-          20
-        ],
-        "y_range": [
-          0,
-          100
-        ]
-      }
+      ]
     },
     {
       "id": "cot_gold",
@@ -1546,7 +1473,7 @@
       "data_date": "2026-09-29",
       "signal": "NEUTRAL",
       "signal_color": "warning",
-      "interpretation": "CupSir 框架分類：NEUTRAL。",
+      "interpretation": "CupSir framework classification: NEUTRAL.",
       "checklist": [
         "商業持倉者 COT Index 是否 ≥80 或 ≤20",
         "小型投機者 Sentiment Index 是否反向極端",
@@ -1679,29 +1606,19 @@
           "date": "2026-09-29",
           "value": 41.4
         }
-      ],
-      "chart": {
-        "levels": [
-          80,
-          20
-        ],
-        "y_range": [
-          0,
-          100
-        ]
-      }
+      ]
     },
     {
       "id": "cot_oil",
       "category": "cot",
       "name": "Oil COT",
       "name_zh": "原油 COT",
-      "value": 60.4,
+      "value": 66.3,
       "unit": "index",
       "data_date": "2026-09-29",
       "signal": "NEUTRAL",
       "signal_color": "warning",
-      "interpretation": "CupSir 框架分類：NEUTRAL。",
+      "interpretation": "CupSir framework classification: NEUTRAL.",
       "checklist": [
         "商業持倉者 COT Index 是否 ≥80 或 ≤20",
         "小型投機者 Sentiment Index 是否反向極端",
@@ -1716,150 +1633,140 @@
       "history": [
         {
           "date": "2026-03-10",
-          "value": 0.0
+          "value": 100.0
         },
         {
           "date": "2026-03-17",
-          "value": 6.2
+          "value": 100.0
         },
         {
           "date": "2026-03-24",
-          "value": 4.3
+          "value": 100.0
         },
         {
           "date": "2026-03-31",
-          "value": 14.2
+          "value": 100.0
         },
         {
           "date": "2026-04-07",
-          "value": 20.8
+          "value": 91.3
         },
         {
           "date": "2026-04-14",
-          "value": 13.3
+          "value": 86.0
         },
         {
           "date": "2026-04-21",
-          "value": 22.5
+          "value": 95.8
         },
         {
           "date": "2026-04-28",
-          "value": 25.7
+          "value": 94.0
         },
         {
           "date": "2026-05-05",
-          "value": 31.8
+          "value": 89.0
         },
         {
           "date": "2026-05-12",
-          "value": 36.3
+          "value": 93.9
         },
         {
           "date": "2026-05-19",
-          "value": 34.3
+          "value": 84.5
         },
         {
           "date": "2026-05-26",
-          "value": 36.6
+          "value": 82.3
         },
         {
           "date": "2026-06-02",
-          "value": 39.9
+          "value": 70.1
         },
         {
           "date": "2026-06-09",
-          "value": 47.8
+          "value": 61.7
         },
         {
           "date": "2026-06-16",
-          "value": 50.2
+          "value": 46.3
         },
         {
           "date": "2026-06-23",
-          "value": 55.9
+          "value": 53.4
         },
         {
           "date": "2026-06-30",
-          "value": 61.6
+          "value": 61.7
         },
         {
           "date": "2026-07-07",
-          "value": 77.6
+          "value": 59.1
         },
         {
           "date": "2026-07-14",
-          "value": 86.4
+          "value": 51.6
         },
         {
           "date": "2026-07-21",
-          "value": 75.8
+          "value": 53.7
         },
         {
           "date": "2026-07-28",
-          "value": 53.1
+          "value": 59.0
         },
         {
           "date": "2026-08-04",
-          "value": 55.4
+          "value": 60.9
         },
         {
           "date": "2026-08-11",
-          "value": 66.3
+          "value": 68.1
         },
         {
           "date": "2026-08-18",
-          "value": 55.7
+          "value": 75.6
         },
         {
           "date": "2026-08-25",
-          "value": 54.3
+          "value": 73.9
         },
         {
           "date": "2026-09-01",
-          "value": 54.4
+          "value": 79.5
         },
         {
           "date": "2026-09-08",
-          "value": 49.8
+          "value": 80.5
         },
         {
           "date": "2026-09-15",
-          "value": 50.4
+          "value": 75.6
         },
         {
           "date": "2026-09-22",
-          "value": 48.1
+          "value": 68.3
         },
         {
           "date": "2026-09-29",
-          "value": 60.4
+          "value": 66.3
         }
-      ],
-      "chart": {
-        "levels": [
-          80,
-          20
-        ],
-        "y_range": [
-          0,
-          100
-        ]
-      }
+      ]
     },
     {
       "id": "cot_dxy",
       "category": "cot",
       "name": "DXY COT",
       "name_zh": "美元指數 COT",
-      "value": 26.5,
+      "value": 33.0,
       "unit": "index",
       "data_date": "2026-09-29",
-      "signal": "BEARISH LEAN",
+      "signal": "NEUTRAL",
       "signal_color": "warning",
-      "interpretation": "CupSir 框架分類：BEARISH LEAN。",
+      "interpretation": "CupSir framework classification: NEUTRAL.",
       "checklist": [
-        "商業持倉者 COT Index 是否 ≥80 或 ≤20",
-        "小型投機者 Sentiment Index 是否反向極端",
+        "機構方(Dealer+Asset Manager)COT Index 是否 ≥80 或 ≤20",
+        "槓桿基金 Sentiment Index 是否反向極端",
         "是否與風險資產走勢背馳"
       ],
       "source_name": "CFTC",
@@ -1871,59 +1778,59 @@
       "history": [
         {
           "date": "2026-03-10",
-          "value": 55.2
+          "value": 46.6
         },
         {
           "date": "2026-03-17",
-          "value": 12.5
+          "value": 28.6
         },
         {
           "date": "2026-03-24",
-          "value": 8.0
+          "value": 34.2
         },
         {
           "date": "2026-03-31",
-          "value": 0.1
+          "value": 38.0
         },
         {
           "date": "2026-04-07",
-          "value": 0.0
+          "value": 37.5
         },
         {
           "date": "2026-04-14",
-          "value": 5.6
+          "value": 23.0
         },
         {
           "date": "2026-04-21",
-          "value": 3.8
-        },
-        {
-          "date": "2026-04-28",
-          "value": 5.6
-        },
-        {
-          "date": "2026-05-05",
-          "value": 22.6
-        },
-        {
-          "date": "2026-05-12",
-          "value": 8.9
-        },
-        {
-          "date": "2026-05-19",
-          "value": 22.7
-        },
-        {
-          "date": "2026-05-26",
           "value": 18.8
         },
         {
+          "date": "2026-04-28",
+          "value": 21.6
+        },
+        {
+          "date": "2026-05-05",
+          "value": 29.7
+        },
+        {
+          "date": "2026-05-12",
+          "value": 23.2
+        },
+        {
+          "date": "2026-05-19",
+          "value": 42.2
+        },
+        {
+          "date": "2026-05-26",
+          "value": 46.6
+        },
+        {
           "date": "2026-06-02",
-          "value": 5.6
+          "value": 43.1
         },
         {
           "date": "2026-06-09",
-          "value": 13.6
+          "value": 39.4
         },
         {
           "date": "2026-06-16",
@@ -1931,19 +1838,19 @@
         },
         {
           "date": "2026-06-23",
-          "value": 0.0
+          "value": 2.2
         },
         {
           "date": "2026-06-30",
-          "value": 0.0
+          "value": 4.2
         },
         {
           "date": "2026-07-07",
-          "value": 0.0
+          "value": 0.6
         },
         {
           "date": "2026-07-14",
-          "value": 1.3
+          "value": 3.3
         },
         {
           "date": "2026-07-21",
@@ -1959,47 +1866,37 @@
         },
         {
           "date": "2026-08-11",
-          "value": 3.0
+          "value": 0.0
         },
         {
           "date": "2026-08-18",
-          "value": 9.7
+          "value": 0.0
         },
         {
           "date": "2026-08-25",
-          "value": 11.8
+          "value": 0.0
         },
         {
           "date": "2026-09-01",
-          "value": 14.5
+          "value": 5.9
         },
         {
           "date": "2026-09-08",
-          "value": 13.4
+          "value": 6.6
         },
         {
           "date": "2026-09-15",
-          "value": 30.5
+          "value": 34.3
         },
         {
           "date": "2026-09-22",
-          "value": 30.7
+          "value": 35.9
         },
         {
           "date": "2026-09-29",
-          "value": 26.5
+          "value": 33.0
         }
-      ],
-      "chart": {
-        "levels": [
-          80,
-          20
-        ],
-        "y_range": [
-          0,
-          100
-        ]
-      }
+      ]
     }
   ]
 }
