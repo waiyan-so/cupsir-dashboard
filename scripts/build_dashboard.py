@@ -86,6 +86,12 @@ def display_date(iso_date, cfg):
         return iso_date
 
 
+def chart_spec(cfg):
+    """dashboard.json "chart" for one indicator: always both keys, so the page never guesses."""
+    chart = cfg.get("chart") or {}
+    return {"levels": list(chart.get("levels", [])), "y_range": chart.get("y_range")}
+
+
 def signal(indicator_id, value, history):
     if indicator_id == "sahm_rule":
         return ("RECESSION", "recession") if value >= .5 else (("WATCH", "warning") if value >= .3 else ("NORMAL", "positive"))
@@ -200,7 +206,8 @@ def main():
                 "data_date": data_date, "signal": label, "signal_color": color,
                 "interpretation": INTERPRETATION_TEXT.format(signal=label), "checklist": cfg["checklist"],
                 "source_name": {"fred": "FRED", "market": "Yahoo Finance", "cot": "CFTC"}.get(cfg["source"], "Source"),
-                "source_url": cfg["source_url"], "embed": cfg.get("embed"), "history": history[-30:]
+                "source_url": cfg["source_url"], "embed": cfg.get("embed"), "history": history[-30:],
+                "chart": chart_spec(cfg)
             })
         except Exception as e:
             output["indicators"].append({
@@ -208,7 +215,7 @@ def main():
                 "value": "N/A", "unit": cfg.get("unit", ""), "data_date": "N/A", "signal": "UNAVAILABLE",
                 "signal_color": "warning", "interpretation": FETCH_FAILED_TEXT.format(error=str(e)[:120]),
                 "checklist": cfg["checklist"], "source_name": "Source", "source_url": cfg["source_url"],
-                "embed": cfg.get("embed"), "history": []
+                "embed": cfg.get("embed"), "history": [], "chart": chart_spec(cfg)
             })
 
     # Every source down at once (network outage, all providers failing): keep the

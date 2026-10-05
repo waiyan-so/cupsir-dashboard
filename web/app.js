@@ -9,14 +9,30 @@ function embedLabel(embed) {
   return embed.target || '未設定';
 }
 
-let cotChart = null;
+let detailChart = null;
 // COT history is weekly (~30 points stored = ~7 months); "3 months of data" = last ~13 weeks.
 const COT_CHART_WEEKS = 13;
+const DETAIL_CHART_HEIGHT = 220;
+const LEVEL_GUTTER = 38;        // room on the right of the plot for the level labels
+const LEVEL_LABEL_GAP = 13;     // two level labels closer than this would overlap; the second is skipped
+
+// What the chart needs beyond the history: dashed levels and, for COT, a fixed 0-100 axis.
+function chartSpec(x) {
+  const c = x.chart || {};
+  return { levels: Array.isArray(c.levels) ? c.levels : [], yRange: Array.isArray(c.y_range) ? c.y_range : null };
+}
 
 function renderDetail(x) {
-  const cotSeries = (x.history || []).slice(-COT_CHART_WEEKS);
-  const isCot = x.category === 'cot' && cotSeries.length > 1 && typeof uPlot !== 'undefined';
+  const isCot = x.category === 'cot';
+  const spec = chartSpec(x);
+  const series = (x.history || []).slice(isCot ? -COT_CHART_WEEKS : 0).filter(p => Number.isFinite(Number(p.value)));
+  const hasChart = series.length > 1 && typeof uPlot !== 'undefined';
   const history = (x.history || []).map(p => `<div class="bar-row"><span>${esc(p.date)}</span><div class="bar"><i style="width:${Math.min(Math.abs(Number(p.value) || 0) * 5, 100)}%"></i></div><b>${esc(p.value)}</b></div>`).join('') || '<p class="muted">沒有可顯示的歷史資料。</p>';
+  const chartTitle = isCot
+    ? 'COT Index 走勢（近 3 個月，虛線 = 80／20 極端水平）'
+    : `最近數值走勢${spec.levels.length ? '（虛線 = 訊號門檻）' : ''}`;
+  const levelsNote = !isCot && spec.levels.length
+    ? `<p class="muted">訊號門檻：${esc(spec.levels.slice().sort((a, b) => a - b).join('、'))}${x.unit ? ' ' + esc(x.unit) : ''}</p>` : '';
   document.querySelector('#indicatorDetail').innerHTML = `
     <div class="detail-head">
       <div><h2>${esc(x.name_zh)}</h2><p class="muted">${esc(x.name)}</p></div>
@@ -31,59 +47,92 @@ function renderDetail(x) {
       <p>${esc(embedLabel(x.embed))}</p>
       <small class="muted">互動圖表嵌入將於後續版本加入，現時先顯示右方近期數值。</small>
     </div>
-    ${isCot
-      ? `<h3>COT Index 走勢（近 3 個月，虛線 = 80／20 極端水平）</h3><div id="cotChartBox" class="cot-chart-box"></div>`
+    ${hasChart
+      ? `<h3>${chartTitle}</h3><div id="cotChartBox" class="cot-chart-box"></div>${levelsNote}`
       : `<h3>最近數值</h3><div class="mini-chart">${history}</div>`}
     <p class="muted">資料日期：${esc(x.data_date)} · <a href="${esc(x.source_url)}" target="_blank" rel="noreferrer">${esc(x.source_name)}</a></p>
   `;
-  if (cotChart) { cotChart.destroy(); cotChart = null; }
-  if (isCot) drawCotChart(cotSeries);
+  if (detailChart) { detailChart.destroy(); detailChart = null; }
+  if (hasChart) drawDetailChart(series, spec, isCot ? 'COT Index' : x.name_zh);
 }
 
-function drawCotChart(series) {
+// y axis: a fixed range when the indicator has one (COT, 0-100). Otherwise fitted to the
+// data and stretched to the nearest level on each side, so the next signal level up and
+// down is always in view without far-away levels flattening the line.
+function detailChartRange(ys, spec) {
+  if (spec.yRange) return spec.yRange;
+  let lo = Math.min(...ys), hi = Math.max(...ys);
+  const below = spec.levels.filter(l => l < lo), above = spec.levels.filter(l => l > hi);
+  if (below.length) lo = Math.max(...below);
+  if (above.length) hi = Math.min(...above);
+  const pad = ((hi - lo) || Math.abs(hi) || 1) * 0.08;
+  return [lo - pad, hi + pad];
+}
+
+function drawDetailChart(series, spec, label) {
   const box = document.querySelector('#cotChartBox');
   if (!box) return;
   const xs = series.map(p => Math.floor(new Date(p.date).getTime() / 1000));
   const ys = series.map(p => Number(p.value));
+  const range = detailChartRange(ys, spec);
+  const yAxis = { stroke: '#94a3b8', grid: { stroke: '#1f2c42' }, size: 56 };
+  if (spec.yRange) yAxis.values = (u, vals) => vals.map(v => v.toFixed(0));
   const opts = {
     width: box.clientWidth || 600,
-    height: 220,
-    scales: { x: { time: true }, y: { range: [0, 100] } },
+    height: DETAIL_CHART_HEIGHT,
+    padding: [10, spec.levels.length ? LEVEL_GUTTER : 10, 0, 0],
+    scales: { x: { time: true }, y: { range: () => range } },
     axes: [
       { stroke: '#94a3b8', grid: { stroke: '#1f2c42' } },
-      { stroke: '#94a3b8', grid: { stroke: '#1f2c42' }, values: (u, vals) => vals.map(v => v.toFixed(0)) },
+      yAxis,
     ],
     series: [
-      {},
-      { label: 'COT Index', stroke: '#60a5fa', width: 2, points: { show: true, size: 5 }, fill: 'rgba(96,165,250,0.08)' },
+      { label: '日期', value: (u, v) => (v == null ? '--' : new Date(v * 1000).toISOString().slice(0, 10)) },
+      // The tint under the line is only honest when the axis has a fixed floor (COT, 0-100).
+      { label, stroke: '#60a5fa', width: 2, points: { show: true, size: 5 }, fill: spec.yRange ? 'rgba(96,165,250,0.08)' : undefined },
     ],
-    legend: { show: false },
+    // The legend row doubles as the hover readout: it shows the date and value under the cursor.
+    legend: { show: true },
     cursor: { points: { size: 7 } },
     hooks: {
       draw: [u => {
         const ctx = u.ctx;
+        const ratio = uPlot.pxRatio || window.devicePixelRatio || 1;
         ctx.save();
         ctx.strokeStyle = 'rgba(148,163,184,0.45)';
-        ctx.setLineDash([4, 4]);
-        ctx.lineWidth = 1;
-        [80, 20].forEach(level => {
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = `${11 * ratio}px Inter, Arial, sans-serif`;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.setLineDash([4 * ratio, 4 * ratio]);
+        ctx.lineWidth = ratio;
+        const right = u.bbox.left + u.bbox.width;
+        let lastLabelY = null;
+        spec.levels.filter(level => level >= range[0] && level <= range[1]).sort((a, b) => b - a).forEach(level => {
           const y = u.valToPos(level, 'y', true);
           ctx.beginPath();
           ctx.moveTo(u.bbox.left, y);
-          ctx.lineTo(u.bbox.left + u.bbox.width, y);
+          ctx.lineTo(right, y);
           ctx.stroke();
+          // Each line is named in the gutter beside the plot, clear of the data. When two
+          // lines sit too close to label both, the lower one stays unlabelled; the note
+          // under the chart lists every level.
+          if (lastLabelY === null || Math.abs(y - lastLabelY) >= LEVEL_LABEL_GAP * ratio) {
+            ctx.fillText(String(level), right + 5 * ratio, y);
+            lastLabelY = y;
+          }
         });
         ctx.restore();
       }],
     },
   };
-  cotChart = new uPlot(opts, [xs, ys], box);
+  detailChart = new uPlot(opts, [xs, ys], box);
 }
 
 window.addEventListener('resize', () => {
-  if (!cotChart) return;
+  if (!detailChart) return;
   const box = document.querySelector('#cotChartBox');
-  if (box) cotChart.setSize({ width: box.clientWidth || 600, height: 220 });
+  if (box) detailChart.setSize({ width: box.clientWidth || 600, height: DETAIL_CHART_HEIGHT });
 });
 
 function renderList(dashboard) {
