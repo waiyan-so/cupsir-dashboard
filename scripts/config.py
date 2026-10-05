@@ -6,6 +6,13 @@ Each indicator dict:
   source       - "fred" | "market" | "cot"
   series_id    - FRED series id (source == "fred")
   ticker       - Yahoo Finance ticker (source == "market")
+  bar_rule     - which daily bar is the latest one that can be trusted (source == "market"):
+                 "session_close" - today's bar counts once the US cash session is over
+                                   (SESSION_FINAL_AFTER, US Eastern); before that, yesterday's
+                 "previous_day"  - never today's bar: the last one dated before today.
+                                   For futures and the dollar index, which trade almost round
+                                   the clock; Yahoo's bar for the current day keeps moving for
+                                   hours after the close and settles later
   cot_id       - id of the market in config/universe.json's "cot" scope (source == "cot").
                  The indicator shows that market's row of data/cot.json, so it can never
                  differ from the COT tab. Contract codes live only in universe.json.
@@ -58,28 +65,28 @@ INDICATORS = {
     # ---- 二、市場溫度 (market) ----
     "vix": {
         "category": "market", "name": "CBOE Volatility Index", "name_zh": "VIX 波動率指數",
-        "source": "market", "ticker": "^VIX", "unit": "",
+        "source": "market", "ticker": "^VIX", "unit": "", "bar_rule": "session_close",
         "checklist": ["是否在 20 至 30 的不明朗區間", "是否超過 30 或 45", "恐慌後是否開始回落"],
         "source_url": "https://www.cboe.com/tradable_products/vix/",
         "embed": {"type": "tradingview", "target": "TVC:VIX"},
     },
     "dxy": {
         "category": "market", "name": "US Dollar Index", "name_zh": "美元指數 DXY",
-        "source": "market", "ticker": "DX-Y.NYB", "unit": "",
+        "source": "market", "ticker": "DX-Y.NYB", "unit": "", "bar_rule": "previous_day",
         "checklist": ["檢查一個月升跌幅", "美元急升是否壓制風險資產", "與美債孳息及股市比較"],
         "source_url": "https://finance.yahoo.com/quote/DX-Y.NYB",
         "embed": {"type": "tradingview", "target": "TVC:DXY"},
     },
     "copper": {
         "category": "market", "name": "Copper Futures", "name_zh": "銅價",
-        "source": "market", "ticker": "HG=F", "unit": "USD",
+        "source": "market", "ticker": "HG=F", "unit": "USD", "bar_rule": "previous_day",
         "checklist": ["距三個月低位的反彈幅度", "是否形成底部", "是否與製造業數據確認"],
         "source_url": "https://finance.yahoo.com/quote/HG=F",
         "embed": {"type": "tradingview", "target": "COMEX:HG1!"},
     },
     "oil": {
         "category": "market", "name": "WTI Crude Oil", "name_zh": "WTI 原油",
-        "source": "market", "ticker": "CL=F", "unit": "USD",
+        "source": "market", "ticker": "CL=F", "unit": "USD", "bar_rule": "previous_day",
         "checklist": ["距六個月高位的跌幅", "油價是否仍處於高位", "與通脹和週期判斷是否一致"],
         "source_url": "https://finance.yahoo.com/quote/CL=F",
         "embed": {"type": "tradingview", "target": "NYMEX:CL1!"},
@@ -131,6 +138,11 @@ CATEGORY_LABELS = {
     "cot": "三、COT 聰明錢持倉",
 }
 CATEGORY_ORDER = ["macro", "market", "cot"]
+
+# Daily bars of the market indicators are dated in this time zone, and "today" for
+# the bar rules above is today there. A "session_close" bar is final from this time on.
+MARKET_TZ = "America/New_York"
+SESSION_FINAL_AFTER = "16:30"
 
 # Where the left-hand COT indicators come from: the file the COT tab is drawn from
 # (written by scripts/run_pipeline.py from the CFTC Legacy report) and which of its

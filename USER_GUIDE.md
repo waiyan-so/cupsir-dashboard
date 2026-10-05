@@ -65,6 +65,10 @@ FOMC minutes (meeting day plus 21 days) and the QRA estimate (first Wednesday of
 
 Edit `scripts/config.py`: names, FRED series, Yahoo tickers, checklist wording. Signal thresholds are in `signal()` and `cot_signal()` in `scripts/build_dashboard.py`.
 
+A market indicator's `bar_rule` says which daily price is safe to show. VIX uses the day's close once the US session has ended. Copper, oil and the dollar index trade almost round the clock and their price for the current day keeps changing for hours after the close, so they always show the last completed day: one trading day behind VIX, but final.
+
+A COT indicator's `scored: False` keeps it on the page but out of the overall score. Only the S&P 500 COT is scored.
+
 A COT indicator has no CFTC settings of its own. Its `cot_id` names a market in `config/universe.json`, and it shows that market's one-year row of `data/cot.json`. If the market or its result is missing the indicator shows N/A and the run warns.
 
 ### Breadth, sector and COT tabs

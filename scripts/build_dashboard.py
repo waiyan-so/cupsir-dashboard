@@ -1,11 +1,12 @@
 import json
 import os
-from datetime import datetime, timezone
+from datetime import date, datetime, time, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 import requests
 import yfinance as yf
 from config import (INDICATORS, CATEGORY_LABELS, CATEGORY_ORDER, INTERPRETATION_TEXT, FETCH_FAILED_TEXT,
-                    QUARTER_DATE_TEXT, QUARTER_NAMES, COT_FILE, COT_LOOKBACK)
+                    QUARTER_DATE_TEXT, QUARTER_NAMES, COT_FILE, COT_LOOKBACK, MARKET_TZ, SESSION_FINAL_AFTER)
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
@@ -27,9 +28,49 @@ def fred_observations(series_id, limit=60):
     return rows
 
 
-def market_observations(ticker, period="3mo"):
+BAR_RULES = ("session_close", "previous_day")
+
+
+def settled_bars(rows, rule, now=None):
+    """Keep only the daily bars whose value is final. rows: [{"date", "value"}], oldest first.
+
+    The run can start at any time - the schedule slips by hours and anyone can start
+    one by hand - so the newest bar Yahoo returns is often still moving:
+      * a bar dated today is kept only under "session_close", and only once the US
+        cash session has ended (SESSION_FINAL_AFTER, US Eastern);
+      * under "previous_day" today's bar is never kept. Futures and the dollar index
+        reopen an hour after they close, and their bar for the current day was seen
+        to differ from the settled value on every one of five evening runs;
+      * bars dated on a Saturday or Sunday, or after today, are never kept (the
+        Sunday-evening session shows up as a Sunday bar and later disappears).
+    "Today" is the date in MARKET_TZ at `now`. Bars dated before today were already
+    final in every run checked.
+    """
+    if rule not in BAR_RULES:
+        raise ValueError(f"unknown bar_rule {rule!r}; expected one of {BAR_RULES}")
+    now_market = (now or datetime.now(timezone.utc)).astimezone(ZoneInfo(MARKET_TZ))
+    today = now_market.date()
+    session_over = now_market.time() >= time.fromisoformat(SESSION_FINAL_AFTER)
+    keep_today = rule == "session_close" and session_over
+    out = []
+    for row in rows:
+        day = date.fromisoformat(row["date"])
+        if day.weekday() >= 5 or day > today or (day == today and not keep_today):
+            continue
+        out.append(row)
+    return out
+
+
+def market_bars(ticker, period="3mo"):
     h = yf.Ticker(ticker).history(period=period)["Close"].dropna()
     return [{"date": d.strftime("%Y-%m-%d"), "value": round(float(v), 3)} for d, v in h.items()]
+
+
+def market_observations(ticker, period="3mo", rule="previous_day", now=None):
+    rows = settled_bars(market_bars(ticker, period), rule, now)
+    if not rows:
+        raise RuntimeError(f"no settled daily bar for {ticker}")
+    return rows
 
 
 def display_date(iso_date, cfg):
@@ -138,7 +179,7 @@ def main():
                 label, color = signal(iid, value, history)
                 data_date = display_date(history[-1]["date"], cfg)
             elif cfg["source"] == "market":
-                history = market_observations(cfg["ticker"])
+                history = market_observations(cfg["ticker"], rule=cfg["bar_rule"])
                 value = history[-1]["value"]
                 label, color = signal(iid, value, history)
                 data_date = history[-1]["date"]
