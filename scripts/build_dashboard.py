@@ -30,6 +30,9 @@ def fred_observations(series_id, limit=60):
 
 BAR_RULES = ("session_close", "previous_day")
 
+# How many of the latest values each indicator's "history" holds in dashboard.json.
+HISTORY_POINTS = 30
+
 
 def settled_bars(rows, rule, now=None):
     """Keep only the daily bars whose value is final. rows: [{"date", "value"}], oldest first.
@@ -87,9 +90,9 @@ def display_date(iso_date, cfg):
 
 
 def chart_spec(cfg):
-    """dashboard.json "chart" for one indicator: always both keys, so the page never guesses."""
+    """dashboard.json "chart" for one indicator: always every key, so the page never guesses."""
     chart = cfg.get("chart") or {}
-    return {"levels": list(chart.get("levels", [])), "y_range": chart.get("y_range")}
+    return {"levels": list(chart.get("levels", [])), "y_range": chart.get("y_range"), "points": chart.get("points")}
 
 
 def signal(indicator_id, value, history):
@@ -206,7 +209,7 @@ def main():
                 "data_date": data_date, "signal": label, "signal_color": color,
                 "interpretation": INTERPRETATION_TEXT.format(signal=label), "checklist": cfg["checklist"],
                 "source_name": {"fred": "FRED", "market": "Yahoo Finance", "cot": "CFTC"}.get(cfg["source"], "Source"),
-                "source_url": cfg["source_url"], "embed": cfg.get("embed"), "history": history[-30:],
+                "source_url": cfg["source_url"], "embed": cfg.get("embed"), "history": history[-HISTORY_POINTS:],
                 "chart": chart_spec(cfg)
             })
         except Exception as e:

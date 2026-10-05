@@ -65,7 +65,7 @@ FOMC minutes (meeting day plus 21 days) and the QRA estimate (first Wednesday of
 
 Edit `scripts/config.py`: names, FRED series, Yahoo tickers, checklist wording. Signal thresholds are in `signal()` and `cot_signal()` in `scripts/build_dashboard.py`.
 
-An indicator's `chart` entry lists the levels drawn as dashed lines on its chart. They must be the same numbers as the thresholds in `signal()`; a test fails if they drift apart, so change both together.
+An indicator's `chart` entry lists the levels drawn as dashed lines on its chart. They must be the same numbers as the thresholds in `signal()`; a test fails if they drift apart, so change both together. An optional `points` in the same entry makes the chart draw only that many of the latest values (GDPNow draws its last 12 quarters, so that 2020 does not flatten the line); the data file still keeps 30 values for every indicator.
 
 A market indicator's `bar_rule` says which daily price is safe to show. VIX uses the day's close once the US session has ended. Copper, oil and the dollar index trade almost round the clock and their price for the current day keeps changing for hours after the close, so they always show the last completed day: one trading day behind VIX, but final.
 
@@ -82,7 +82,7 @@ These are driven by two files and need no code change for routine edits:
 
 A new kind of calculation needs a function in `scripts/pipeline/calc/` plus its entry in `config/indicators.json`.
 
-Both tabs open as a list with charts beside it. What each list row shows is set by an optional `list` entry on an indicator's scope (`order`, `value_key`, `format`); add or remove one to change the row. The button labels are `view_list` and `view_table` in `ui_labels`.
+Both tabs open as a list with charts beside it. What each list row shows is set by an optional `list` entry on an indicator's scope (`order`, `value_key`, `format`); add or remove one to change the row. The button labels are `view_list` and `view_table` in `ui_labels`. The page remembers the view last chosen on each tab in the browser (local storage), so a reload opens the same one; clearing the site's data brings back the list.
 
 `python scripts/run_pipeline.py --dry-run` checks the configuration and runs everything without writing files.
 
