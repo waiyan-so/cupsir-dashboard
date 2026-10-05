@@ -22,8 +22,8 @@ Each run:
 
 1. Builds the 14-day economic calendar (`data/events.json`).
 2. Fetches news (`data/news.json`).
-3. Builds the 13 indicators and the overall signal (`data/dashboard.json`), then the summary (`data/summary.json`).
-4. Builds the market breadth, sector and COT data (`data/market_breadth.json`, `data/sectors.json`, `data/cot.json`).
+3. Builds the market breadth, sector and COT data (`data/market_breadth.json`, `data/sectors.json`, `data/cot.json`).
+4. Builds the 13 indicators and the overall signal (`data/dashboard.json`), then the summary (`data/summary.json`). The five COT indicators are read from `data/cot.json`, so they always match the COT tab.
 5. Commits `data/` and pushes. The deploy workflow then publishes the page.
 
 Two runs on the same branch never overlap; a second one waits for the first.
@@ -36,7 +36,7 @@ A green tick is not enough. Three parts of a run keep the previous data and carr
 |---|---|
 | News | The previous `news.json` is kept |
 | The 13 indicators | A source that fails shows as unavailable. If every source fails, the previous `dashboard.json` is kept |
-| Breadth, sector and COT step | Marked `continue-on-error`; the previous files are kept |
+| Breadth, sector and COT step | Marked `continue-on-error`; the previous files are kept, and the five left-hand COT indicators keep showing the last report |
 
 So open the run page and look at:
 
@@ -63,9 +63,9 @@ FOMC minutes (meeting day plus 21 days) and the QRA estimate (first Wednesday of
 
 ### The 13 left-hand indicators
 
-Edit `scripts/config.py`: names, FRED series, Yahoo tickers, CFTC market names, checklist wording. Signal thresholds are in `signal()` and `cot_signal()` in `scripts/build_dashboard.py`.
+Edit `scripts/config.py`: names, FRED series, Yahoo tickers, checklist wording. Signal thresholds are in `signal()` and `cot_signal()` in `scripts/build_dashboard.py`.
 
-A COT indicator's `cot_market` must be the full CFTC market name, for example `GOLD - COMMODITY EXCHANGE INC.`. It is matched exactly. If the name is not in the CFTC file the indicator shows N/A and the run warns, listing the nearest names.
+A COT indicator has no CFTC settings of its own. Its `cot_id` names a market in `config/universe.json`, and it shows that market's one-year row of `data/cot.json`. If the market or its result is missing the indicator shows N/A and the run warns.
 
 ### Breadth, sector and COT tabs
 
@@ -102,7 +102,7 @@ To rebuild the data locally, set the two keys as environment variables and run t
 
 **Market indicators show UNAVAILABLE.** Yahoo Finance sometimes fails or renames a symbol. Re-run the workflow; if it persists, check the ticker in `scripts/config.py`.
 
-**A COT indicator shows N/A or PENDING.** Read the run's annotations. Either the CFTC file could not be downloaded, or the market name no longer matches (section 5).
+**A COT indicator shows N/A or PENDING.** Read the run's annotations. Either `data/cot.json` is missing, or it has no one-year result for that market (section 5).
 
 **A tab says the data could not be loaded.** Its JSON file is missing or the breadth step failed. Read the annotations and re-run the workflow.
 

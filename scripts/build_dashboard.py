@@ -5,7 +5,7 @@ from pathlib import Path
 import requests
 import yfinance as yf
 from config import (INDICATORS, CATEGORY_LABELS, CATEGORY_ORDER, INTERPRETATION_TEXT, FETCH_FAILED_TEXT,
-                    QUARTER_DATE_TEXT, QUARTER_NAMES)
+                    QUARTER_DATE_TEXT, QUARTER_NAMES, COT_FILE, COT_LOOKBACK)
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
@@ -83,20 +83,52 @@ def cot_signal(cot_index, sentiment_index):
     return "NEUTRAL", "warning"
 
 
-def fetch_cot_results():
+NO_COT = {"value": "N/A", "sentiment": "N/A", "date": "N/A", "history": []}
+
+
+def cot_results():
+    """The left-hand COT indicators, read from data/cot.json.
+
+    That file is what the COT tab shows: CFTC Legacy report, commercials for the
+    COT Index and small speculators for the Sentiment Index, every point computed
+    on a full lookback window. Each indicator names its market with "cot_id" and
+    takes the COT_LOOKBACK result of that row, so the list and the tab cannot
+    disagree. Returns {indicator id: {"value", "sentiment", "date", "history"}};
+    an indicator whose market or result is missing is left out (it shows N/A) and
+    named in one "::warning::" line.
+    """
+    wanted = {iid: cfg["cot_id"] for iid, cfg in INDICATORS.items() if cfg.get("source") == "cot"}
     try:
-        from fetch_cot import get_cot_results
-        return get_cot_results()
+        rows = {row["id"]: row for row in json.loads((DATA / COT_FILE).read_text(encoding="utf-8"))["rows"]}
     except Exception as e:
-        print(f"[build_dashboard] COT fetch failed, all COT indicators will show PENDING: {type(e).__name__}: {e}")
+        print(f"::warning::COT indicators unavailable - could not read data/{COT_FILE}: {type(e).__name__}: {e}")
         return {}
+
+    out, missing = {}, []
+    for iid, market in wanted.items():
+        result = rows.get(market, {}).get("results", {}).get(COT_LOOKBACK)
+        values = (result or {}).get("values") or {}
+        if not result or result.get("status") != "ok" or values.get("cot_index") is None:
+            missing.append(f"{iid} ({market})")
+            continue
+        sentiment = values.get("sentiment_index")
+        out[iid] = {
+            "value": float(values["cot_index"]),
+            "sentiment": float(sentiment) if sentiment is not None else "N/A",
+            "date": result.get("data_date") or "N/A",
+            "history": [{"date": p["date"], "value": p["cot_index"]}
+                        for p in result.get("history", []) if p.get("cot_index") is not None],
+        }
+    if missing:
+        print(f"::warning::no {COT_LOOKBACK} result in data/{COT_FILE} for: {', '.join(missing)}")
+    return out
 
 
 def main():
     output = {"updated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"), "overall_signal": "NEUTRAL",
               "total_score": 0, "category_labels": CATEGORY_LABELS, "category_order": CATEGORY_ORDER, "indicators": []}
     score_map = {"positive": 1, "warning": 0, "negative": -1, "recession": -2}
-    cot_results = fetch_cot_results()
+    cot = cot_results()
 
     for iid, cfg in INDICATORS.items():
         try:
@@ -111,7 +143,7 @@ def main():
                 label, color = signal(iid, value, history)
                 data_date = history[-1]["date"]
             elif cfg["source"] == "cot":
-                cr = cot_results.get(iid, {"value": "N/A", "sentiment": "N/A", "date": "N/A", "history": []})
+                cr = cot.get(iid, NO_COT)
                 value = cr["value"]
                 history = cr["history"]
                 label, color = cot_signal(cr["value"], cr["sentiment"])

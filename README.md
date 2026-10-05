@@ -23,9 +23,9 @@ The breadth, sector and COT tabs do not feed the overall score.
 .github/workflows/update-data.yml   weekdays 20:00 UTC (often runs later), or by hand
   scripts/fetch_events.py      -> data/events.json
   scripts/fetch_news.py        -> data/news.json          (keeps the old file on failure)
-  scripts/build_dashboard.py   -> data/dashboard.json     (FRED, Yahoo Finance, CFTC; keeps the old file if every source fails)
-  scripts/generate_summary.py  -> data/summary.json
   scripts/run_pipeline.py      -> data/market_breadth.json, data/sectors.json, data/cot.json
+  scripts/build_dashboard.py   -> data/dashboard.json     (FRED, Yahoo Finance, and data/cot.json for the five COT indicators; keeps the old file if every source fails)
+  scripts/generate_summary.py  -> data/summary.json
   commit data/ and push
 
 .github/workflows/deploy-pages.yml  on push to main, after a data refresh, or by hand
@@ -38,7 +38,7 @@ The breadth, sector and COT tabs do not feed the overall score.
 |---|---|
 | `web/` | The page: `index.html`, `app.js` (calendar, news, 13 indicators, summary), `breadth.js` (status cards, sector and COT tabs), `styles.css` |
 | `scripts/config.py` | The 13 left-hand indicators: names, sources, checklists |
-| `scripts/build_dashboard.py`, `fetch_cot.py`, `fetch_events.py`, `fetch_news.py`, `generate_summary.py` | The original data scripts |
+| `scripts/build_dashboard.py`, `fetch_events.py`, `fetch_news.py`, `generate_summary.py` | The original data scripts |
 | `config/indicators.json`, `config/universe.json` | Registry for the breadth, sector and COT tabs: indicators, parameters, wording, tickers and CFTC contract codes |
 | `scripts/run_pipeline.py`, `scripts/pipeline/` | The newer pipeline in layers: `collect/` (download), `calc/` (pure calculations), `sectors/` (cross-sector work), and `run_pipeline.py`, the only code that writes its output |
 | `data/` | Generated JSON, committed by the workflow |
