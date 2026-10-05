@@ -1,5 +1,6 @@
 /*
- * Presentation layer for the market breadth cards, the sector table and the COT table.
+ * Presentation layer for the market breadth cards and the sector and COT tabs
+ * (each tab: a list with the charts beside it, or the sortable comparison table).
  *
  * Everything drawn here comes from the `meta` block of the JSON files: which
  * indicators exist, where each one appears, how a value is formatted, which
@@ -37,6 +38,7 @@
   const FORMATS = {
     state_chip: v => String(v).replace(/_/g, ' '),
     count: v => String(v),
+    rank: v => `#${v}`,
     pct: v => `${num(v, 2)}%`,
     signed_pct: v => `${v > 0 ? '+' : ''}${num(v, 2)}%`,
     // A reading can never be at "0": the lowest of a sample is still one reading out of many.
@@ -281,7 +283,7 @@
     });
   }
 
-  // ------------------------------------------------------------ table view (sector table, COT table)
+  // ------------------------------------------------------------ rows view (sector tab, COT tab)
 
   function sortKey(spec, ind, row) {
     const result = row.results[spec.indicator];
@@ -306,33 +308,41 @@
   }
 
   /*
-   * One table for any payload with `meta.indicators` (columns) and `rows`.
-   *   opts: { table, detail: selectors; nameLabel, note: keys of meta.ui_labels }
-   * A "group" column appears when the payload has meta.groups (id -> display name).
+   * One component for any payload with `meta.indicators` (columns) and `rows`, in two views:
+   *   list  - the rows down the left (under their group titles when the payload has
+   *           meta.groups), the selected row's charts stacked on the right. A row shows the
+   *           values of the indicators that carry a `list` entry in the registry.
+   *   table - every row against every indicator, sortable; a clicked row opens below it.
+   * The two buttons that switch view appear when meta.ui_labels has both view names.
+   *   opts: { toggle, split, table, detail: selectors; nameLabel, note: keys of meta.ui_labels }
    */
-  function renderTable(payload, opts) {
-    const tableBox = $(opts.table), detailBox = $(opts.detail);
+  function renderRows(payload, opts) {
+    const toggleBox = $(opts.toggle), splitBox = $(opts.split), tableBox = $(opts.table), detailBox = $(opts.detail);
     const meta = payload.meta, labels = meta.ui_labels || {};
     const inds = byComponent(meta.indicators, 'table_column');
     const indById = Object.fromEntries(inds.map(i => [i.id, i]));
+    const listSpecs = inds.filter(ind => ind.list).map(ind => Object.assign({ id: ind.id }, ind.list)).sort((a, b) => a.order - b.order);
     const groups = meta.groups || null;
     const groupIds = groups ? Object.keys(groups) : [];
     const caption = row => (row.tickers || {}).subject || (row.cftc || {}).code || '';
-    let sort = meta.default_sort ? Object.assign({ column: meta.default_sort.indicator }, meta.default_sort) : null;
+    const defaultSort = meta.default_sort ? Object.assign({ column: meta.default_sort.indicator }, meta.default_sort) : null;
+    const canSwitch = !!(toggleBox && labels.view_list && labels.view_table);
+    let view = 'list';
+    let sort = defaultSort;
     let openRow = null;
 
-    function sortedRows() {
+    function sortedRows(by) {
       const rows = payload.rows.map((row, i) => ({ row, i }));
       rows.sort((a, b) => {
         let diff = 0;
-        if (sort && sort.column === NAME_COLUMN) {
+        if (by && by.column === NAME_COLUMN) {
           diff = a.row.name_zh.localeCompare(b.row.name_zh);
-          if (sort.dir === 'desc') diff = -diff;
-        } else if (sort && sort.column === GROUP_COLUMN) {
+          if (by.dir === 'desc') diff = -diff;
+        } else if (by && by.column === GROUP_COLUMN) {
           diff = groupIds.indexOf(a.row.group) - groupIds.indexOf(b.row.group);
-          if (sort.dir === 'desc') diff = -diff;
-        } else if (sort) {
-          diff = compareRows(a.row, b.row, sort, indById[sort.indicator]);
+          if (by.dir === 'desc') diff = -diff;
+        } else if (by) {
+          diff = compareRows(a.row, b.row, by, indById[by.indicator]);
           if (diff === 0 && meta.tie_break) diff = compareRows(a.row, b.row, meta.tie_break, indById[meta.tie_break.indicator]);
         }
         return diff || a.i - b.i;
@@ -340,19 +350,32 @@
       return rows.map(r => r.row);
     }
 
-    function draw() {
+    // `withDisclaimers`: the table view lists each indicator's disclaimer under the table.
+    // The list view leaves them out here because every block already ends with its own.
+    function footnotes(withDisclaimers) {
+      const notes = (opts.note && labels[opts.note] ? `<p class="muted breadth-note">${esc(labels[opts.note])}</p>` : '')
+        + (withDisclaimers ? [...new Set(inds.filter(ind => ind.disclaimer).map(ind => ind.disclaimer))].map(text => `<p class="muted breadth-note">${esc(text)}</p>`).join('') : '');
+      const all = payload.rows.flatMap(row => inds.map(ind => row.results[ind.id]));
+      return notes + dataDateLine(all, labels);
+    }
+
+    function drawToggle() {
+      if (!canSwitch) return;
+      const button = name => `<button data-view="${name}" class="${view === name ? 'active' : ''}">${esc(labels[`view_${name}`])}</button>`;
+      toggleBox.innerHTML = button('list') + button('table');
+      toggleBox.querySelectorAll('button').forEach(b => b.onclick = () => { if (b.dataset.view !== view) setView(b.dataset.view); });
+    }
+
+    function drawTable() {
       const arrow = col => (sort && sort.column === col ? (sort.dir === 'desc' ? ' ▼' : ' ▲') : '');
       const head = `<th data-col="${NAME_COLUMN}">${esc(labels[opts.nameLabel] || '')}${arrow(NAME_COLUMN)}</th>`
         + (groups ? `<th data-col="${GROUP_COLUMN}" class="text-col">${esc(labels.group_column || '')}${arrow(GROUP_COLUMN)}</th>` : '')
         + inds.map(ind => `<th data-col="${esc(ind.id)}">${esc(ind.column_label)}${arrow(ind.id)}</th>`).join('');
-      const body = sortedRows().map(row => `<tr data-id="${esc(row.id)}" class="${row.id === openRow ? 'active' : ''}">
+      const body = sortedRows(sort).map(row => `<tr data-id="${esc(row.id)}" class="${row.id === openRow ? 'active' : ''}">
         <td>${esc(row.name_zh)}<small>${esc(caption(row))}</small></td>
         ${groups ? `<td class="text-col">${esc(groups[row.group] || row.group || '')}</td>` : ''}
         ${inds.map(ind => COMPONENTS.table_column(ind, row, labels)).join('')}</tr>`).join('');
-      const notes = (opts.note && labels[opts.note] ? `<p class="muted breadth-note">${esc(labels[opts.note])}</p>` : '')
-        + [...new Set(inds.filter(ind => ind.disclaimer).map(ind => ind.disclaimer))].map(text => `<p class="muted breadth-note">${esc(text)}</p>`).join('');
-      const all = payload.rows.flatMap(row => inds.map(ind => row.results[ind.id]));
-      tableBox.innerHTML = `<div class="table-scroll"><table class="breadth-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>${notes}${dataDateLine(all, labels)}`;
+      tableBox.innerHTML = `<div class="table-scroll"><table class="breadth-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>${footnotes(true)}`;
 
       tableBox.querySelectorAll('th').forEach(th => th.onclick = () => {
         const col = th.dataset.col;
@@ -364,12 +387,48 @@
           const ind = indById[col];
           sort = { column: col, indicator: col, value_key: ind.value_key, dir: ind.sort_order ? 'asc' : 'desc' };
         }
-        draw();
+        drawTable();
       });
       tableBox.querySelectorAll('tbody tr').forEach(tr => tr.onclick = () => {
         openRow = openRow === tr.dataset.id ? null : tr.dataset.id;
-        draw();
+        drawTable();
         drawDetail();
+      });
+    }
+
+    // The list keeps one order - the registry's default sort, otherwise the file's own - so a
+    // row is always found in the same place. Sorting by other columns belongs to the table view.
+    function listRows() {
+      const rows = sortedRows(defaultSort);
+      if (!groups) return [{ title: '', rows }];
+      const sections = groupIds.map(id => ({ title: groups[id], rows: rows.filter(row => row.group === id) }));
+      const ungrouped = rows.filter(row => !groupIds.includes(row.group));
+      if (ungrouped.length) sections.push({ title: '', rows: ungrouped });
+      return sections.filter(section => section.rows.length);
+    }
+
+    function drawList() {
+      const sections = listRows();
+      const ordered = sections.flatMap(section => section.rows);
+      if (!ordered.some(row => row.id === openRow)) openRow = ordered.length ? ordered[0].id : null;
+      const item = row => {
+        const values = listSpecs.map(spec => {
+          const result = row.results[spec.id];
+          return `<b class="${toneClass(result)}">${esc(mainText(spec, result, labels))}</b>`;
+        }).join('');
+        return `<button class="indicator side-item${row.id === openRow ? ' active' : ''}" data-id="${esc(row.id)}"><span>${esc(row.name_zh)}</span><span class="side-values">${values}</span></button>`;
+      };
+      tableBox.innerHTML = `<div class="side-list">${sections.map(section =>
+        `<section class="indicator-group">${section.title ? `<h3 class="group-title">${esc(section.title)}</h3>` : ''}${section.rows.map(item).join('')}</section>`).join('')}</div>`;
+      tableBox.querySelectorAll('.side-item').forEach(b => b.onclick = () => {
+        if (b.dataset.id === openRow) return;
+        openRow = b.dataset.id;
+        drawList();
+        drawDetail();
+        // On a narrow screen the charts sit under the whole list: bring them into view.
+        if (detailBox.getBoundingClientRect().left <= tableBox.getBoundingClientRect().left + 1) {
+          detailBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       });
     }
 
@@ -377,34 +436,46 @@
       destroyChartsIn(detailBox);
       const row = payload.rows.find(r => r.id === openRow);
       if (!row) { detailBox.innerHTML = ''; return; }
+      const asList = view === 'list';
       // When every column carries the same checklist (one calculator, several lookbacks),
-      // show the charts side by side and the checklist once.
+      // the checklist is shown once. In the table view those charts sit side by side; in the
+      // list view every chart takes the full width, one under the other.
       const viewOf = ind => JSON.stringify([ind.expert_view, ind.disclaimer]);
       const sharedView = inds.length > 1 && inds.every(ind => viewOf(ind) === viewOf(inds[0]));
       const blocks = inds.map(ind => {
         const result = row.results[ind.id];
-        return `<div class="subject-block${sharedView ? '' : ' stacked'}">
-          <div class="subject-head"><b>${esc(ind.name_zh)} <small class="muted-inline">${esc(ind.name)}</small></b><span class="chip ${toneClass(result)}">${esc(mainText(ind, result, labels))}</span></div>
-          ${chartSlot(ind, result, ind.id)}
-          ${valuesList(ind, result, labels)}
-          ${sharedView ? '' : expertView(ind, labels)}
-        </div>`;
+        const head = `<div class="subject-head"><b>${esc(ind.name_zh)} <small class="muted-inline">${esc(ind.name)}</small></b><span class="chip ${toneClass(result)}">${esc(mainText(ind, result, labels))}</span></div>`;
+        // List view: the readings sit above their chart. Table view: below it, as before.
+        const body = asList
+          ? valuesList(ind, result, labels) + chartSlot(ind, result, ind.id)
+          : chartSlot(ind, result, ind.id) + valuesList(ind, result, labels);
+        return `<div class="subject-block${sharedView && !asList ? '' : ' stacked'}">${head}${body}${sharedView ? '' : expertView(ind, labels)}</div>`;
       }).join('');
       const subtitle = row.tickers ? Object.values(row.tickers).join(' · ') : (row.cftc || {}).name || '';
       detailBox.innerHTML = `<div class="detail-head breadth-detail-head"><div><h2>${esc(row.name_zh)}</h2><p class="muted">${esc(subtitle)}</p></div></div>`
-        + (sharedView ? `<div class="subject-grid">${blocks}</div>${expertView(inds[0], labels)}` : blocks);
+        + (sharedView && !asList ? `<div class="subject-grid">${blocks}</div>` : blocks)
+        + (sharedView ? expertView(inds[0], labels) : '')
+        + (asList ? footnotes(false) : '');
       mountCharts(detailBox, labels, id => ({ ind: indById[id], result: row.results[id] }));
     }
 
-    draw();
+    function setView(name) {
+      view = name;
+      if (splitBox) splitBox.classList.toggle('is-list', view === 'list');
+      drawToggle();
+      if (view === 'list') drawList(); else drawTable();
+      drawDetail();
+    }
+
+    setView(view);
   }
 
   // ------------------------------------------------------------ loading
 
   const SOURCES = [
     { file: 'data/market_breadth.json', box: '#breadthCards', render: renderMarket },
-    { file: 'data/sectors.json', box: '#sectorTable', render: p => renderTable(p, { table: '#sectorTable', detail: '#sectorDetail', nameLabel: 'sector_column' }) },
-    { file: 'data/cot.json', box: '#cotTable', render: p => renderTable(p, { table: '#cotTable', detail: '#cotDetail', nameLabel: 'cot_column', note: 'cot_note' }) },
+    { file: 'data/sectors.json', box: '#sectorTable', render: p => renderRows(p, { toggle: '#sectorView', split: '#sectorSplit', table: '#sectorTable', detail: '#sectorDetail', nameLabel: 'sector_column' }) },
+    { file: 'data/cot.json', box: '#cotTable', render: p => renderRows(p, { toggle: '#cotView', split: '#cotSplit', table: '#cotTable', detail: '#cotDetail', nameLabel: 'cot_column', note: 'cot_note' }) },
   ];
 
   // Each file loads on its own: one failing never affects the other or the existing page.

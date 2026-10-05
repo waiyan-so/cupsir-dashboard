@@ -28,7 +28,7 @@ COT_SCOPE = "cot"
 COMPONENTS = ("status_card", "table_column")
 # Where each component can appear: cards on the market tab, columns in a table.
 COMPONENT_OF_SCOPE = {"market": "status_card", "sector": "table_column", "cot": "table_column"}
-FORMATS = ("state_chip", "count", "pct", "signed_pct", "percentile", "number")
+FORMATS = ("state_chip", "count", "rank", "pct", "signed_pct", "percentile", "number")
 CHART_TYPES = ("line", "price_with_ma", "line_with_markers")
 TONE_RULE_TYPES = ("state_map", "sign", "bands")
 TONES = ("positive", "warning", "negative")
@@ -253,6 +253,14 @@ def _validate_scope(entry, scope, block, universe_cfg):
     else:
         _need(_is_str(block.get("column_label")), entry, f"{field}.column_label", "必填")
         _check_text(entry, f"{field}.column_label", block["column_label"])
+    # Optional: the value this indicator shows beside each row in the tab's list view.
+    if "list" in block:
+        _need(scope != "market", entry, f"{field}.list", "market 範圍沒有列表檢視")
+        item = block["list"]
+        _need(isinstance(item, dict), entry, f"{field}.list", "必須是物件")
+        _need(_is_int(item.get("order")), entry, f"{field}.list.order", "必填，整數")
+        _need(_is_str(item.get("value_key")), entry, f"{field}.list.value_key", "必填")
+        _need(item.get("format") in FORMATS, entry, f"{field}.list.format", f"只可以是 {list(FORMATS)}")
     if scope == COT_SCOPE:
         _need(universe_cfg.get(COT_SCOPE) is not None, entry, field, "universe.json 沒有 cot 範圍")
 

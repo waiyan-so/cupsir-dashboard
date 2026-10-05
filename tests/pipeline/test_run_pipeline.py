@@ -428,3 +428,32 @@ def test_nothing_computed_writes_nothing_even_when_a_scope_is_switched_off(tmp_p
     shutil.rmtree(offline_dir / "prices")
     code, data = run(tmp_path, "--offline", str(offline_dir), "--registry", registry_with(tmp_path, cot_off))
     assert code == 1 and not data.exists()
+
+
+# ---- list view settings reach the page through meta
+
+def test_list_entries_and_view_labels_are_in_meta(tmp_path, offline_dir):
+    code, data = run(tmp_path, "--offline", str(offline_dir))
+    assert code == 0
+    sector, cot, market = load(data, SECTORS), load(data, COT), load(data, MARKET)
+    listed = lambda payload: {i["id"]: i["list"] for i in payload["meta"]["indicators"] if i.get("list")}  # noqa: E731
+    assert listed(sector) == {"relative_strength": {"order": 10, "value_key": "rank_by_63d", "format": "rank"},
+                              "trend_regime": {"order": 20, "value_key": "state", "format": "state_chip"}}
+    assert listed(cot) == {"cot_index_1y": {"order": 10, "value_key": "cot_index", "format": "number"}}
+    assert listed(market) == {}
+    for payload in (sector, cot):
+        assert payload["meta"]["ui_labels"]["view_list"] and payload["meta"]["ui_labels"]["view_table"]
+    # every list value really exists in the results it points at
+    for payload in (sector, cot):
+        for iid, item in listed(payload).items():
+            for row in payload["rows"]:
+                result = row["results"][iid]
+                assert item["value_key"] == "state" or item["value_key"] in result["values"], (iid, row["id"])
+
+
+def test_a_list_key_the_results_do_not_have_exits_2(tmp_path, offline_dir):
+    def stale(cfg):
+        cfg["indicators"]["relative_strength"]["scopes"]["sector"]["list"]["value_key"] = "no_such_value"
+    code, data = run(tmp_path, "--offline", str(offline_dir), "--registry", registry_with(tmp_path, stale))
+    assert code == 2
+    assert not (data / SECTORS).exists()

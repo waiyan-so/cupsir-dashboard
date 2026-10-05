@@ -334,3 +334,45 @@ def test_contract_code_with_surrounding_spaces_is_rejected(cfg):
     ind, uni = cfg
     uni["cot"]["subjects"][0]["cftc_code"] = " 001602"
     _fails(ind, uni, "universe.cot.wheat", "cftc_code")
+
+
+# ---- list view: which value an indicator shows beside each row of a tab's list
+
+def test_shipped_config_names_the_list_values_and_both_view_labels(cfg):
+    ind = cfg[0]
+    shown = {(iid, scope): d["scopes"][scope]["list"]
+             for iid, d in ind["indicators"].items() for scope in d["scopes"] if "list" in d["scopes"][scope]}
+    assert set(shown) == {("relative_strength", "sector"), ("trend_regime", "sector"), ("cot_index_1y", "cot")}
+    assert shown[("relative_strength", "sector")]["format"] == "rank"
+    for label in ("view_list", "view_table"):
+        assert ind["ui_labels"][label]
+
+
+@pytest.mark.parametrize("change,field", [
+    (lambda item: item.pop("order"), "scopes.sector.list.order"),
+    (lambda item: item.pop("value_key"), "scopes.sector.list.value_key"),
+    (lambda item: item.update(format="sparkline"), "scopes.sector.list.format"),
+    (lambda item: item.update(order="first"), "scopes.sector.list.order"),
+])
+def test_list_entry_must_be_complete(cfg, change, field):
+    ind, uni = cfg
+    change(ind["indicators"]["trend_regime"]["scopes"]["sector"]["list"])
+    _fails(ind, uni, "indicators.trend_regime", field)
+
+
+def test_list_entry_must_be_an_object(cfg):
+    ind, uni = cfg
+    ind["indicators"]["trend_regime"]["scopes"]["sector"]["list"] = "state"
+    _fails(ind, uni, "indicators.trend_regime", "scopes.sector.list")
+
+
+def test_the_market_scope_has_no_list_view(cfg):
+    ind, uni = cfg
+    ind["indicators"]["trend_regime"]["scopes"]["market"]["list"] = {"order": 1, "value_key": "state", "format": "state_chip"}
+    _fails(ind, uni, "indicators.trend_regime", "scopes.market.list")
+
+
+def test_an_indicator_without_a_list_entry_is_fine(cfg):
+    ind, uni = cfg
+    del ind["indicators"]["trend_regime"]["scopes"]["sector"]["list"]
+    registry.validate(ind, uni, CALCULATORS)
