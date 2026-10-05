@@ -10,7 +10,7 @@ SCRIPTS = ROOT / "scripts"
 PIPELINE = SCRIPTS / "pipeline"
 ORCHESTRATOR = SCRIPTS / "run_pipeline.py"
 FRONT_END = ROOT / "web" / "breadth.js"
-EXISTING_SCRIPTS = {"config", "build_dashboard", "fetch_cot", "fetch_events", "fetch_news", "generate_summary"}
+EXISTING_SCRIPTS = {"config", "build_dashboard", "fetch_events", "fetch_news", "generate_summary"}
 
 
 def sources(folder):

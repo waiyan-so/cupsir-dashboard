@@ -31,15 +31,18 @@ jobs:
         env:
           NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
         run: python scripts/fetch_news.py
+      # Runs before the dashboard build: the left-hand COT indicators are read from
+      # the data/cot.json this step writes. If it fails, the previous files stay and
+      # the dashboard build uses them.
+      - name: Build market breadth and sector data
+        continue-on-error: true
+        run: python scripts/run_pipeline.py
       - name: Build dashboard data and signals
         env:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
         run: |
           python scripts/build_dashboard.py
           python scripts/generate_summary.py
-      - name: Build market breadth and sector data
-        continue-on-error: true
-        run: python scripts/run_pipeline.py
       - name: Commit generated data
         run: |
           git config user.name "github-actions[bot]"

@@ -6,10 +6,22 @@ Each indicator dict:
   source       - "fred" | "market" | "cot"
   series_id    - FRED series id (source == "fred")
   ticker       - Yahoo Finance ticker (source == "market")
-  cot_market   - full CFTC "Market and Exchange Names" value, "<CONTRACT> - <EXCHANGE>"
-                 (source == "cot"). Matched exactly, never as a prefix or substring.
+  bar_rule     - which daily bar is the latest one that can be trusted (source == "market"):
+                 "session_close" - today's bar counts once the US cash session is over
+                                   (SESSION_FINAL_AFTER, US Eastern); before that, yesterday's
+                 "previous_day"  - never today's bar: the last one dated before today.
+                                   For futures and the dollar index, which trade almost round
+                                   the clock; Yahoo's bar for the current day keeps moving for
+                                   hours after the close and settles later
+  cot_id       - id of the market in config/universe.json's "cot" scope (source == "cot").
+                 The indicator shows that market's row of data/cot.json, so it can never
+                 differ from the COT tab. Contract codes live only in universe.json.
   embed        - {"type": "fred"|"tradingview", "target": <series_id or TradingView symbol>}
                  drives the live chart iframe/widget in the detail panel
+  scored       - False for an indicator that is shown but left out of the overall score
+                 (default: counted). Of the COT indicators only the S&P 500 one counts:
+                 the others describe positioning in their own market (bonds, gold, oil,
+                 the dollar), which is not a view on equities.
   date_as      - "quarter" when the source dates each value by the first day of the
                  quarter it is for; the detail panel then shows the quarter, not that day
   summary_label - short market name used when the research summary lists the COT
@@ -53,28 +65,28 @@ INDICATORS = {
     # ---- 二、市場溫度 (market) ----
     "vix": {
         "category": "market", "name": "CBOE Volatility Index", "name_zh": "VIX 波動率指數",
-        "source": "market", "ticker": "^VIX", "unit": "",
+        "source": "market", "ticker": "^VIX", "unit": "", "bar_rule": "session_close",
         "checklist": ["是否在 20 至 30 的不明朗區間", "是否超過 30 或 45", "恐慌後是否開始回落"],
         "source_url": "https://www.cboe.com/tradable_products/vix/",
         "embed": {"type": "tradingview", "target": "TVC:VIX"},
     },
     "dxy": {
         "category": "market", "name": "US Dollar Index", "name_zh": "美元指數 DXY",
-        "source": "market", "ticker": "DX-Y.NYB", "unit": "",
+        "source": "market", "ticker": "DX-Y.NYB", "unit": "", "bar_rule": "previous_day",
         "checklist": ["檢查一個月升跌幅", "美元急升是否壓制風險資產", "與美債孳息及股市比較"],
         "source_url": "https://finance.yahoo.com/quote/DX-Y.NYB",
         "embed": {"type": "tradingview", "target": "TVC:DXY"},
     },
     "copper": {
         "category": "market", "name": "Copper Futures", "name_zh": "銅價",
-        "source": "market", "ticker": "HG=F", "unit": "USD",
+        "source": "market", "ticker": "HG=F", "unit": "USD", "bar_rule": "previous_day",
         "checklist": ["距三個月低位的反彈幅度", "是否形成底部", "是否與製造業數據確認"],
         "source_url": "https://finance.yahoo.com/quote/HG=F",
         "embed": {"type": "tradingview", "target": "COMEX:HG1!"},
     },
     "oil": {
         "category": "market", "name": "WTI Crude Oil", "name_zh": "WTI 原油",
-        "source": "market", "ticker": "CL=F", "unit": "USD",
+        "source": "market", "ticker": "CL=F", "unit": "USD", "bar_rule": "previous_day",
         "checklist": ["距六個月高位的跌幅", "油價是否仍處於高位", "與通脹和週期判斷是否一致"],
         "source_url": "https://finance.yahoo.com/quote/CL=F",
         "embed": {"type": "tradingview", "target": "NYMEX:CL1!"},
@@ -83,41 +95,38 @@ INDICATORS = {
     # ---- 三、COT 聰明錢持倉 (cot) ----
     "cot_sp500": {
         "category": "cot", "name": "S&P 500 COT", "name_zh": "S&P 500 COT 持倉", "summary_label": "S&P 500",
-        "source": "cot", "report": "tff", "cot_market": "E-MINI S&P 500 - CHICAGO MERCANTILE EXCHANGE", "unit": "index",
-        "checklist": ["機構方(Dealer+Asset Manager)COT Index 是否 ≥80 或 ≤20", "槓桿基金 Sentiment Index 是否反向極端", "確認是否出現極端擠擁"],
+        "source": "cot", "cot_id": "sp500", "unit": "index",
+        "checklist": ["商業持倉者 COT Index 是否 ≥80 或 ≤20", "小型投機者 Sentiment Index 是否反向極端", "確認是否出現極端擠擁"],
         "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders",
         "embed": {"type": "tradingview", "target": "SP:SPX"},
     },
     "cot_10y": {
         "category": "cot", "name": "10Y Treasury COT", "name_zh": "10年期國債 COT", "summary_label": "10年債",
-        "source": "cot", "report": "tff", "cot_market": "UST 10Y NOTE - CHICAGO BOARD OF TRADE", "unit": "index",
-        "checklist": ["機構方(Dealer+Asset Manager)COT Index 是否 ≥80 或 ≤20", "槓桿基金 Sentiment Index 是否反向極端", "是否與孳息曲線走勢背馳"],
+        "source": "cot", "cot_id": "ust10y", "unit": "index", "scored": False,
+        "checklist": ["商業持倉者 COT Index 是否 ≥80 或 ≤20", "小型投機者 Sentiment Index 是否反向極端", "是否與孳息曲線走勢背馳"],
         "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders",
         "embed": {"type": "tradingview", "target": "CBOT:ZN1!"},
     },
     "cot_gold": {
         "category": "cot", "name": "Gold COT", "name_zh": "黃金 COT", "summary_label": "黃金",
-        "source": "cot", "report": "legacy", "cot_market": "GOLD - COMMODITY EXCHANGE INC.", "unit": "index",
+        "source": "cot", "cot_id": "gold", "unit": "index", "scored": False,
         "checklist": ["商業持倉者 COT Index 是否 ≥80 或 ≤20", "小型投機者 Sentiment Index 是否反向極端", "是否與避險需求走勢一致"],
         "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders",
         "embed": {"type": "tradingview", "target": "COMEX:GC1!"},
     },
     "cot_oil": {
         "category": "cot", "name": "Oil COT", "name_zh": "原油 COT", "summary_label": "原油",
-        # This is the ICE Futures Europe WTI contract - the one the old prefix
-        # "CRUDE OIL, LIGHT SWEET" resolved to, kept so this indicator's value does
-        # not change here. The NYMEX contract has been named
-        # "WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE" since 2022-02-08; switching
-        # to it is a separate, owner-approved change (issue X1).
-        "source": "cot", "report": "legacy", "cot_market": "CRUDE OIL, LIGHT SWEET-WTI - ICE FUTURES EUROPE", "unit": "index",
+        # crude_oil is the NYMEX WTI contract (CL), the one the framework names and the
+        # one the oil price indicator above tracks - not ICE Futures Europe's look-alike.
+        "source": "cot", "cot_id": "crude_oil", "unit": "index", "scored": False,
         "checklist": ["商業持倉者 COT Index 是否 ≥80 或 ≤20", "小型投機者 Sentiment Index 是否反向極端", "是否與油價週期判斷一致"],
         "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders",
         "embed": {"type": "tradingview", "target": "NYMEX:CL1!"},
     },
     "cot_dxy": {
         "category": "cot", "name": "DXY COT", "name_zh": "美元指數 COT", "summary_label": "美元",
-        "source": "cot", "report": "tff", "cot_market": "USD INDEX - ICE FUTURES U.S.", "unit": "index",
-        "checklist": ["機構方(Dealer+Asset Manager)COT Index 是否 ≥80 或 ≤20", "槓桿基金 Sentiment Index 是否反向極端", "是否與風險資產走勢背馳"],
+        "source": "cot", "cot_id": "usd_index", "unit": "index", "scored": False,
+        "checklist": ["商業持倉者 COT Index 是否 ≥80 或 ≤20", "小型投機者 Sentiment Index 是否反向極端", "是否與風險資產走勢背馳"],
         "source_url": "https://www.cftc.gov/MarketReports/CommitmentsofTraders",
         "embed": {"type": "tradingview", "target": "TVC:DXY"},
     },
@@ -129,6 +138,17 @@ CATEGORY_LABELS = {
     "cot": "三、COT 聰明錢持倉",
 }
 CATEGORY_ORDER = ["macro", "market", "cot"]
+
+# Daily bars of the market indicators are dated in this time zone, and "today" for
+# the bar rules above is today there. A "session_close" bar is final from this time on.
+MARKET_TZ = "America/New_York"
+SESSION_FINAL_AFTER = "16:30"
+
+# Where the left-hand COT indicators come from: the file the COT tab is drawn from
+# (written by scripts/run_pipeline.py from the CFTC Legacy report) and which of its
+# lookbacks they show. One source, so the list and the tab always agree.
+COT_FILE = "cot.json"
+COT_LOOKBACK = "cot_index_1y"
 
 # The sentence under each indicator's value in the detail panel
 # (dashboard.json "interpretation"). {signal} is the indicator's signal label;

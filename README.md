@@ -10,12 +10,12 @@ The page is in Traditional Chinese.
 |---|---|---|
 | Economic calendar | Events in the next 14 days: NFP, FOMC, FOMC minutes, QRA and eleven monthly releases | `data/events.json` |
 | News | Macro and market headlines from NewsAPI | `data/news.json` |
-| Tab 整體市場 | Status cards for market breadth (trend regime, distribution days, equal-weight ratio, follow-through day, for SPY and QQQ), then 13 indicators in three groups: macro (4), market temperature (4), COT positioning (5). The 13 feed the overall signal and score in the header | `data/market_breadth.json`, `data/dashboard.json` |
+| Tab 整體市場 | Status cards for market breadth (trend regime, distribution days, equal-weight ratio, follow-through day, for SPY and QQQ), then 13 indicators in three groups: macro (4), market temperature (4), COT positioning (5). Nine of them feed the overall signal and score in the header: the four macro, the four market and the S&P 500 COT. The other four COT indicators are shown but not scored | `data/market_breadth.json`, `data/dashboard.json` |
 | Tab 板塊 | 11 sectors by 5 indicators: relative strength, trend regime, distribution days, equal-weight ratio, realized volatility | `data/sectors.json` |
 | Tab COT 持倉 | 16 futures markets by 3 lookbacks (6 months, 1 year, 3 years): COT Index and Sentiment Index from the CFTC Legacy report | `data/cot.json` |
 | Research summary | Rule-based text built from the 13 indicators | `data/summary.json` |
 
-The breadth, sector and COT tabs do not feed the overall score.
+The breadth, sector and COT tabs do not add to the overall score. The one link is the S&P 500 COT indicator on the first tab, which shows the COT tab's one-year reading for that market.
 
 ## How it works
 
@@ -23,9 +23,9 @@ The breadth, sector and COT tabs do not feed the overall score.
 .github/workflows/update-data.yml   weekdays 20:00 UTC (often runs later), or by hand
   scripts/fetch_events.py      -> data/events.json
   scripts/fetch_news.py        -> data/news.json          (keeps the old file on failure)
-  scripts/build_dashboard.py   -> data/dashboard.json     (FRED, Yahoo Finance, CFTC; keeps the old file if every source fails)
-  scripts/generate_summary.py  -> data/summary.json
   scripts/run_pipeline.py      -> data/market_breadth.json, data/sectors.json, data/cot.json
+  scripts/build_dashboard.py   -> data/dashboard.json     (FRED, Yahoo Finance, and data/cot.json for the five COT indicators; keeps the old file if every source fails)
+  scripts/generate_summary.py  -> data/summary.json
   commit data/ and push
 
 .github/workflows/deploy-pages.yml  on push to main, after a data refresh, or by hand
@@ -38,7 +38,7 @@ The breadth, sector and COT tabs do not feed the overall score.
 |---|---|
 | `web/` | The page: `index.html`, `app.js` (calendar, news, 13 indicators, summary), `breadth.js` (status cards, sector and COT tabs), `styles.css` |
 | `scripts/config.py` | The 13 left-hand indicators: names, sources, checklists |
-| `scripts/build_dashboard.py`, `fetch_cot.py`, `fetch_events.py`, `fetch_news.py`, `generate_summary.py` | The original data scripts |
+| `scripts/build_dashboard.py`, `fetch_events.py`, `fetch_news.py`, `generate_summary.py` | The original data scripts |
 | `config/indicators.json`, `config/universe.json` | Registry for the breadth, sector and COT tabs: indicators, parameters, wording, tickers and CFTC contract codes |
 | `scripts/run_pipeline.py`, `scripts/pipeline/` | The newer pipeline in layers: `collect/` (download), `calc/` (pure calculations), `sectors/` (cross-sector work), and `run_pipeline.py`, the only code that writes its output |
 | `data/` | Generated JSON, committed by the workflow |
