@@ -65,6 +65,8 @@ FOMC minutes (meeting day plus 21 days) and the QRA estimate (first Wednesday of
 
 Edit `scripts/config.py`: names, FRED series, Yahoo tickers, checklist wording. Signal thresholds are in `signal()` and `cot_signal()` in `scripts/build_dashboard.py`.
 
+An indicator's `chart` entry lists the levels drawn as dashed lines on its chart. They must be the same numbers as the thresholds in `signal()`; a test fails if they drift apart, so change both together.
+
 A market indicator's `bar_rule` says which daily price is safe to show. VIX uses the day's close once the US session has ended. Copper, oil and the dollar index trade almost round the clock and their price for the current day keeps changing for hours after the close, so they always show the last completed day: one trading day behind VIX, but final.
 
 A COT indicator's `scored: False` keeps it on the page but out of the overall score. Only the S&P 500 COT is scored.
@@ -79,6 +81,8 @@ These are driven by two files and need no code change for routine edits:
 - `config/indicators.json`: the indicators, their parameters and thresholds, column labels and the "Expert's view" wording.
 
 A new kind of calculation needs a function in `scripts/pipeline/calc/` plus its entry in `config/indicators.json`.
+
+Both tabs open as a list with charts beside it. What each list row shows is set by an optional `list` entry on an indicator's scope (`order`, `value_key`, `format`); add or remove one to change the row. The button labels are `view_list` and `view_table` in `ui_labels`.
 
 `python scripts/run_pipeline.py --dry-run` checks the configuration and runs everything without writing files.
 
