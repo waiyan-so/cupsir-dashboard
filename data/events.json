@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-10-05",
-    "time": "10:00 ET",
-    "title_zh": "ISM 服務業 PMI",
-    "notes": "50 為榮枯分界線，服務業佔美國經濟主體。",
-    "importance": 2,
-    "stars": "⭐⭐"
-  },
-  {
     "date": "2026-10-06",
     "time": "08:30 ET",
     "title_zh": "貿易帳（Trade Balance）",
@@ -52,6 +44,14 @@
     "time": "08:30 ET",
     "title_zh": "零售銷售（Retail Sales）",
     "notes": "反映消費力度，對非必需消費品股份敏感度高。",
+    "importance": 2,
+    "stars": "⭐⭐"
+  },
+  {
+    "date": "2026-10-20",
+    "time": "08:30 ET",
+    "title_zh": "新屋開工及建築許可（Housing Starts）",
+    "notes": "房地產週期指標，對利率敏感度高。",
     "importance": 2,
     "stars": "⭐⭐"
   }
