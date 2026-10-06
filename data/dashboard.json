@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-10-06 01:02 UTC",
+  "updated_at": "2026-10-06 04:59 UTC",
   "overall_signal": "BULLISH",
-  "total_score": 6,
+  "total_score": 5,
   "category_labels": {
     "macro": "一、宏觀環境",
     "market": "二、市場溫度",
@@ -789,12 +789,12 @@
       "category": "market",
       "name": "US Dollar Index",
       "name_zh": "美元指數 DXY",
-      "value": 101.93,
+      "value": 102.17,
       "unit": "",
-      "data_date": "2026-10-02",
-      "signal": "USD STRENGTHENING",
-      "signal_color": "warning",
-      "interpretation": "CupSir 框架分類：USD STRENGTHENING。",
+      "data_date": "2026-10-05",
+      "signal": "STRONG USD",
+      "signal_color": "negative",
+      "interpretation": "CupSir 框架分類：STRONG USD。",
       "checklist": [
         "檢查一個月升跌幅",
         "美元急升是否壓制風險資產",
@@ -807,10 +807,6 @@
         "target": "TVC:DXY"
       },
       "history": [
-        {
-          "date": "2026-08-21",
-          "value": 98.8
-        },
         {
           "date": "2026-08-24",
           "value": 99.0
@@ -926,6 +922,10 @@
         {
           "date": "2026-10-02",
           "value": 101.93
+        },
+        {
+          "date": "2026-10-05",
+          "value": 102.17
         }
       ],
       "chart": {
@@ -939,9 +939,9 @@
       "category": "market",
       "name": "Copper Futures",
       "name_zh": "銅價",
-      "value": 6.492,
+      "value": 6.585,
       "unit": "USD",
-      "data_date": "2026-10-02",
+      "data_date": "2026-10-05",
       "signal": "NEUTRAL",
       "signal_color": "warning",
       "interpretation": "CupSir 框架分類：NEUTRAL。",
@@ -957,10 +957,6 @@
         "target": "COMEX:HG1!"
       },
       "history": [
-        {
-          "date": "2026-08-21",
-          "value": 6.58
-        },
         {
           "date": "2026-08-24",
           "value": 6.599
@@ -1076,6 +1072,10 @@
         {
           "date": "2026-10-02",
           "value": 6.492
+        },
+        {
+          "date": "2026-10-05",
+          "value": 6.585
         }
       ],
       "chart": {
@@ -1089,9 +1089,9 @@
       "category": "market",
       "name": "WTI Crude Oil",
       "name_zh": "WTI 原油",
-      "value": 91.11,
+      "value": 89.43,
       "unit": "USD",
-      "data_date": "2026-10-02",
+      "data_date": "2026-10-05",
       "signal": "DECLINING",
       "signal_color": "warning",
       "interpretation": "CupSir 框架分類：DECLINING。",
@@ -1107,10 +1107,6 @@
         "target": "NYMEX:CL1!"
       },
       "history": [
-        {
-          "date": "2026-08-21",
-          "value": 87.06
-        },
         {
           "date": "2026-08-24",
           "value": 85.01
@@ -1226,6 +1222,10 @@
         {
           "date": "2026-10-02",
           "value": 91.11
+        },
+        {
+          "date": "2026-10-05",
+          "value": 89.43
         }
       ],
       "chart": {
