@@ -1,4 +1,5 @@
 """Orchestrator and sector layer end to end, offline (spec sections 2, 6 and 8)."""
+import copy
 import json
 import shutil
 from pathlib import Path
@@ -11,8 +12,8 @@ from pipeline.calc._math import sma
 from helpers import ROOT
 
 ENVELOPE = set(calc.RESULT_KEYS)
-MARKET, SECTORS, COT = "market_breadth.json", "sectors.json", "cot.json"
-NEW_FILES = (MARKET, SECTORS, COT)
+MARKET, SECTORS, COT, PAIRS = "market_breadth.json", "sectors.json", "cot.json", "pairs.json"
+NEW_FILES = (MARKET, SECTORS, COT, PAIRS)
 
 
 def run(tmp_path, *argv, data=None):
@@ -75,7 +76,7 @@ def test_offline_run_writes_both_files_with_the_documented_shape(tmp_path, offli
             assert result["data_date"] == "2026-10-02"
 
 
-def test_only_the_three_new_files_are_written(tmp_path, offline_dir):
+def test_only_the_four_new_files_are_written(tmp_path, offline_dir):
     data = tmp_path / "data"
     shutil.copytree(ROOT / "data", data)
     before = {p.name: p.read_bytes() for p in data.iterdir()}
@@ -457,3 +458,79 @@ def test_a_list_key_the_results_do_not_have_exits_2(tmp_path, offline_dir):
     code, data = run(tmp_path, "--offline", str(offline_dir), "--registry", registry_with(tmp_path, stale))
     assert code == 2
     assert not (data / SECTORS).exists()
+
+
+# ---- ratio pairs (spec F)
+
+def _pair(payload, pair_id):
+    return next(r for r in payload["rows"] if r["id"] == pair_id)
+
+
+def test_pairs_file_shape(tmp_path, offline_dir):
+    code, data = run(tmp_path, "--offline", str(offline_dir))
+    assert code == 0
+    payload = load(data, PAIRS)
+    universe = json.loads((ROOT / "config" / "universe.json").read_text(encoding="utf-8"))["pairs"]
+    meta = payload["meta"]
+    assert meta["groups"] == universe["groups"]
+    assert meta["state_conditions"] == universe["state_conditions"]
+    assert meta["default_sort"] is None
+    assert [i["id"] for i in meta["indicators"]] == ["pair_trend", "pair_change"]
+    assert [r["id"] for r in payload["rows"]] == [s["id"] for s in universe["subjects"]]
+    for row, subject in zip(payload["rows"], universe["subjects"]):
+        assert row["tickers"] == subject["roles"]
+        assert row["caption"] == f"{subject['roles']['subject']} / {subject['roles']['benchmark']}"
+        assert row["guide"] == subject["guide"] and row["group"] == subject["group"]
+        assert row.get("tag") == subject.get("tag") and row.get("levels") == subject.get("levels")
+        trend, change = row["results"]["pair_trend"], row["results"]["pair_change"]
+        assert trend["status"] == "ok" and change["status"] == "ok"
+        assert trend["state"] in universe["state_conditions"] and trend["tone"] is None
+        assert len(trend["history"]) == 252 and set(trend["history"][0]) == {"date", "ratio", "sma50", "sma200"}
+        assert change["history"] == []
+        assert change["values"]["change_63d_pct"] == trend["values"]["change_63d_pct"]
+    # a pair with chart levels keeps them; the others have none
+    assert sum(1 for r in payload["rows"] if "levels" in r) == 1
+
+
+def test_pairs_do_not_change_the_other_files(tmp_path, offline_dir):
+    _, with_pairs = run(tmp_path, "--offline", str(offline_dir), data=tmp_path / "a")
+    def drop_pairs(cfg):
+        for iid in ("pair_trend", "pair_change"):
+            cfg["indicators"][iid]["enabled"] = False
+    _, without = run(tmp_path, "--offline", str(offline_dir), "--registry", registry_with(tmp_path, drop_pairs),
+                     data=tmp_path / "b")
+    for name in (MARKET, SECTORS, COT):
+        a, b = load(with_pairs, name), load(without, name)
+        a.pop("updated_at"), b.pop("updated_at")
+        assert a == b, name
+    assert load(without, PAIRS)["rows"][0]["results"] == {}
+
+
+def test_missing_ticker_only_blanks_the_pairs_that_use_it(tmp_path, offline_dir):
+    universe = json.loads((ROOT / "config" / "universe.json").read_text(encoding="utf-8"))["pairs"]["subjects"]
+    target = _pair({"rows": universe}, "copper_gold")["roles"]["subject"]
+    users = {s["id"] for s in universe if target in s["roles"].values()}
+    (offline_dir / "prices" / f"{target}.csv").unlink()
+    code, data = run(tmp_path, "--offline", str(offline_dir))
+    assert code == 0
+    for row in load(data, PAIRS)["rows"]:
+        statuses = {r["status"] for r in row["results"].values()}
+        assert statuses == ({"na"} if row["id"] in users else {"ok"}), row["id"]
+        if row["id"] in users:
+            assert {r["reason"] for r in row["results"].values()} == {"fetch_failed"}
+
+
+def test_adding_a_pair_needs_only_a_universe_entry(tmp_path, offline_dir):
+    config = tmp_path / "config"
+    shutil.copytree(ROOT / "config", config)
+    universe = json.loads((config / "universe.json").read_text(encoding="utf-8"))
+    template = copy.deepcopy(universe["pairs"]["subjects"][0])
+    a, b = universe["pairs"]["subjects"][1]["roles"]["subject"], universe["pairs"]["subjects"][0]["roles"]["subject"]
+    template.update(id="extra_pair", roles={"subject": a, "benchmark": b})
+    universe["pairs"]["subjects"].append(template)
+    (config / "universe.json").write_text(json.dumps(universe, ensure_ascii=False), encoding="utf-8")
+    code = run_pipeline.main(["--offline", str(offline_dir)], data_dir=tmp_path / "data", config_dir=config)
+    assert code == 0
+    rows = load(tmp_path / "data", PAIRS)["rows"]
+    assert len(rows) == 24 and rows[-1]["id"] == "extra_pair"
+    assert all(r["status"] == "ok" for r in rows[-1]["results"].values())

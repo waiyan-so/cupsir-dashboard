@@ -22,7 +22,7 @@ Each run:
 
 1. Builds the 14-day economic calendar (`data/events.json`).
 2. Fetches news (`data/news.json`).
-3. Builds the market breadth, sector and COT data (`data/market_breadth.json`, `data/sectors.json`, `data/cot.json`).
+3. Builds the market breadth, sector, COT and ratio-pair data (`data/market_breadth.json`, `data/sectors.json`, `data/cot.json`, `data/pairs.json`).
 4. Builds the 13 indicators and the overall signal (`data/dashboard.json`), then the summary (`data/summary.json`). The five COT indicators are read from `data/cot.json`, so they always match the COT tab.
 5. Commits `data/` and pushes. The deploy workflow then publishes the page.
 
@@ -83,6 +83,16 @@ These are driven by two files and need no code change for routine edits:
 A new kind of calculation needs a function in `scripts/pipeline/calc/` plus its entry in `config/indicators.json`.
 
 Both tabs open as a list with charts beside it. What each list row shows is set by an optional `list` entry on an indicator's scope (`order`, `value_key`, `format`); add or remove one to change the row. The button labels are `view_list` and `view_table` in `ui_labels`. The page remembers the view last chosen on each tab in the browser (local storage), so a reload opens the same one; clearing the site's data brings back the list.
+
+### Ratio pairs (under the sectors)
+
+The 板塊 tab ends with a panel of relative strength ratios such as XLY / XLP, in three groups. Each pair is one entry in the `pairs` block of `config/universe.json`:
+
+- `roles.subject` is the numerator and `roles.benchmark` the denominator (any Yahoo Finance ticker, including futures such as `HG=F` and indices such as `^VIX`).
+- `group` is one of the keys of `pairs.groups`; `tag` (optional) is a short label beside the name; `levels` (optional) draws fixed lines on that pair's chart.
+- `guide` is the reading guide shown under the chart: `compare`, a sentence for each state in `pairs.state_conditions`, `signals` (other situations, each a `condition` and its `meaning`) and an optional `caveat`.
+
+Adding, removing or reordering a pair is an edit to that block only. The two columns come from the `pair_trend` and `pair_change` indicators in `config/indicators.json`. The panel stays hidden until `data/pairs.json` exists, and none of it counts toward the overall score.
 
 `python scripts/run_pipeline.py --dry-run` checks the configuration and runs everything without writing files.
 

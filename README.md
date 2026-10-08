@@ -13,6 +13,7 @@ The page is in Traditional Chinese.
 | Tab 整體市場 | Status cards for market breadth (trend regime, distribution days, equal-weight ratio, follow-through day, for SPY and QQQ), then 13 indicators in three groups: macro (4), market temperature (4), COT positioning (5). Nine of them feed the overall signal and score in the header: the four macro, the four market and the S&P 500 COT. The other four COT indicators are shown but not scored | `data/market_breadth.json`, `data/dashboard.json` |
 | Tab 板塊 | 11 sectors by 5 indicators: relative strength, trend regime, distribution days, equal-weight ratio, realized volatility. Opens as a list of sectors with the selected sector's charts beside it; a button switches to the sortable comparison table | `data/sectors.json` |
 | Tab COT 持倉 | 16 futures markets in four categories by 3 lookbacks (1 year, 3 years, 6 months): COT Index and Sentiment Index from the CFTC Legacy report. Same two views as the sector tab | `data/cot.json` |
+| Tab 板塊, ratio pairs | 23 relative strength ratios (for example XLY / XLP, HYG / IEF, copper / gold) in three groups, each with a ratio chart, its 50- and 200-day lines and a reading guide. Not scored | `data/pairs.json` |
 | Research summary | Rule-based text built from the 13 indicators | `data/summary.json` |
 
 The breadth, sector and COT tabs do not add to the overall score. The one link is the S&P 500 COT indicator on the first tab, which shows the COT tab's one-year reading for that market.
@@ -23,7 +24,7 @@ The breadth, sector and COT tabs do not add to the overall score. The one link i
 .github/workflows/update-data.yml   weekdays 20:00 UTC (often runs later), or by hand
   scripts/fetch_events.py      -> data/events.json
   scripts/fetch_news.py        -> data/news.json          (keeps the old file on failure)
-  scripts/run_pipeline.py      -> data/market_breadth.json, data/sectors.json, data/cot.json
+  scripts/run_pipeline.py      -> data/market_breadth.json, data/sectors.json, data/cot.json, data/pairs.json
   scripts/build_dashboard.py   -> data/dashboard.json     (FRED, Yahoo Finance, and data/cot.json for the five COT indicators; keeps the old file if every source fails)
   scripts/generate_summary.py  -> data/summary.json
   commit data/ and push

@@ -28,8 +28,8 @@ def all_tickers():
     """Every ticker named in config/universe.json (tests never spell tickers out)."""
     universe = json.loads((ROOT / "config" / "universe.json").read_text(encoding="utf-8"))
     tickers = []
-    for scope in ("market", "sector"):
-        for s in universe[scope]["subjects"]:
+    for scope in ("market", "sector", "pairs"):
+        for s in universe.get(scope, {}).get("subjects", []):
             tickers.extend(s["roles"].values())
     return sorted(set(tickers))
 

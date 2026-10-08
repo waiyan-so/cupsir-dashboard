@@ -32,6 +32,7 @@ SCHEMA_VERSION = 2
 MARKET_FILE = "market_breadth.json"
 SECTOR_FILE = "sectors.json"
 COT_FILE = "cot.json"
+PAIRS_FILE = "pairs.json"
 
 EXIT_OK, EXIT_NO_DATA, EXIT_BAD_CONFIG = 0, 1, 2
 
@@ -115,6 +116,41 @@ def build_cot(universe, indicators_cfg, indicators, store):
         "tie_break": None,
         "groups": universe.get("cot", {}).get("groups", {}),
         "indicators": _meta_indicators(indicators, "cot"),
+    }
+    cells = [(iid, row["id"], row["results"][iid]) for row in rows for iid, _ in indicators]
+    return {"meta": meta, "rows": rows}, cells
+
+
+def _pair_tickers(universe, indicators):
+    roles_needed = {role for _, d in indicators for role in d["inputs"]}
+    return {ticker for s in registry.subjects(universe, "pairs")
+            for role, ticker in s["roles"].items() if role in roles_needed}
+
+
+def build_pairs(universe, indicators_cfg, indicators, store):
+    """One row per ratio pair (subject / benchmark). Pairs are not ranked against each other,
+    so, as for COT, the orchestrator calls the calculation layer directly. The reading guide,
+    tag and chart levels are passed through from universe.json for the page to show."""
+    block = universe.get("pairs", {})
+    rows = []
+    for subject in registry.subjects(universe, "pairs"):
+        frames = _frames_for(subject, store)
+        results = {iid: calc.run(d, frames) for iid, d in indicators}
+        row = {"id": subject["id"], "name_zh": subject["name_zh"], "group": subject["group"],
+               "tickers": dict(subject["roles"]),
+               "caption": f"{subject['roles']['subject']} / {subject['roles']['benchmark']}",
+               "guide": subject["guide"], "results": results}
+        for optional in ("tag", "levels"):
+            if optional in subject:
+                row[optional] = subject[optional]
+        rows.append(row)
+    meta = {
+        "ui_labels": indicators_cfg["ui_labels"],
+        "default_sort": None,
+        "tie_break": None,
+        "groups": block.get("groups", {}),
+        "state_conditions": block.get("state_conditions", {}),
+        "indicators": _meta_indicators(indicators, "pairs"),
     }
     cells = [(iid, row["id"], row["results"][iid]) for row in rows for iid, _ in indicators]
     return {"meta": meta, "rows": rows}, cells
@@ -252,9 +288,11 @@ def main(argv=None, data_dir=DATA_DIR, config_dir=CONFIG_DIR, fetch=None, fetch_
     market_inds = registry.enabled_indicators(indicators_cfg, "market")
     sector_inds = registry.enabled_indicators(indicators_cfg, "sector")
     cot_inds = registry.enabled_indicators(indicators_cfg, "cot")
+    pair_inds = registry.enabled_indicators(indicators_cfg, "pairs")
 
     # 2-3. Work out what each source must deliver and fetch every item once.
-    tickers = _market_tickers(universe, market_inds) | sectors.required_tickers(universe, sector_inds)
+    tickers = (_market_tickers(universe, market_inds) | sectors.required_tickers(universe, sector_inds)
+               | _pair_tickers(universe, pair_inds))
     codes = {s["cftc_code"] for s in registry.subjects(universe, "cot")} if cot_inds else set()
     if args.offline:
         store = fixtures.load_prices(args.offline, tickers)
@@ -266,13 +304,14 @@ def main(argv=None, data_dir=DATA_DIR, config_dir=CONFIG_DIR, fetch=None, fetch_
     _report_store("cftc codes", codes, positions)
     _check_market_names(universe, positions)
 
-    # 4-7. Compute both scopes, build the payloads, check them.
+    # 4-7. Compute every scope, build the payloads, check them.
     updated_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     outputs = []
     for scope, filename, builder, inds, source in (
         ("market", MARKET_FILE, build_market, market_inds, store),
         ("sector", SECTOR_FILE, build_sectors, sector_inds, store),
         ("cot", COT_FILE, build_cot, cot_inds, positions),
+        ("pairs", PAIRS_FILE, build_pairs, pair_inds, store),
     ):
         body, cells = builder(universe, indicators_cfg, inds, source)
         if scope == "market":
