@@ -1,5 +1,40 @@
 [
   {
+    "title": "CNBC Daily Open: AI rally defies bond market rout",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/2026/10/07/daily-open-ai-rally-bond-market-rout.html",
+    "published_at": "2026-10-07T06:28:35Z",
+    "summary": "AI stocks propel the S&P 500 to a fresh record high, but the bond market blues keep investors on edge."
+  },
+  {
+    "title": "Why AI is both the hope and the hazard for world leaders, according to IMF chief Georgieva",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/2026/10/07/economy-inflation-ai-trade-imf-iran-hormuz-trump-.html",
+    "published_at": "2026-10-07T06:16:39Z",
+    "summary": "Kristalina Georgieva warns that the technology lifting growth hopes is also pushing up inflation and yields, just as public debt levels rose."
+  },
+  {
+    "title": "India’s central bank hikes rates for the first time since 2023 as inflation creeps up",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/2026/10/07/india-rbi-interest-rates-inflation.html",
+    "published_at": "2026-10-07T04:38:00Z",
+    "summary": "HSBC and Goldman Sachs expect the RBI to raise interest rates in December as well."
+  },
+  {
+    "title": "Singapore's Temasek warns of the ‘biggest risk’ facing markets right now",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/2026/10/07/singapore-temasek-warns-of-the-biggest-risk-facing-markets.html",
+    "published_at": "2026-10-07T04:33:47Z",
+    "summary": "Unwinding of the artificial intelligence trade poses the biggest risk to markets, according to  Singapore state-owned investment giant Temasek."
+  },
+  {
+    "title": "CNBC Daily Open: Fragile rebound in oil exports threatened by Iran attacks in Hormuz",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/2026/10/07/trump-hormuz-oil-diesel-iran-anthropic-ai.html",
+    "published_at": "2026-10-07T01:11:37Z",
+    "summary": "Nearly 20 commercial ships, mostly tankers, have come under attack over the past month while sailing through Hormuz, the Persian Gulf or off the coast of Oman."
+  },
+  {
     "title": "Stock market today: Live updates",
     "source": "CNBC",
     "url": "https://www.cnbc.com/2026/10/06/stock-market-today-live-updates.html",
@@ -19,40 +54,5 @@
     "url": "https://www.cnbc.com/2026/10/06/housing-affordability-election.html",
     "published_at": "2026-10-06T18:11:51Z",
     "summary": "Pennsylvania's competitive U.S. House districts showcase how housing affordability challenges for young voters may play into control of the next Congress."
-  },
-  {
-    "title": "Boomers' dividend stocks take beating as bond yields rise, with retirement income on the line",
-    "source": "CNBC",
-    "url": "https://www.cnbc.com/2026/10/06/dividend-stocks-bond-yields-retirement-income.html",
-    "published_at": "2026-10-06T16:59:17Z",
-    "summary": "As interest rates and bond yields rise, dividend stocks many boomers rely on for income are taking a beating. There are ways to blunt the portfolio impact."
-  },
-  {
-    "title": "High diesel prices may put 'another squeeze' on the consumer, economist says",
-    "source": "CNBC",
-    "url": "https://www.cnbc.com/2026/10/06/diesel-prices-inflation.html",
-    "published_at": "2026-10-06T15:45:52Z",
-    "summary": "The impact of soaring diesel prices is less evident to consumers than that of gasoline."
-  },
-  {
-    "title": "Car buyers are stretching loans to afford payments — it's a 'potential warning light,' analyst says",
-    "source": "CNBC",
-    "url": "https://www.cnbc.com/2026/10/06/car-loans-are-getting-longer-as-monthly-payments-hit-record-highs.html",
-    "published_at": "2026-10-06T12:15:01Z",
-    "summary": "A record number of car buyers took out 84-month or longer loans in the third quarter, but rising amounts financed are pushing monthly payments to new highs."
-  },
-  {
-    "title": "Unsure how long this AI bull has? Bonds now offer a cushion at the best values in years",
-    "source": "CNBC",
-    "url": "https://www.cnbc.com/2026/10/06/unsure-how-long-this-ai-bull-has-bonds-now-offer-a-cushion-at-the-best-values-in-years.html",
-    "published_at": "2026-10-06T11:08:28Z",
-    "summary": "See an AI-generated hypothetical portfolio derived from my TV talk and this column's archives."
-  },
-  {
-    "title": "Why deep-red Kansas has become an unexpected Senate battleground",
-    "source": "CNBC",
-    "url": "https://www.cnbc.com/2026/10/06/kansas-election-senate-marshall-hamilton.html",
-    "published_at": "2026-10-06T10:00:01Z",
-    "summary": "A combination of local, national and international events has contributed to making the Kansas Senate race one to watch."
   }
 ]
