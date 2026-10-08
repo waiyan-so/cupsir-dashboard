@@ -16,7 +16,8 @@ UNIVERSE = ROOT / "config" / "universe.json"
 PRICE_INDICATORS = {"trend_regime", "distribution_days", "equal_weight_ratio",
                     "follow_through_day", "realized_vol", "relative_strength"}
 COT_INDICATORS = {"cot_index_1y", "cot_index_3y", "cot_index_6m"}
-CALCULATORS = PRICE_INDICATORS | {"cot_index"}
+PAIR_INDICATORS = {"pair_trend", "pair_change"}
+CALCULATORS = PRICE_INDICATORS | {"cot_index", "ratio_trend"}
 
 
 @pytest.fixture
@@ -36,8 +37,14 @@ def test_shipped_config_is_valid(cfg):
     registry.validate(*cfg, CALCULATORS)
 
 
-def test_shipped_config_has_the_six_price_indicators_and_three_cot_lookbacks(cfg):
-    assert set(cfg[0]["indicators"]) == PRICE_INDICATORS | COT_INDICATORS
+def test_shipped_config_has_the_six_price_indicators_three_cot_lookbacks_and_two_pair_views(cfg):
+    assert set(cfg[0]["indicators"]) == PRICE_INDICATORS | COT_INDICATORS | PAIR_INDICATORS
+    # the two pair entries share one calculator and must agree on when a value exists
+    pairs = [cfg[0]["indicators"][i] for i in sorted(PAIR_INDICATORS)]
+    assert {d["calculator"] for d in pairs} == {"ratio_trend"}
+    assert len({d["min_history_days"] for d in pairs}) == 1
+    strip = lambda d: {k: v for k, v in d["params"].items() if k != "history_days"}
+    assert strip(pairs[0]) == strip(pairs[1])
     # one calculator, three registry entries that differ only in their parameters
     assert {cfg[0]["indicators"][i]["calculator"] for i in COT_INDICATORS} == {"cot_index"}
 
@@ -342,7 +349,8 @@ def test_shipped_config_names_the_list_values_and_both_view_labels(cfg):
     ind = cfg[0]
     shown = {(iid, scope): d["scopes"][scope]["list"]
              for iid, d in ind["indicators"].items() for scope in d["scopes"] if "list" in d["scopes"][scope]}
-    assert set(shown) == {("relative_strength", "sector"), ("trend_regime", "sector"), ("cot_index_1y", "cot")}
+    assert set(shown) == {("relative_strength", "sector"), ("trend_regime", "sector"), ("cot_index_1y", "cot"),
+                          ("pair_trend", "pairs"), ("pair_change", "pairs")}
     assert shown[("relative_strength", "sector")]["format"] == "rank"
     for label in ("view_list", "view_table"):
         assert ind["ui_labels"][label]
@@ -375,4 +383,67 @@ def test_the_market_scope_has_no_list_view(cfg):
 def test_an_indicator_without_a_list_entry_is_fine(cfg):
     ind, uni = cfg
     del ind["indicators"]["trend_regime"]["scopes"]["sector"]["list"]
+    registry.validate(ind, uni, CALCULATORS)
+
+
+# ---------------------------------------------------------------- pairs (spec F)
+
+def _pair(uni, pid="xly_xlp"):
+    return next(s for s in uni["pairs"]["subjects"] if s["id"] == pid)
+
+
+def test_shipped_pairs_cover_three_groups_and_every_guide_names_every_state(cfg):
+    block = cfg[1]["pairs"]
+    assert list(block["groups"]) == ["macro", "rotation", "structure"]
+    assert len(block["subjects"]) == 23
+    assert {s["group"] for s in block["subjects"]} == set(block["groups"])
+    for s in block["subjects"]:
+        assert set(s["roles"]) == {"subject", "benchmark"}
+        assert set(s["guide"]["states"]) == set(block["state_conditions"]), s["id"]
+        assert s["guide"]["signals"], s["id"]
+
+
+@pytest.mark.parametrize("change,entry,field", [
+    (lambda s: s.pop("guide"), "universe.pairs.xly_xlp", "guide"),
+    (lambda s: s["guide"].pop("compare"), "universe.pairs.xly_xlp", "guide.compare"),
+    (lambda s: s["guide"]["states"].update(UP="x"), "universe.pairs.xly_xlp", "guide.states.UP"),
+    (lambda s: s["guide"]["signals"].append({"condition": "x"}), "universe.pairs.xly_xlp", "guide.signals[3]"),
+    (lambda s: s["guide"].update(caveat=""), "universe.pairs.xly_xlp", "guide.caveat"),
+    (lambda s: s["guide"].update(compare="CupSir 說"), "universe.pairs.xly_xlp", "guide.compare"),
+    (lambda s: s["roles"].pop("benchmark"), "universe.pairs.xly_xlp", "roles"),
+    (lambda s: s["roles"].update(equal_weight="RSP"), "universe.pairs.xly_xlp", "roles"),
+    (lambda s: s["roles"].update(benchmark=s["roles"]["subject"]), "universe.pairs.xly_xlp", "roles"),
+    (lambda s: s.update(group="other"), "universe.pairs.xly_xlp", "group"),
+    (lambda s: s.update(levels=["1"]), "universe.pairs.xly_xlp", "levels"),
+    (lambda s: s.update(tag=""), "universe.pairs.xly_xlp", "tag"),
+])
+def test_pair_rules(cfg, change, entry, field):
+    ind, uni = copy.deepcopy(cfg[0]), copy.deepcopy(cfg[1])
+    change(_pair(uni))
+    _fails(ind, uni, entry, field)
+
+
+def test_pair_ids_are_unique(cfg):
+    ind, uni = copy.deepcopy(cfg[0]), copy.deepcopy(cfg[1])
+    uni["pairs"]["subjects"].append(copy.deepcopy(_pair(uni)))
+    _fails(ind, uni, "universe.pairs.xly_xlp", "id")
+
+
+def test_pairs_block_needs_state_conditions(cfg):
+    ind, uni = copy.deepcopy(cfg[0]), copy.deepcopy(cfg[1])
+    uni["pairs"].pop("state_conditions")
+    _fails(ind, uni, "universe", "pairs.state_conditions")
+
+
+def test_a_pairs_indicator_without_a_pairs_block_is_rejected(cfg):
+    ind, uni = copy.deepcopy(cfg[0]), copy.deepcopy(cfg[1])
+    uni.pop("pairs")
+    _fails(ind, uni, "indicators.pair_trend", "scopes.pairs")
+
+
+def test_the_pairs_block_is_optional_when_no_indicator_uses_it(cfg):
+    ind, uni = copy.deepcopy(cfg[0]), copy.deepcopy(cfg[1])
+    uni.pop("pairs")
+    for iid in PAIR_INDICATORS:
+        ind["indicators"].pop(iid)
     registry.validate(ind, uni, CALCULATORS)

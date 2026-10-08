@@ -50,5 +50,18 @@ def num(value, digits: int):
     return round(value, digits)
 
 
+def sig(value, digits: int):
+    """Round to `digits` significant figures for output; None for NaN / infinity / missing.
+    For values of any size: a ratio near 0.0016 keeps as much detail as one near 1.6."""
+    if value is None:
+        return None
+    value = float(value)
+    if math.isnan(value) or math.isinf(value):
+        return None
+    if value == 0:
+        return 0.0
+    return round(value, digits - 1 - int(math.floor(math.log10(abs(value)))))
+
+
 def date_str(ts) -> str:
     return pd.Timestamp(ts).strftime("%Y-%m-%d")

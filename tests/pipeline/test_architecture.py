@@ -38,7 +38,8 @@ def imports(path):
 
 def universe_tickers():
     universe = json.loads((ROOT / "config" / "universe.json").read_text(encoding="utf-8"))
-    return {t for scope in ("market", "sector") for s in universe[scope]["subjects"] for t in s["roles"].values()}
+    return {t for scope in ("market", "sector", "pairs") for s in universe.get(scope, {}).get("subjects", [])
+            for t in s["roles"].values()}
 
 
 def test_1_calculation_layer_has_no_network_file_or_clock_access():
@@ -101,3 +102,20 @@ def test_5_front_end_names_no_indicator():
 def test_new_code_does_not_import_the_existing_scripts():
     for path in sources(PIPELINE) + [ORCHESTRATOR]:
         assert not (imports(path) & EXISTING_SCRIPTS), f"{path.name} imports {imports(path) & EXISTING_SCRIPTS}"
+
+
+def test_5b_front_end_holds_no_pair_copy():
+    """The ratio pairs' names and reading guides live in universe.json only."""
+    if not FRONT_END.exists():
+        return
+    text = FRONT_END.read_text(encoding="utf-8")
+    universe = json.loads((ROOT / "config" / "universe.json").read_text(encoding="utf-8"))
+    block = universe.get("pairs", {})
+    copy = list(block.get("groups", {}).values()) + list(block.get("state_conditions", {}).values())
+    for s in block.get("subjects", []):
+        g = s["guide"]
+        copy += [s["name_zh"], g["compare"], g.get("caveat", "")] + list(g["states"].values())
+        copy += [x for item in g.get("signals", []) for x in (item["condition"], item["meaning"])]
+        assert s["id"] not in text, f"breadth.js names pair {s['id']}"
+    for sentence in filter(None, copy):
+        assert sentence not in text, f"breadth.js contains pair copy: {sentence}"

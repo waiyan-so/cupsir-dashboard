@@ -41,5 +41,351 @@
       {"id": "ust10y", "name_zh": "10 年期美國國債", "group": "financial", "cftc_code": "043602", "cftc_name": "UST 10Y NOTE - CHICAGO BOARD OF TRADE"},
       {"id": "usd_index", "name_zh": "美元指數", "group": "financial", "cftc_code": "098662", "cftc_name": "USD INDEX - ICE FUTURES U.S."}
     ]
+  },
+  "pairs": {
+    "groups": {"macro": "一、宏觀風險與流動性", "rotation": "二、行業輪動", "structure": "三、指數內部結構"},
+    "state_conditions": {
+      "RISING": "比率高於 21、50、200 日線，而且 50 日線向上",
+      "FALLING": "比率低於 50 日和 200 日線，而且 50 日線向下",
+      "MIXED": "其他情況，例如比率在兩條線之間，或者 50 日線走平"
+    },
+    "subjects": [
+      {"id": "xly_xlp", "name_zh": "非必需消費 ÷ 必需消費", "group": "macro", "roles": {"subject": "XLY", "benchmark": "XLP"}, "tag": "經典",
+       "guide": {
+         "compare": "非必需消費（汽車、零售、旅遊等，經濟好時才多花的開支）對必需消費（食品、日用品，經濟差時仍要買）。量度市場的風險偏好。",
+         "states": {
+           "RISING": "資金偏向進攻型的消費股，市場願意承擔風險，通常配合經濟擴張或對前景樂觀。",
+           "FALLING": "資金轉向防守，市場擔心消費放緩或經濟轉弱。",
+           "MIXED": "風險偏好未有明確方向，可能處於轉換期。留意比率先穿越哪一條線。"
+         },
+         "signals": [
+           {"condition": "指數創新高，但比率下跌", "meaning": "升勢不是由風險偏好推動，買盤偏向防守，升勢的質素較弱。"},
+           {"condition": "比率由下而上升穿 200 日線", "meaning": "常被視為資金重新進攻的早期跡象，要看能否企穩在線上。"},
+           {"condition": "比率跌穿 50 日線，而 50 日線轉為向下", "meaning": "進攻型資金開始撤出的常見訊號。"}
+         ],
+         "caveat": "XLY 之中 AMZN 和 TSLA 的比重很大，比率有時只反映這兩隻股票。可與 XLY / XRT 一起看。"
+       }},
+      {"id": "iwm_spy", "name_zh": "小型股 ÷ 大型股", "group": "macro", "roles": {"subject": "IWM", "benchmark": "SPY"},
+       "guide": {
+         "compare": "羅素 2000 小型股對標普 500 大型股。小型股較依賴本土經濟和銀行信貸，量度升勢的闊度和風險胃納。",
+         "states": {
+           "RISING": "資金擴散到小型股，升勢的參與面闊，通常是較健康的牛市特徵。",
+           "FALLING": "資金集中在大型股。指數同時上升的話，代表升勢由少數大型股支撐。",
+           "MIXED": "大型股和小型股表現接近，未見明確的擴散或集中。"
+         },
+         "signals": [
+           {"condition": "SPY 創新高，比率卻持續下跌", "meaning": "升勢的參與面窄，與整體市場分頁的等權重比率下跌意思相近，是常見的警號。"},
+           {"condition": "比率在低位升穿 200 日線", "meaning": "小型股開始跑贏，常出現在減息預期升溫或經濟復甦初期。"},
+           {"condition": "比率急跌，同時左側的高收益信用差擴闊", "meaning": "小型股對信貸收緊最敏感，兩者同時出現時風險較高。"}
+         ],
+         "caveat": "小型股對利率很敏感，比率的升跌有時主要反映債息的變化，不一定代表經濟好壞。"
+       }},
+      {"id": "hyg_tlt", "name_zh": "高收益債 ÷ 長期國債", "group": "macro", "roles": {"subject": "HYG", "benchmark": "TLT"},
+       "guide": {
+         "compare": "高收益債券（俗稱垃圾債）對 20 年以上的美國國債。量度跨資產的風險偏好：投資者願意承擔信用風險，還是躲進國債。",
+         "states": {
+           "RISING": "資金由國債轉向高收益債，信用風險偏好上升。",
+           "FALLING": "資金避險，轉投長期國債。",
+           "MIXED": "兩者相對平衡，沒有明確方向。"
+         },
+         "signals": [
+           {"condition": "股市橫行或下跌，比率卻先行轉強", "meaning": "信用市場的風險偏好先回升，有時早於股市轉向。只可作背景確認，不是入市訊號。"},
+           {"condition": "股市上升，比率卻下跌", "meaning": "債市不確認股市的樂觀，值得留意。"},
+           {"condition": "本比率與 HYG / IEF 方向相反", "meaning": "本比率的變動主要來自息口，而不是信用（見下面的留意）。"}
+         ],
+         "caveat": "TLT 的存續期約 16 年，HYG 約 3 年。債息上升時 TLT 跌得多，比率就會上升，但這與信用風險偏好無關。請與 HYG / IEF 一起看。"
+       }},
+      {"id": "hyg_ief", "name_zh": "高收益債 ÷ 中期國債", "group": "macro", "roles": {"subject": "HYG", "benchmark": "IEF"},
+       "guide": {
+         "compare": "高收益債券對 7 至 10 年期美國國債。IEF 的存續期比 TLT 接近 HYG，比率較少受息口影響，較集中反映信用風險偏好。",
+         "states": {
+           "RISING": "信用風險偏好上升，市場不擔心企業違約。",
+           "FALLING": "信用壓力上升，投資者要求更高的風險溢價。",
+           "MIXED": "信用市場沒有明確方向。"
+         },
+         "signals": [
+           {"condition": "本比率與 HYG / TLT 同向", "meaning": "信用和息口兩個角度一致，訊號較可信。"},
+           {"condition": "比率跌穿 200 日線，同時左側的高收益信用差擴闊", "meaning": "兩個來源同時顯示信用轉差，是較重要的警號。"},
+           {"condition": "股市創新高，比率未能同步創新高", "meaning": "信用市場不確認股市的強勢。"}
+         ],
+         "caveat": "IEF 的存續期（約 7 年）仍然比 HYG（約 3 年）長，息口大幅變動時比率仍會受影響，只是程度比 HYG / TLT 小。"
+       }},
+      {"id": "copper_gold", "name_zh": "銅 ÷ 金", "group": "macro", "roles": {"subject": "HG=F", "benchmark": "GC=F"},
+       "guide": {
+         "compare": "銅（工業用途，反映經濟需求）對金（避險資產）。量度經濟增長的預期，走勢常與 10 年期國債孳息同向。",
+         "states": {
+           "RISING": "市場對經濟增長的預期升溫，避險需求下降。",
+           "FALLING": "增長預期轉弱，或避險需求上升。",
+           "MIXED": "增長預期沒有明確變化。"
+         },
+         "signals": [
+           {"condition": "比率上升，但 10 年期孳息下跌", "meaning": "兩者背離，其中一方可能要修正。留意哪一方先轉向。"},
+           {"condition": "比率長期下跌，同時金價創新高", "meaning": "避險或貨幣因素主導，不一定代表經濟衰退，要配合其他指標看。"},
+           {"condition": "比率在低位轉強並升穿 200 日線", "meaning": "常被視為增長預期回升的早期跡象。"}
+         ],
+         "caveat": "用的是期貨連續合約，換月時比率會有小跳動。金價也受央行購金和美元影響，不只反映避險。比率的數值很小，看走向即可。"
+       }},
+      {"id": "tip_ief", "name_zh": "抗通脹國債 ÷ 中期國債", "group": "macro", "roles": {"subject": "TIP", "benchmark": "IEF"},
+       "guide": {
+         "compare": "抗通脹國債（TIPS，本金隨通脹調整）對普通的中期國債。量度市場的通脹預期。",
+         "states": {
+           "RISING": "通脹預期上升。",
+           "FALLING": "通脹預期下降。",
+           "MIXED": "通脹預期大致穩定。"
+         },
+         "signals": [
+           {"condition": "比率上升，同時 XLK / XLE 下跌", "meaning": "兩個角度都指向通脹主導，訊號較可信。"},
+           {"condition": "比率上升，但油價下跌", "meaning": "通脹預期可能來自其他因素，例如工資或服務價格，值得追查。"},
+           {"condition": "比率下跌，同時銅金比下跌", "meaning": "市場擔心增長放緩，通脹預期隨之回落。"}
+         ],
+         "caveat": "TIP 和 IEF 的存續期相近但不完全相同，比率只是通脹預期的近似。正式的數字是 10 年期損益平衡通脹率（breakeven inflation rate）。"
+       }},
+      {"id": "vix_vix3m", "name_zh": "一個月 VIX ÷ 三個月 VIX", "group": "macro", "roles": {"subject": "^VIX", "benchmark": "^VIX3M"}, "tag": "看水平", "levels": [0.9, 1.0],
+       "guide": {
+         "compare": "未來 30 日的隱含波幅對未來 3 個月的隱含波幅，即 VIX 的期限結構。量度短期恐慌的程度。",
+         "states": {
+           "RISING": "短期恐慌相對升溫。",
+           "FALLING": "短期恐慌消退。",
+           "MIXED": "恐慌程度沒有明確變化。"
+         },
+         "signals": [
+           {"condition": "比率高於 1.0（倒掛）", "meaning": "短期波幅高於長期，通常出現在急跌期間，代表急性壓力。過往不少恐慌低位都在倒掛期間出現，但倒掛本身不能判斷何時見底。"},
+           {"condition": "比率由 1.0 以上回落到 1.0 以下", "meaning": "急性壓力開始舒緩，常被視為恐慌退潮的跡象。"},
+           {"condition": "比率在 0.9 至 1.0 之間", "meaning": "壓力升溫但未倒掛，屬警戒區。"},
+           {"condition": "比率低於 0.9", "meaning": "正常的狀態（短期波幅低於長期），市場平靜。數值越低越平靜，平靜可以維持很久，不代表即將下跌。"}
+         ],
+         "caveat": "這個組合主要看水平，圖上的兩條虛線是 0.9 和 1.0；均線和走勢狀態只作參考。兩個都是指數，沒有股息調整的問題。"
+       }},
+      {"id": "eem_spy", "name_zh": "新興市場 ÷ 美股", "group": "macro", "roles": {"subject": "EEM", "benchmark": "SPY"},
+       "guide": {
+         "compare": "新興市場股票對標普 500。量度全球資金的流向，以及美元強弱的影響。",
+         "states": {
+           "RISING": "資金流向美國以外，通常配合美元轉弱和全球風險偏好上升。",
+           "FALLING": "資金集中在美國，通常配合美元走強或全球避險。",
+           "MIXED": "沒有明確的資金流向。"
+         },
+         "signals": [
+           {"condition": "比率上升，同時左側的美元指數下跌", "meaning": "美元轉弱推動資金流向新興市場，兩者互相確認。"},
+           {"condition": "比率急跌，美元急升", "meaning": "全球的美元流動性收緊，風險資產普遍受壓。"},
+           {"condition": "比率上升，但美元也在上升", "meaning": "較少見，可能由個別地區的因素帶動，要查看成份。"}
+         ],
+         "caveat": "EEM 之中中國、台灣、印度的比重很大，比率常受個別市場的消息影響。"
+       }},
+      {"id": "xly_xrt", "name_zh": "市值加權消費 ÷ 等權重零售", "group": "macro", "roles": {"subject": "XLY", "benchmark": "XRT"}, "tag": "上升＝集中",
+       "guide": {
+         "compare": "XLY（市值加權，AMZN、TSLA 的比重很大）對 XRT（等權重，包括大量中小型零售商）。量度消費板塊的強勢是集中在巨頭，還是普及到一般零售商。",
+         "states": {
+           "RISING": "消費板塊的強勢集中在少數巨頭，一般零售商較弱。",
+           "FALLING": "一般零售商跑贏巨頭，消費復甦較普及。",
+           "MIXED": "巨頭和一般零售商表現接近。"
+         },
+         "signals": [
+           {"condition": "XLY / XLP 上升，同時本比率也上升", "meaning": "風險偏好上升，但主要由巨頭帶動，消費的實際普及程度有限。"},
+           {"condition": "本比率下跌，同時 XRT 本身升穿 200 日線", "meaning": "一般零售商轉強，是消費全面復甦較健康的跡象。"}
+         ],
+         "caveat": "比率上升代表集中，與大部分組合「上升代表進攻」的方向不同。XLY 的走勢很大程度取決於 AMZN 和 TSLA。"
+       }},
+      {"id": "xlf_xlu", "name_zh": "金融 ÷ 公用事業", "group": "rotation", "roles": {"subject": "XLF", "benchmark": "XLU"}, "tag": "經典",
+       "guide": {
+         "compare": "金融股（息差受惠於較高利率）對公用事業（高息、性質類似債券）。量度利率預期和防守需求。",
+         "states": {
+           "RISING": "市場預期利率較高或經濟向好，防守需求下降。",
+           "FALLING": "資金轉向防守，或市場預期利率下降。",
+           "MIXED": "利率預期和防守需求沒有明確方向。"
+         },
+         "signals": [
+           {"condition": "比率上升，同時 10 年期孳息上升", "meaning": "利率預期推動，金融股受惠於息差，兩者互相確認。"},
+           {"condition": "比率急跌，同時 XLF / KRE 急升", "meaning": "金融板塊內部出現壓力（區域銀行），要留意信貸風險。"},
+           {"condition": "比率下跌，但公用事業本身也在下跌", "meaning": "兩者都弱，比率只反映哪一方跌得較少，意義較低。要配合兩個板塊本身的趨勢看。"}
+         ],
+         "caveat": "近年公用事業也受 AI 數據中心的用電需求帶動，XLU 不一定只代表防守。"
+       }},
+      {"id": "xlk_xle", "name_zh": "科技 ÷ 能源", "group": "rotation", "roles": {"subject": "XLK", "benchmark": "XLE"}, "tag": "經典",
+       "guide": {
+         "compare": "科技股（受惠於低通脹、低利率的增長環境）對能源股（受惠於油價和通脹）。量度增長與通脹哪一方主導。",
+         "states": {
+           "RISING": "增長主導，通脹壓力較低。",
+           "FALLING": "通脹或商品主導，能源股跑贏。",
+           "MIXED": "增長和通脹沒有明確的主導方。"
+         },
+         "signals": [
+           {"condition": "比率下跌，同時 TIP / IEF 上升", "meaning": "通脹預期上升，兩者互相確認。"},
+           {"condition": "比率在高位轉弱並跌穿 50 日線", "meaning": "科技股的領導地位可能開始輪換。"},
+           {"condition": "比率上升，但油價也在上升", "meaning": "科技股自身的動力很強，不是單靠通脹回落。"}
+         ],
+         "caveat": "XLK 由少數大型科技股主導，XLE 與油價高度相關，比率有時只反映油價的單一變動。"
+       }},
+      {"id": "xli_xlu", "name_zh": "工業 ÷ 公用事業", "group": "rotation", "roles": {"subject": "XLI", "benchmark": "XLU"},
+       "guide": {
+         "compare": "工業股（對經濟活動和訂單敏感）對公用事業（穩定、高息）。量度經濟擴張還是防守。",
+         "states": {
+           "RISING": "經濟擴張的預期升溫，製造業和訂單偏強。",
+           "FALLING": "資金轉向防守，經濟前景轉弱。",
+           "MIXED": "沒有明確方向。"
+         },
+         "signals": [
+           {"condition": "比率上升，同時左側的 GDPNow 上升", "meaning": "市場和實際數據一致，擴張的訊號較可信。"},
+           {"condition": "比率上升，但銅金比下跌", "meaning": "工業股的強勢可能來自個別行業（例如國防、航空），不是全面的經濟需求。"}
+         ],
+         "caveat": "與 XLF / XLU 一樣，近年 XLU 受 AI 用電需求影響，防守的含義減弱。"
+       }},
+      {"id": "xlk_xlv", "name_zh": "科技 ÷ 醫療保健", "group": "rotation", "roles": {"subject": "XLK", "benchmark": "XLV"},
+       "guide": {
+         "compare": "科技股（高貝塔、成長型）對醫療保健（需求穩定、防守性）。量度市場是否仍願意為成長股付出溢價。",
+         "states": {
+           "RISING": "市場仍偏好高增長，願意承擔估值風險。",
+           "FALLING": "資金由科技轉向防守性的醫療保健。",
+           "MIXED": "沒有明確的偏好。"
+         },
+         "signals": [
+           {"condition": "比率在高位掉頭並跌穿 50 日線", "meaning": "資金開始撤出科技的常見訊號。"},
+           {"condition": "XLK / XLE 仍上升，但本比率下跌", "meaning": "問題不在通脹，而是市場對科技股的估值轉趨保守。"}
+         ],
+         "caveat": "醫療保健受藥價政策和個別藥廠的消息影響很大，比率有時只反映醫療板塊本身的事件。"
+       }},
+      {"id": "xlf_kre", "name_zh": "大型金融 ÷ 區域銀行", "group": "rotation", "roles": {"subject": "XLF", "benchmark": "KRE"}, "tag": "上升＝壓力",
+       "guide": {
+         "compare": "XLF（摩根大通等大型綜合金融機構）對 KRE（地區性銀行）。量度金融體系底層的壓力。",
+         "states": {
+           "RISING": "區域銀行跑輸大型金融機構，可能面對存款流失、息差或商業地產貸款的壓力。",
+           "FALLING": "區域銀行跑贏，通常代表信貸環境改善或收益率曲線變陡。",
+           "MIXED": "沒有明確的壓力。"
+         },
+         "signals": [
+           {"condition": "比率急升，同時 XLF 本身也上升", "meaning": "資金由區域銀行流向大型銀行。2023 年 3 月的銀行危機就出現過這個現象。"},
+           {"condition": "比率急升，同時左側的高收益信用差擴闊", "meaning": "金融壓力擴散到信用市場的警號。"},
+           {"condition": "比率回落，同時孳息曲線變陡", "meaning": "區域銀行的息差改善，屬正常的復甦現象。"}
+         ],
+         "caveat": "比率上升代表壓力，與大部分組合「上升代表進攻」的方向不同。"
+       }},
+      {"id": "iyt_spy", "name_zh": "運輸股 ÷ 大市", "group": "rotation", "roles": {"subject": "IYT", "benchmark": "SPY"},
+       "guide": {
+         "compare": "運輸股 ETF 對標普 500。運輸量直接反映貨物流動，是傳統的經濟領先指標，也是道氏理論用來確認升勢的工具。",
+         "states": {
+           "RISING": "實體經濟活動強，運輸需求上升。",
+           "FALLING": "運輸股跑輸，實體經濟活動可能放緩。",
+           "MIXED": "沒有明確方向。"
+         },
+         "signals": [
+           {"condition": "SPY 創新高，運輸股卻跑輸大市", "meaning": "即道氏理論所說的「不確認」，升勢較難持續。"},
+           {"condition": "比率在低位轉強", "meaning": "實體經濟可能回暖，有時早於數據公布。"}
+         ],
+         "caveat": "運輸股對油價很敏感，油價急升時比率可能下跌，與經濟需求無關。"
+       }},
+      {"id": "smh_spy", "name_zh": "半導體 ÷ 大市", "group": "rotation", "roles": {"subject": "SMH", "benchmark": "SPY"},
+       "guide": {
+         "compare": "半導體 ETF 對標普 500。半導體位於經濟和科技週期的上游，通常比大市早轉向。",
+         "states": {
+           "RISING": "科技和經濟週期向上，半導體領先。",
+           "FALLING": "半導體轉弱，可能預示科技週期見頂或需求放緩。",
+           "MIXED": "沒有明確方向。"
+         },
+         "signals": [
+           {"condition": "SPY 仍然上升，比率已跌穿 50 日線", "meaning": "週期的領頭羊先轉弱，常被視為早期警號。"},
+           {"condition": "比率上升，同時 NVDA / SMH 下跌", "meaning": "半導體的升勢擴散到其他股份，參與面變闊。"},
+           {"condition": "比率上升，NVDA / SMH 也上升", "meaning": "升勢高度集中在龍頭。"}
+         ],
+         "caveat": "SMH 之中 NVDA 和台積電的比重很大，比率經常由這兩隻股票主導。"
+       }},
+      {"id": "xhb_spy", "name_zh": "房屋建築 ÷ 大市", "group": "rotation", "roles": {"subject": "XHB", "benchmark": "SPY"},
+       "guide": {
+         "compare": "房屋建築及相關行業 ETF 對標普 500。房屋對利率最敏感，常在經濟週期的轉折點領先。",
+         "states": {
+           "RISING": "市場預期利率下降，或樓市回暖。",
+           "FALLING": "高利率壓抑樓市，或經濟前景轉弱。",
+           "MIXED": "沒有明確方向。"
+         },
+         "signals": [
+           {"condition": "比率在低位升穿 200 日線", "meaning": "常早於經濟復甦出現，特別是在減息週期開始時。"},
+           {"condition": "比率下跌，同時 10 年期孳息上升", "meaning": "按揭利率上升壓抑樓市，兩者互相確認。"}
+         ],
+         "caveat": "XHB 除了房屋建築商，也包括建材、家具和家居零售，範圍比純房屋建築的 ETF 廣。"
+       }},
+      {"id": "rsp_spy", "name_zh": "等權重 ÷ 市值加權", "group": "structure", "roles": {"subject": "RSP", "benchmark": "SPY"},
+       "guide": {
+         "compare": "等權重標普 500 對市值加權標普 500。量度升勢是否只靠少數權重股支撐。與整體市場分頁的「等權重比率」是同一個比率：那裡只顯示 21 日變化，這裡看趨勢。",
+         "states": {
+           "RISING": "大部分成份股參與升勢，升勢闊而健康。",
+           "FALLING": "升勢集中在少數大型股，大部分股票跑輸。",
+           "MIXED": "沒有明確方向。"
+         },
+         "signals": [
+           {"condition": "SPY 創新高，比率卻持續下跌", "meaning": "升勢的參與面窄，與 IWM / SPY 下跌的意思相同。"},
+           {"condition": "比率在低位轉向並升穿 200 日線", "meaning": "常見於經濟全面復甦時，價值股和週期股追落後。"}
+         ],
+         "caveat": "近年大型科技股的比重很高，比率長期向下，所以要留意轉折，不要只看方向。"
+       }},
+      {"id": "sphb_splv", "name_zh": "高貝塔 ÷ 低波動", "group": "structure", "roles": {"subject": "SPHB", "benchmark": "SPLV"},
+       "guide": {
+         "compare": "標普 500 高貝塔股票對低波動股票，上升代表追逐風險。量度市場的貪婪與恐懼。",
+         "states": {
+           "RISING": "市場追逐高風險、高波動的股票，風險偏好強。",
+           "FALLING": "資金轉向低波動、防守性的股票。",
+           "MIXED": "沒有明確方向。"
+         },
+         "signals": [
+           {"condition": "比率在高位轉弱並跌穿 21 日線", "meaning": "追逐風險的動力減弱，常被視為短期見頂的跡象之一。"},
+           {"condition": "比率急跌，同時 VIX / VIX3M 高於 1.0", "meaning": "恐慌性的去風險，波動通常很大。"},
+           {"condition": "比率在低位轉強", "meaning": "風險偏好回升，常出現在調整後的反彈初段。"}
+         ],
+         "caveat": "兩隻 ETF 的成份定期調整，行業比重差別很大（高貝塔偏重科技和非必需消費，低波動偏重公用事業和必需消費），所以比率也反映行業輪動。"
+       }},
+      {"id": "iwf_iwd", "name_zh": "增長型 ÷ 價值型", "group": "structure", "roles": {"subject": "IWF", "benchmark": "IWD"},
+       "guide": {
+         "compare": "羅素 1000 增長型對價值型。量度市場的主導風格。",
+         "states": {
+           "RISING": "增長型主導，通常配合低利率或科技股強勢。",
+           "FALLING": "價值型主導，通常配合利率上升、通脹或經濟復甦初期。",
+           "MIXED": "風格沒有明確偏向。"
+         },
+         "signals": [
+           {"condition": "比率的長期趨勢轉向（跌穿 200 日線並維持）", "meaning": "主導風格切換，影響範圍通常較大、持續較久。"},
+           {"condition": "比率下跌，同時 XLK / XLE 下跌", "meaning": "通脹或商品主導，價值型受惠。"}
+         ],
+         "caveat": "增長型指數由少數大型科技股主導，比率的走勢與科技股相近。"
+       }},
+      {"id": "mtum_spy", "name_zh": "動量因子 ÷ 大市", "group": "structure", "roles": {"subject": "MTUM", "benchmark": "SPY"},
+       "guide": {
+         "compare": "美國動量因子 ETF（持有過去 6 至 12 個月升幅最大的股票）對標普 500。量度追漲的資金是否仍然佔優。",
+         "states": {
+           "RISING": "強勢股繼續強，跟隨趨勢的策略有效。",
+           "FALLING": "強勢股開始跑輸，市場的領導股可能轉換。",
+           "MIXED": "沒有明確方向。"
+         },
+         "signals": [
+           {"condition": "比率急跌", "meaning": "即所謂動量崩潰，往往在市場急轉向時出現，例如熊市後的急速反彈：落後股急升，強勢股被沽。"},
+           {"condition": "大市仍升，比率在高位走平", "meaning": "升勢的領導股開始輪換。"}
+         ],
+         "caveat": "MTUM 定期調整成份，調整前後比率的性質會改變。"
+       }},
+      {"id": "aapl_xlk", "name_zh": "蘋果 ÷ 科技板塊", "group": "structure", "roles": {"subject": "AAPL", "benchmark": "XLK"}, "tag": "個股",
+       "guide": {
+         "compare": "龍頭股對所屬板塊的 ETF。量度龍頭是否仍然帶動板塊，即領頭羊有沒有耗盡。",
+         "states": {
+           "RISING": "龍頭跑贏板塊，仍然是升勢的主要動力。",
+           "FALLING": "龍頭跑輸板塊，資金轉向板塊內其他股票。",
+           "MIXED": "龍頭與板塊表現接近。"
+         },
+         "signals": [
+           {"condition": "XLK 上升，但比率持續下跌", "meaning": "龍頭已帶不動板塊，升勢可能靠二線股補漲，是升勢接近尾聲的隱蔽訊號之一。"},
+           {"condition": "比率與 XLK 同步上升", "meaning": "升勢由龍頭帶動，屬健康的領導。"}
+         ],
+         "caveat": "AAPL 本身是 XLK 的大比重成份股，比率的變動會被這個比重壓縮。"
+       }},
+      {"id": "nvda_smh", "name_zh": "NVIDIA ÷ 半導體板塊", "group": "structure", "roles": {"subject": "NVDA", "benchmark": "SMH"}, "tag": "個股",
+       "guide": {
+         "compare": "龍頭股對所屬板塊的 ETF。量度半導體的升勢是否仍然由龍頭帶動。",
+         "states": {
+           "RISING": "龍頭跑贏板塊，仍然是升勢的主要動力。",
+           "FALLING": "龍頭跑輸板塊，資金轉向二線半導體股。",
+           "MIXED": "龍頭與板塊表現接近。"
+         },
+         "signals": [
+           {"condition": "SMH 上升，但比率持續下跌", "meaning": "龍頭帶不動板塊，資金轉向二線半導體股。"},
+           {"condition": "比率急升，同時 SMH / SPY 也上升", "meaning": "半導體的強勢高度集中在龍頭，波動的風險較大。"}
+         ],
+         "caveat": "NVDA 是 SMH 的最大成份股，比率的變動會被這個比重壓縮。"
+       }}
+    ]
   }
 }

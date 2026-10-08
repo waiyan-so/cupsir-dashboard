@@ -16,7 +16,19 @@
     "yes": "是",
     "no": "否",
     "view_list": "列表檢視",
-    "view_table": "表格檢視"
+    "view_table": "表格檢視",
+    "pair_heading": "相對強度比率組合",
+    "pair_column": "組合",
+    "pair_note": "比率是兩個標的收市價相除（ETF 和股票的價格已按股息調整），只反映兩者的相對表現，不是買賣訊號。比率上升是好是壞要視乎組合，請看每個組合的解讀。這些數值不計入總分。",
+    "guide_heading": "怎樣解讀這個組合",
+    "guide_compare": "比較甚麼",
+    "guide_state": "走勢",
+    "guide_condition": "條件",
+    "guide_meaning": "一般解讀",
+    "guide_now": "現時",
+    "guide_signals": "其他要留意的情況",
+    "guide_situation": "情況",
+    "guide_caveat": "留意"
   },
   "sector_table": {
     "default_sort": {"indicator": "relative_strength", "value_key": "return_63d_excess_pct", "dir": "desc"},
@@ -135,6 +147,46 @@
       "expert_view": ["63 日超額回報排名是否靠前", "21 日與 63 日方向是否一致", "領先板塊有否出現輪換"],
       "disclaimer": null,
       "notes": "公式見規格第 4.4 節。rank_by_63d 由板塊處理層按 cross_section 補入。values 的鍵名是 return_<window>d_excess_pct 和 rs_slope_<slope_window>d。"
+    },
+    "pair_trend": {
+      "enabled": true,
+      "name": "Ratio Trend", "name_zh": "比率趨勢",
+      "calculator": "ratio_trend",
+      "inputs": ["subject", "benchmark"],
+      "min_history_days": 205,
+      "params": {"fast": 21, "mid": 50, "slow": 200, "slope_window": 5, "short_window": 21, "long_window": 63, "history_days": 252},
+      "tone_rule": null,
+      "scopes": {
+        "pairs": {"component": "table_column", "order": 10, "column_label": "比率趨勢", "value_key": "state", "format": "state_chip",
+                  "secondary_key": "vs_sma200_pct", "secondary_format": "signed_pct",
+                  "sort_order": ["RISING", "MIXED", "FALLING"],
+                  "list": {"order": 10, "value_key": "state", "format": "state_chip"}}
+      },
+      "detail_chart": {"type": "price_with_ma", "series": ["ratio", "sma50", "sma200"]},
+      "value_labels": {"ratio": "比率", "sma21": "21 日線", "sma50": "50 日線", "sma200": "200 日線",
+                       "vs_sma50_pct": "與 50 日線的距離（%）", "vs_sma200_pct": "與 200 日線的距離（%）", "sma50_rising": "50 日線向上"},
+      "expert_view": ["比率是否高於 50 日和 200 日線", "50 日線的方向有否改變", "比率的走向與指數或相關板塊是否一致"],
+      "disclaimer": null,
+      "notes": "公式見規格 F 節。比率 = subject 收市價 ÷ benchmark 收市價，兩者先按共同交易日對齊。狀態用趨勢狀態（規格 3.1）同一條規則，套用在比率上，改名為 RISING／FALLING／MIXED，因為比率上升對某些組合是好事、對另一些是警號，所以沒有顏色（tone_rule 為 null）。鍵名由 params 產生（sma<fast>、sma<mid>、sma<slow>、vs_sma<mid>_pct、vs_sma<slow>_pct、sma<mid>_rising），改 params 時要同步改 detail_chart.series 和 value_labels。不計入總分。"
+    },
+    "pair_change": {
+      "enabled": true,
+      "name": "Ratio Change", "name_zh": "比率變化",
+      "calculator": "ratio_trend",
+      "inputs": ["subject", "benchmark"],
+      "min_history_days": 205,
+      "params": {"fast": 21, "mid": 50, "slow": 200, "slope_window": 5, "short_window": 21, "long_window": 63, "history_days": 0},
+      "tone_rule": null,
+      "scopes": {
+        "pairs": {"component": "table_column", "order": 20, "column_label": "比率變化 63D", "value_key": "change_63d_pct", "format": "signed_pct",
+                  "secondary_key": "change_21d_pct", "secondary_format": "signed_pct",
+                  "list": {"order": 20, "value_key": "change_63d_pct", "format": "signed_pct"}}
+      },
+      "detail_chart": null,
+      "value_labels": {"change_21d_pct": "21 日變化（%）", "change_63d_pct": "63 日變化（%）"},
+      "expert_view": ["21 日與 63 日變化的方向是否一致", "最近 21 日的變化有否轉向或明顯加快"],
+      "disclaimer": null,
+      "notes": "與 pair_trend 用同一個計算函式，只顯示變化百分比，所以 history_days 是 0（不重複輸出圖表數據）。min_history_days 要與 pair_trend 相同，兩者才會同時有值或同時 N/A。變化 = 比率今日 ÷ 比率 N 日前 − 1，與 TradingView 上 A/B 圖的變化相同。不計入總分。"
     },
     "cot_index_1y": {
       "enabled": true,

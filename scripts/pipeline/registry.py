@@ -20,14 +20,19 @@ from pathlib import Path
 SOURCES = ("prices", "cftc")
 DEFAULT_SOURCE = "prices"
 ROLES_OF_SOURCE = {"prices": ("subject", "equal_weight", "benchmark"), "cftc": ("positions",)}
-SCOPES_OF_SOURCE = {"prices": ("market", "sector"), "cftc": ("cot",)}
+SCOPES_OF_SOURCE = {"prices": ("market", "sector", "pairs"), "cftc": ("cot",)}
 ROLES = tuple(role for roles in ROLES_OF_SOURCE.values() for role in roles)
-SCOPES = ("market", "sector", "cot")
-PRICE_SCOPES = SCOPES_OF_SOURCE["prices"]
+SCOPES = ("market", "sector", "cot", "pairs")
+# Scopes every universe.json must have. "cot" and "pairs" are optional blocks.
+PRICE_SCOPES = ("market", "sector")
 COT_SCOPE = "cot"
+PAIRS_SCOPE = "pairs"
+# A pair divides its subject (numerator) by its benchmark (denominator).
+PAIR_ROLES = ("subject", "benchmark")
 COMPONENTS = ("status_card", "table_column")
 # Where each component can appear: cards on the market tab, columns in a table.
-COMPONENT_OF_SCOPE = {"market": "status_card", "sector": "table_column", "cot": "table_column"}
+COMPONENT_OF_SCOPE = {"market": "status_card", "sector": "table_column", "cot": "table_column",
+                      "pairs": "table_column"}
 FORMATS = ("state_chip", "count", "rank", "pct", "signed_pct", "percentile", "number")
 CHART_TYPES = ("line", "price_with_ma", "line_with_markers")
 TONE_RULE_TYPES = ("state_map", "sign", "bands")
@@ -174,9 +179,76 @@ def _validate_cot_universe(universe_cfg):
         _need(_is_str(s.get("cftc_name")), where, "cftc_name", "必填")
 
 
+def _validate_text_map(where, field, value):
+    _need(isinstance(value, dict) and value and all(_is_str(k) and _is_str(v) for k, v in value.items()),
+          where, field, "必須是「鍵: 文字」的物件，不可為空")
+    _check_text(where, field, list(value.values()))
+
+
+def _validate_guide(where, guide, state_names):
+    """The reading guide shown under a pair's chart. Every piece is display text."""
+    _need(isinstance(guide, dict), where, "guide", "必須是物件")
+    _need(_is_str(guide.get("compare")), where, "guide.compare", "必填")
+    _check_text(where, "guide.compare", guide["compare"])
+    _validate_text_map(where, "guide.states", guide.get("states"))
+    for state in guide["states"]:
+        _need(state in state_names, where, f"guide.states.{state}",
+              f"只可以是 pairs.state_conditions 已列出的狀態 {sorted(state_names)}")
+    signals = guide.get("signals", [])
+    _need(isinstance(signals, list), where, "guide.signals", "必須是清單")
+    for i, item in enumerate(signals):
+        _need(isinstance(item, dict) and _is_str(item.get("condition")) and _is_str(item.get("meaning")),
+              where, f"guide.signals[{i}]", "格式是 {condition, meaning}，兩者都是非空字串")
+        _check_text(where, f"guide.signals[{i}]", [item["condition"], item["meaning"]])
+    if "caveat" in guide:
+        _need(_is_str(guide["caveat"]), where, "guide.caveat", "必須是非空字串")
+        _check_text(where, "guide.caveat", guide["caveat"])
+
+
+def _validate_pairs_universe(universe_cfg):
+    """The pairs scope is optional. Each subject is one ratio: subject (numerator) / benchmark
+    (denominator), with a group, an optional tag, optional chart levels and a reading guide."""
+    block = universe_cfg.get(PAIRS_SCOPE)
+    if block is None:
+        return
+    _need(isinstance(block, dict) and isinstance(block.get("subjects"), list),
+          "universe", f"{PAIRS_SCOPE}.subjects", "必須是清單")
+    groups = block.get("groups")
+    _need(isinstance(groups, dict) and groups and all(_is_str(v) for v in groups.values()),
+          "universe", f"{PAIRS_SCOPE}.groups", "必填，「組別 id: 顯示名稱」")
+    _check_text("universe", f"{PAIRS_SCOPE}.groups", list(groups.values()))
+    _validate_text_map("universe", f"{PAIRS_SCOPE}.state_conditions", block.get("state_conditions"))
+    state_names = set(block["state_conditions"])
+    seen = set()
+    for i, s in enumerate(block["subjects"]):
+        where = f"universe.{PAIRS_SCOPE}.subjects[{i}]"
+        _need(isinstance(s, dict), where, "", "必須是物件")
+        _need(_is_id(s.get("id")), where, "id", "必填，只可以用小寫英文字母、數字和底線")
+        where = f"universe.{PAIRS_SCOPE}.{s['id']}"
+        _need(s["id"] not in seen, where, "id", "id 重複")
+        seen.add(s["id"])
+        _need(_is_str(s.get("name_zh")), where, "name_zh", "必填")
+        _check_text(where, "name_zh", s["name_zh"])
+        _need(isinstance(s.get("group"), str) and s["group"] in groups, where, "group", f"只可以是 {list(groups)}")
+        roles = s.get("roles")
+        _need(isinstance(roles, dict) and set(roles) == set(PAIR_ROLES), where, "roles",
+              f"必須剛好有 {list(PAIR_ROLES)} 兩個角色（分子、分母）")
+        for role, ticker in roles.items():
+            _need(_is_str(ticker), where, f"roles.{role}", "ticker 必須是非空字串")
+        _need(roles["subject"] != roles["benchmark"], where, "roles", "分子和分母不可以是同一個 ticker")
+        if "tag" in s:
+            _need(_is_str(s["tag"]), where, "tag", "必須是非空字串")
+            _check_text(where, "tag", s["tag"])
+        if "levels" in s:
+            _need(isinstance(s["levels"], list) and s["levels"] and all(_is_num(x) for x in s["levels"]),
+                  where, "levels", "必須是非空的數值清單")
+        _validate_guide(where, s.get("guide"), state_names)
+
+
 def validate_universe(universe_cfg):
     _need(isinstance(universe_cfg, dict), "universe", "", "頂層必須是物件")
     _validate_cot_universe(universe_cfg)
+    _validate_pairs_universe(universe_cfg)
     for scope in PRICE_SCOPES:
         block = universe_cfg.get(scope)
         _need(isinstance(block, dict) and isinstance(block.get("subjects"), list),
@@ -263,6 +335,8 @@ def _validate_scope(entry, scope, block, universe_cfg):
         _need(item.get("format") in FORMATS, entry, f"{field}.list.format", f"只可以是 {list(FORMATS)}")
     if scope == COT_SCOPE:
         _need(universe_cfg.get(COT_SCOPE) is not None, entry, field, "universe.json 沒有 cot 範圍")
+    if scope == PAIRS_SCOPE:
+        _need(universe_cfg.get(PAIRS_SCOPE) is not None, entry, field, "universe.json 沒有 pairs 範圍")
 
 
 def _validate_indicator(iid, d, universe_cfg, calculators):
