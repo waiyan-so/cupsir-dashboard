@@ -12,7 +12,15 @@ ratio is welcome for some pairs and a warning for others.
 
 Ratios can be of any size (copper / gold is about 0.0016), so the output is
 rounded to significant figures, not to a fixed number of decimals.
+
+A day on which either close is zero, negative or missing gives no usable ratio
+(it would be 0 or infinite and distort every average around it). Such a day is
+left out, as a missing day is. If too few days remain, or the state cannot be
+worked out, the calculator raises and the cell becomes N/A (calc_error) rather
+than showing numbers that look right but are not.
 """
+import numpy as np
+
 from . import calculator
 from ._math import date_str, num, sig
 from .trend_regime import BEARISH, BULLISH, NEUTRAL, regime_table
@@ -33,8 +41,13 @@ def _change_pct(series, window):
 @calculator("ratio_trend", params=PARAMS)
 def compute(frames, params):
     ratio = frames["subject"]["close"] / frames["benchmark"]["close"]
+    ratio = ratio[np.isfinite(ratio) & (ratio > 0)]
+    if len(ratio) < max(params["slow"] + params["slope_window"], params["long_window"] + 1):
+        raise ValueError(f"only {len(ratio)} days with a usable ratio")
     table = regime_table(ratio, params)
     last = table.iloc[-1]
+    if last.state is None:
+        raise ValueError("the moving averages are not all available on the last day")
     fast, mid, slow = params["fast"], params["mid"], params["slow"]
     short, long_ = params["short_window"], params["long_window"]
     k_fast, k_mid, k_slow = f"sma{fast}", f"sma{mid}", f"sma{slow}"
@@ -53,7 +66,7 @@ def compute(frames, params):
             k_slow: sig(last.slow, RATIO_SIG),
             f"vs_sma{mid}_pct": num((last.close / last.mid - 1) * 100, PCT_DIGITS),
             f"vs_sma{slow}_pct": num((last.close / last.slow - 1) * 100, PCT_DIGITS),
-            f"sma{mid}_rising": bool(last.slope > 0),
+            f"sma{mid}_rising": None if np.isnan(last.slope) else bool(last.slope > 0),
             f"change_{short}d_pct": num(_change_pct(ratio, short), PCT_DIGITS),
             f"change_{long_}d_pct": num(_change_pct(ratio, long_), PCT_DIGITS),
         },

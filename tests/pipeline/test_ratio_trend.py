@@ -101,3 +101,34 @@ def test_shipped_definition_gives_na_when_a_ticker_failed():
     frames = _ratio_frames([1] * 300)
     assert calc.run(defn, {"subject": frames["subject"], "benchmark": None})["reason"] == "fetch_failed"
     assert calc.run(defn, {"subject": frames["subject"]})["reason"] == "missing_role"
+
+
+# ---- days without a usable ratio (review finding: a zero close must not give "ok" numbers)
+
+def _random_frames(n=480, seed=3):
+    import numpy as np
+    rng = np.random.default_rng(seed)
+    a = 50 * np.exp(np.cumsum(rng.normal(0, 0.01, n)))
+    b = 20 * np.exp(np.cumsum(rng.normal(0, 0.01, n)))
+    return frame(list(a)), frame(list(b))
+
+
+@pytest.mark.parametrize("role,value,back", [("benchmark", 0.0, 22), ("subject", 0.0, 10),
+                                              ("benchmark", -1.0, 10), ("benchmark", 0.0, 10)])
+def test_a_day_with_a_zero_or_negative_close_is_left_out(role, value, back):
+    defn = shipped_indicator("pair_trend")
+    subject, benchmark = _random_frames()
+    broken = {"subject": subject.copy(), "benchmark": benchmark.copy()}
+    day = broken[role].index[-1 - back]
+    broken[role].loc[day, "close"] = value
+    clean = {"subject": subject.drop(day), "benchmark": benchmark.drop(day)}
+    got, want = calc.run(defn, broken), calc.run(defn, clean)
+    assert got["status"] == "ok" and got["values"] == want["values"] and got["state"] == want["state"]
+    assert all(v is not None for v in got["values"].values())
+
+
+def test_too_few_usable_days_is_na_not_ok():
+    defn = dict(shipped_indicator("pair_trend"), min_history_days=10)
+    subject, benchmark = _random_frames(n=230)
+    benchmark.loc[benchmark.index[100:140], "close"] = 0.0      # 40 unusable days leave 190 < 205
+    assert calc.run(defn, {"subject": subject, "benchmark": benchmark})["reason"] == "calc_error"

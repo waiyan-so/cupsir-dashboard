@@ -244,9 +244,14 @@
     return hasData ? `<div class="chart-box cot-chart-box" data-chart="${esc(chartKey)}"></div>` : '';
   }
 
-  function dataDateLine(results, labels) {
+  function latestDate(results) {
     const dates = results.filter(isOk).map(r => r.data_date).filter(Boolean).sort();
-    return dates.length ? `<p class="muted">${esc(labels.data_date || '')}：${esc(dates[dates.length - 1])}</p>` : '';
+    return dates.length ? dates[dates.length - 1] : null;
+  }
+
+  function dataDateLine(results, labels) {
+    const date = latestDate(results);
+    return date ? `<p class="muted">${esc(labels.data_date || '')}：${esc(date)}</p>` : '';
   }
 
   /*
@@ -531,7 +536,12 @@
           : chartSlot(ind, result, ind.id) + valuesList(ind, result, labels);
         return `<div class="subject-block${sharedView && !asList ? '' : ' stacked'}">${head}${body}${sharedView ? '' : expertView(ind, labels)}</div>`;
       }).join('');
-      const subtitle = row.caption || (row.tickers ? Object.values(row.tickers).join(' · ') : (row.cftc || {}).name || '');
+      // A row whose own data is older than the newest in the file (one of its tickers lags)
+      // says so under its name; the date line at the bottom shows only the newest date.
+      const rowDate = latestDate(inds.map(ind => row.results[ind.id]));
+      const fileDate = latestDate(payload.rows.flatMap(r => inds.map(ind => r.results[ind.id])));
+      const lag = rowDate && fileDate && rowDate < fileDate ? `（${labels.data_date || ''}：${rowDate}）` : '';
+      const subtitle = (row.caption || (row.tickers ? Object.values(row.tickers).join(' · ') : (row.cftc || {}).name || '')) + lag;
       const state = stateInd && isOk(row.results[stateInd.id]) ? row.results[stateInd.id].state : null;
       detailBox.innerHTML = `<div class="detail-head breadth-detail-head"><div><h2>${esc(row.name_zh)}${tagOf(row)}</h2><p class="muted">${esc(subtitle)}</p></div></div>`
         + (sharedView && !asList ? `<div class="subject-grid">${blocks}</div>` : blocks)
