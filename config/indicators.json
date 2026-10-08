@@ -157,7 +157,7 @@
       "params": {"fast": 21, "mid": 50, "slow": 200, "slope_window": 5, "short_window": 21, "long_window": 63, "history_days": 252},
       "tone_rule": null,
       "scopes": {
-        "pairs": {"component": "table_column", "order": 10, "column_label": "比率趨勢", "value_key": "state", "format": "state_chip",
+        "pairs": {"component": "table_column", "order": 10, "column_label": "比率趨勢／距 200 日線", "value_key": "state", "format": "state_chip",
                   "secondary_key": "vs_sma200_pct", "secondary_format": "signed_pct",
                   "sort_order": ["RISING", "MIXED", "FALLING"],
                   "list": {"order": 10, "value_key": "state", "format": "state_chip"}}
@@ -178,7 +178,7 @@
       "params": {"fast": 21, "mid": 50, "slow": 200, "slope_window": 5, "short_window": 21, "long_window": 63, "history_days": 0},
       "tone_rule": null,
       "scopes": {
-        "pairs": {"component": "table_column", "order": 20, "column_label": "比率變化 63D", "value_key": "change_63d_pct", "format": "signed_pct",
+        "pairs": {"component": "table_column", "order": 20, "column_label": "比率變化 63D／21D", "value_key": "change_63d_pct", "format": "signed_pct",
                   "secondary_key": "change_21d_pct", "secondary_format": "signed_pct",
                   "list": {"order": 20, "value_key": "change_63d_pct", "format": "signed_pct"}}
       },

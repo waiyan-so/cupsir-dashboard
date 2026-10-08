@@ -1,6 +1,7 @@
 /*
- * Presentation layer for the market breadth cards and the sector and COT tabs
- * (each tab: a list with the charts beside it, or the sortable comparison table).
+ * Presentation layer for the market breadth cards, the sector and COT tabs and
+ * the ratio pairs under the sectors (each: a list with the charts beside it, or
+ * the sortable comparison table).
  *
  * Everything drawn here comes from the `meta` block of the JSON files: which
  * indicators exist, where each one appears, how a value is formatted, which
@@ -113,7 +114,9 @@
   /*
    * drawLineChart(box, series, opts)
    *   series: { xs: [unix seconds], lines: [{ label, values, width?, pointsOnly? }] }
-   *   opts:   { levels?: [y values drawn as dashed lines], yRange?: [min, max], xLabel?: text }
+   *   opts:   { levels?: [y values drawn as dashed lines], yRange?: [min, max], xLabel?: text,
+   *             labelLevels?: write each level's value at the right end of its line }
+   * Without a fixed range the y axis reaches every level, so a line is never off the chart.
    */
   function drawLineChart(box, series, opts) {
     opts = opts || {};
@@ -128,6 +131,13 @@
     });
     const scales = { x: { time: true } };
     if (opts.yRange) scales.y = { range: opts.yRange };
+    else if (opts.levels && opts.levels.length) {
+      scales.y = { range: (u, min, max) => {
+        const lo = Math.min(min, ...opts.levels), hi = Math.max(max, ...opts.levels);
+        const pad = (hi - lo) * 0.05 || Math.abs(hi) * 0.05 || 1;
+        return [lo - pad, hi + pad];
+      } };
+    }
     const plot = new uPlot({
       width: box.clientWidth || 600,
       height: CHART_HEIGHT,
@@ -153,6 +163,12 @@
             ctx.moveTo(u.bbox.left, y);
             ctx.lineTo(u.bbox.left + u.bbox.width, y);
             ctx.stroke();
+            if (opts.labelLevels) {
+              ctx.fillStyle = AXIS;
+              ctx.font = `${Math.round(11 * devicePixelRatio)}px sans-serif`;
+              ctx.textAlign = 'right';
+              ctx.fillText(String(level), u.bbox.left + u.bbox.width - 4, y - 4);
+            }
           });
           ctx.restore();
         }],
@@ -170,34 +186,40 @@
     return keys.map((key, i) => ({ label: seriesLabel(ind, key), values: column(result.history, key), width: widthOf(i) }));
   }
 
-  const chartOptions = (ind, labels) => ({ levels: ind.detail_chart.levels, yRange: ind.detail_chart.y_range, xLabel: labels.date });
+  // `extra.levels`: lines that belong to one row rather than to the indicator (a ratio pair
+  // read against fixed values). They are labelled, as nothing else on the chart names them.
+  function chartOptions(ind, labels, extra) {
+    const own = (extra && extra.levels) || [];
+    const levels = (ind.detail_chart.levels || []).concat(own);
+    return { levels: levels.length ? levels : undefined, yRange: ind.detail_chart.y_range, xLabel: labels.date, labelLevels: own.length > 0 };
+  }
 
   const CHARTS = {
-    line(box, ind, result, labels) {
-      drawLineChart(box, { xs: result.history.map(p => toSeconds(p.date)), lines: historyLines(ind, result, () => 2) }, chartOptions(ind, labels));
+    line(box, ind, result, labels, extra) {
+      drawLineChart(box, { xs: result.history.map(p => toSeconds(p.date)), lines: historyLines(ind, result, () => 2) }, chartOptions(ind, labels, extra));
     },
     // First series is the price; the rest are its moving averages, drawn thinner.
-    price_with_ma(box, ind, result, labels) {
-      drawLineChart(box, { xs: result.history.map(p => toSeconds(p.date)), lines: historyLines(ind, result, i => (i === 0 ? 2 : 1.25)) }, chartOptions(ind, labels));
+    price_with_ma(box, ind, result, labels, extra) {
+      drawLineChart(box, { xs: result.history.map(p => toSeconds(p.date)), lines: historyLines(ind, result, i => (i === 0 ? 2 : 1.25)) }, chartOptions(ind, labels, extra));
     },
     // The first series, plus a dot on every date listed in the result's events.
-    line_with_markers(box, ind, result, labels) {
+    line_with_markers(box, ind, result, labels, extra) {
       const lines = historyLines(ind, result, () => 2);
       const eventDates = new Set((result.events || []).map(e => e.date));
       const base = lines.length ? lines[0].values : [];
       lines.push({ label: ind.name_zh, pointsOnly: true, values: result.history.map((p, i) => (eventDates.has(p.date) ? base[i] : null)) });
-      drawLineChart(box, { xs: result.history.map(p => toSeconds(p.date)), lines }, chartOptions(ind, labels));
+      drawLineChart(box, { xs: result.history.map(p => toSeconds(p.date)), lines }, chartOptions(ind, labels, extra));
     },
   };
 
   // Called after the HTML holding `.chart-box[data-chart]` placeholders is in the page.
   function mountCharts(root, labels, lookup) {
     root.querySelectorAll('.chart-box[data-chart]').forEach(box => {
-      const { ind, result } = lookup(box.dataset.chart);
+      const { ind, result, extra } = lookup(box.dataset.chart);
       const draw = CHARTS[ind.detail_chart.type];
       if (!draw) { warnOnce('chart type', ind.detail_chart.type); box.remove(); return; }
       if (typeof uPlot === 'undefined') { box.remove(); return; }   // chart library not loaded: text still shows
-      draw(box, ind, result, labels);
+      draw(box, ind, result, labels, extra);
     });
   }
 
@@ -225,6 +247,29 @@
   function dataDateLine(results, labels) {
     const dates = results.filter(isOk).map(r => r.data_date).filter(Boolean).sort();
     return dates.length ? `<p class="muted">${esc(labels.data_date || '')}：${esc(dates[dates.length - 1])}</p>` : '';
+  }
+
+  /*
+   * A row's reading guide (ratio pairs): what is compared, what each state usually means -
+   * the current one marked - other situations worth watching, and a caveat. Every word comes
+   * from the row and from meta (state_conditions, ui_labels); `state` is the row's current state.
+   */
+  function guideBlock(guide, meta, labels, state) {
+    if (!guide) return '';
+    const conditions = meta.state_conditions || {};
+    const states = Object.keys(conditions).filter(s => guide.states && guide.states[s]).map(s => `
+      <div class="guide-state${s === state ? ' current' : ''}">
+        <div class="guide-state-head"><span class="chip">${esc(FORMATS.state_chip(s))}</span>${s === state && labels.guide_now ? `<span class="guide-now">${esc(labels.guide_now)}</span>` : ''}<span class="guide-cond">${esc(conditions[s])}</span></div>
+        <div>${esc(guide.states[s])}</div>
+      </div>`).join('');
+    const signals = (guide.signals || []).map(item => `<li><b>${esc(item.condition)}</b><br>${esc(item.meaning)}</li>`).join('');
+    return `<div class="pair-guide">
+      <h4>${esc(labels.guide_heading || '')}</h4>
+      ${guide.compare ? `<p class="guide-compare"><b>${esc(labels.guide_compare || '')}</b>　${esc(guide.compare)}</p>` : ''}
+      ${states ? `<div class="guide-states">${states}</div>` : ''}
+      ${signals ? `<h4>${esc(labels.guide_signals || '')}</h4><ul class="guide-signals">${signals}</ul>` : ''}
+      ${guide.caveat ? `<p class="guide-caveat"><b>${esc(labels.guide_caveat || '')}</b>　${esc(guide.caveat)}</p>` : ''}
+    </div>`;
   }
 
   function setTabLabels(labels) {
@@ -332,8 +377,10 @@
    *   table - every row against every indicator, sortable; a clicked row opens below it.
    * The two buttons that switch view appear when meta.ui_labels has both view names. The
    * view picked with them is remembered per tab (opts.remember) and used on the next load.
-   *   opts: { toggle, split, table, detail: selectors; nameLabel, note: keys of meta.ui_labels;
-   *           remember: name under which this tab's view choice is stored }
+   *   opts: { toggle, split, table, detail, heading?: selectors; nameLabel, note, title?: keys of
+   *           meta.ui_labels; remember: name under which this tab's view choice is stored }
+   * Optional row fields: caption (shown under the name), tag (a small label beside it),
+   * levels (extra chart lines for that row) and guide (see guideBlock).
    */
   function renderRows(payload, opts) {
     const toggleBox = $(opts.toggle), splitBox = $(opts.split), tableBox = $(opts.table), detailBox = $(opts.detail);
@@ -343,7 +390,11 @@
     const listSpecs = inds.filter(ind => ind.list).map(ind => Object.assign({ id: ind.id }, ind.list)).sort((a, b) => a.order - b.order);
     const groups = meta.groups || null;
     const groupIds = groups ? Object.keys(groups) : [];
-    const caption = row => (row.tickers || {}).subject || (row.cftc || {}).code || '';
+    const caption = row => row.caption || (row.tickers || {}).subject || (row.cftc || {}).code || '';
+    const tagOf = row => (row.tag ? `<span class="tag">${esc(row.tag)}</span>` : '');
+    // The indicator whose main value is the row's state: the guide marks that state as current.
+    const stateInd = inds.find(ind => ind.value_key === 'state');
+    if (opts.heading && opts.title && labels[opts.title]) $(opts.heading).textContent = labels[opts.title];
     const defaultSort = meta.default_sort ? Object.assign({ column: meta.default_sort.indicator }, meta.default_sort) : null;
     const canSwitch = !!(toggleBox && labels.view_list && labels.view_table);
     // The list needs something to show beside each row and a way back to the table. A file
@@ -400,7 +451,7 @@
         + (groups ? `<th data-col="${GROUP_COLUMN}" class="text-col">${esc(labels.group_column || '')}${arrow(GROUP_COLUMN)}</th>` : '')
         + inds.map(ind => `<th data-col="${esc(ind.id)}">${esc(ind.column_label)}${arrow(ind.id)}</th>`).join('');
       const body = sortedRows(sort).map(row => `<tr data-id="${esc(row.id)}" class="${row.id === openRow ? 'active' : ''}">
-        <td>${esc(row.name_zh)}<small>${esc(caption(row))}</small></td>
+        <td>${esc(row.name_zh)}${tagOf(row)}<small>${esc(caption(row))}</small></td>
         ${groups ? `<td class="text-col">${esc(groups[row.group] || row.group || '')}</td>` : ''}
         ${inds.map(ind => COMPONENTS.table_column(ind, row, labels)).join('')}</tr>`).join('');
       tableBox.innerHTML = `<div class="table-scroll"><table class="breadth-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>${footnotes(true)}`;
@@ -444,7 +495,8 @@
           const result = row.results[spec.id];
           return `<b class="${toneClass(result)}">${esc(mainText(spec, result, labels))}</b>`;
         }).join('');
-        return `<button class="indicator side-item${row.id === openRow ? ' active' : ''}" data-id="${esc(row.id)}"><span>${esc(row.name_zh)}</span><span class="side-values">${values}</span></button>`;
+        const sub = row.caption ? `<small class="side-caption">${esc(row.caption)}</small>` : '';
+        return `<button class="indicator side-item${row.id === openRow ? ' active' : ''}" data-id="${esc(row.id)}"><span>${esc(row.name_zh)}${tagOf(row)}${sub}</span><span class="side-values">${values}</span></button>`;
       };
       tableBox.innerHTML = `<div class="side-list">${sections.map(section =>
         `<section class="indicator-group">${section.title ? `<h3 class="group-title">${esc(section.title)}</h3>` : ''}${section.rows.map(item).join('')}</section>`).join('')}</div>`;
@@ -479,12 +531,14 @@
           : chartSlot(ind, result, ind.id) + valuesList(ind, result, labels);
         return `<div class="subject-block${sharedView && !asList ? '' : ' stacked'}">${head}${body}${sharedView ? '' : expertView(ind, labels)}</div>`;
       }).join('');
-      const subtitle = row.tickers ? Object.values(row.tickers).join(' · ') : (row.cftc || {}).name || '';
-      detailBox.innerHTML = `<div class="detail-head breadth-detail-head"><div><h2>${esc(row.name_zh)}</h2><p class="muted">${esc(subtitle)}</p></div></div>`
+      const subtitle = row.caption || (row.tickers ? Object.values(row.tickers).join(' · ') : (row.cftc || {}).name || '');
+      const state = stateInd && isOk(row.results[stateInd.id]) ? row.results[stateInd.id].state : null;
+      detailBox.innerHTML = `<div class="detail-head breadth-detail-head"><div><h2>${esc(row.name_zh)}${tagOf(row)}</h2><p class="muted">${esc(subtitle)}</p></div></div>`
         + (sharedView && !asList ? `<div class="subject-grid">${blocks}</div>` : blocks)
         + (sharedView ? expertView(inds[0], labels) : '')
+        + guideBlock(row.guide, meta, labels, state)
         + (asList ? footnotes(false) : '');
-      mountCharts(detailBox, labels, id => ({ ind: indById[id], result: row.results[id] }));
+      mountCharts(detailBox, labels, id => ({ ind: indById[id], result: row.results[id], extra: { levels: row.levels } }));
     }
 
     function setView(name) {
@@ -504,6 +558,9 @@
     { file: 'data/market_breadth.json', box: '#breadthCards', render: renderMarket },
     { file: 'data/sectors.json', box: '#sectorTable', render: p => renderRows(p, { toggle: '#sectorView', split: '#sectorSplit', table: '#sectorTable', detail: '#sectorDetail', nameLabel: 'sector_column', remember: 'sectors' }) },
     { file: 'data/cot.json', box: '#cotTable', render: p => renderRows(p, { toggle: '#cotView', split: '#cotSplit', table: '#cotTable', detail: '#cotDetail', nameLabel: 'cot_column', note: 'cot_note', remember: 'cot' }) },
+    // An added section: its panel stays hidden until its file has loaded, so a page deployed
+    // before the first data refresh that writes the file looks exactly as it did before.
+    { file: 'data/pairs.json', box: '#pairTable', panel: '#pairPanel', render: p => renderRows(p, { toggle: '#pairView', split: '#pairSplit', table: '#pairTable', detail: '#pairDetail', heading: '#pairHeading', title: 'pair_heading', nameLabel: 'pair_column', note: 'pair_note', remember: 'pairs' }) },
   ];
 
   // Each file loads on its own: one failing never affects the other or the existing page.
@@ -511,9 +568,11 @@
     try {
       const payload = await load(source.file);
       setTabLabels((payload.meta || {}).ui_labels || {});
+      if (source.panel) $(source.panel).hidden = false;
       source.render(payload);
     } catch (err) {
       console.warn(`[breadth] ${source.file}: ${err.message}`);
+      if (source.panel) { $(source.panel).hidden = true; return; }
       const box = $(source.box);
       if (box) box.innerHTML = `<p class="muted breadth-error">${LOAD_ERROR}</p>`;
     }
