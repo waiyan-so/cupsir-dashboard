@@ -4,6 +4,7 @@
 .tab{padding:10px 18px;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--muted);font-size:15px;cursor:pointer}
 .tab:hover{color:var(--text)}
 .tab.active{color:var(--text);border-bottom-color:#60a5fa}
+.source-note{margin:0 0 12px;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
 .breadth-cards{margin-bottom:16px}
 .status-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
 .status-card{display:flex;flex-direction:column;gap:8px;padding:14px 16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--text);text-align:left;cursor:pointer;font:inherit}
@@ -81,3 +82,4 @@ h2 .tag{font-size:12px;vertical-align:3px}
 .guide-signals li{margin-bottom:8px}
 .guide-signals b{font-weight:600}
 .guide-caveat{font-size:12px;color:var(--muted);line-height:1.7;margin:0}
+.guide-us{margin-top:8px}

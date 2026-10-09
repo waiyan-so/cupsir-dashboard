@@ -350,7 +350,9 @@ def test_shipped_config_names_the_list_values_and_both_view_labels(cfg):
     shown = {(iid, scope): d["scopes"][scope]["list"]
              for iid, d in ind["indicators"].items() for scope in d["scopes"] if "list" in d["scopes"][scope]}
     assert set(shown) == {("relative_strength", "sector"), ("trend_regime", "sector"), ("cot_index_1y", "cot"),
-                          ("pair_trend", "pairs"), ("pair_change", "pairs")}
+                          ("pair_trend", "pairs"), ("pair_change", "pairs"),
+                          ("relative_strength", "asx_sector"), ("trend_regime", "asx_sector"),
+                          ("pair_trend", "asx_pairs"), ("pair_change", "asx_pairs")}
     assert shown[("relative_strength", "sector")]["format"] == "rank"
     for label in ("view_list", "view_table"):
         assert ind["ui_labels"][label]
@@ -447,3 +449,119 @@ def test_the_pairs_block_is_optional_when_no_indicator_uses_it(cfg):
     for iid in PAIR_INDICATORS:
         ind["indicators"].pop(iid)
     registry.validate(ind, uni, CALCULATORS)
+
+
+# ---- ASX sector scope, calendars and ticker_meta (spec G.4)
+
+def _asx_ticker(uni):
+    return uni["asx_sector"]["subjects"][0]["roles"]["subject"]
+
+
+def test_shipped_asx_sector_scope_has_eleven_sectors_against_one_benchmark(cfg):
+    _, uni = cfg
+    subjects = uni["asx_sector"]["subjects"]
+    assert len(subjects) == 11
+    assert len({s["roles"]["benchmark"] for s in subjects}) == 1
+    assert all(set(s["roles"]) == {"subject", "benchmark"} for s in subjects)   # no equal_weight (G-Q1)
+
+
+@pytest.mark.parametrize("change,entry_of,field", [
+    (lambda u, t: u["ticker_meta"].pop(t), lambda u, t: f"universe.asx_sector.{u['asx_sector']['subjects'][0]['id']}", "roles.subject"),
+    (lambda u, t: u["ticker_meta"][t].update(kind="etf"), lambda u, t: f"universe.ticker_meta.{t}", "kind"),
+    (lambda u, t: u["ticker_meta"][t].update(calendar="lse"), lambda u, t: f"universe.ticker_meta.{t}", "calendar"),
+    (lambda u, t: u["ticker_meta"][t].update(name=""), lambda u, t: f"universe.ticker_meta.{t}", "name"),
+    (lambda u, t: u["ticker_meta"][t].update(name="CupSir index"), lambda u, t: f"universe.ticker_meta.{t}", "name"),
+    (lambda u, t: u["calendars"]["asx"].update(tz="Sydney/Australia"), lambda u, t: "universe.calendars.asx", "tz"),
+    (lambda u, t: u["calendars"]["asx"].update(rule="close"), lambda u, t: "universe.calendars.asx", "rule"),
+    (lambda u, t: u["calendars"]["asx"].pop("final_after"), lambda u, t: "universe.calendars.asx", "final_after"),
+    (lambda u, t: u["calendars"]["asx"].update(final_after="4:30pm"), lambda u, t: "universe.calendars.asx", "final_after"),
+])
+def test_asx_universe_rules(cfg, change, entry_of, field):
+    ind, uni = copy.deepcopy(cfg)
+    ticker = _asx_ticker(uni)
+    change(uni, ticker)
+    _fails(ind, uni, entry_of(uni, ticker), field)
+
+
+def test_previous_day_calendar_needs_no_final_after(cfg):
+    ind, uni = copy.deepcopy(cfg)
+    uni["calendars"]["asx"] = {"tz": "Australia/Sydney", "rule": "previous_day"}
+    registry.validate(ind, uni, CALCULATORS)
+
+
+def test_asx_indicator_needs_the_asx_universe(cfg):
+    ind, uni = copy.deepcopy(cfg)
+    uni.pop("asx_sector")
+    _fails(ind, uni, "indicators.trend_regime", "scopes.asx_sector")
+
+
+def test_asx_sector_table_is_required_with_asx_indicators(cfg):
+    ind, uni = copy.deepcopy(cfg)
+    ind.pop("asx_sector_table")
+    _fails(ind, uni, "asx_sector_table", "")
+
+
+def test_asx_sector_table_must_point_at_an_asx_indicator(cfg):
+    ind, uni = copy.deepcopy(cfg)
+    ind["asx_sector_table"]["default_sort"]["indicator"] = "equal_weight_ratio"   # US sectors only (G-Q1)
+    _fails(ind, uni, "asx_sector_table", "default_sort.indicator")
+
+
+def test_us_scopes_need_no_ticker_meta(cfg):
+    ind, uni = copy.deepcopy(cfg)
+    asx = {t for scope in registry.ASX_SCOPES for s in uni[scope]["subjects"] for t in s["roles"].values()}
+    for scope in ("market", "sector", "pairs"):
+        for s in uni[scope]["subjects"]:
+            for t in set(s["roles"].values()) - asx:
+                uni["ticker_meta"].pop(t, None)
+    registry.validate(ind, uni, CALCULATORS)
+
+
+# ---- ASX pairs (spec G.6, G.7)
+
+def _asx_pair(uni, pid):
+    return next(s for s in uni["asx_pairs"]["subjects"] if s["id"] == pid)
+
+
+def test_shipped_asx_pairs_have_22_entries_each_with_a_us_comparison(cfg):
+    _, uni = cfg
+    subjects = uni["asx_pairs"]["subjects"]
+    assert len(subjects) == 22
+    assert {s["group"] for s in subjects} == set(uni["asx_pairs"]["groups"])
+    for s in subjects:
+        assert s["guide"]["us_compare"] and set(s["guide"]["states"]) == set(uni["asx_pairs"]["state_conditions"])
+    singles = [s for s in subjects if s.get("single")]
+    assert [s["id"] for s in singles] == ["asx_audjpy"] and set(singles[0]["roles"]) == {"subject"}
+
+
+@pytest.mark.parametrize("change,field", [
+    (lambda s: s["roles"].update(benchmark="GC=F"), "roles"),        # a single series takes no denominator
+    (lambda s: s.pop("caption"), "caption"),
+    (lambda s: s.update(single="yes"), "single"),
+    (lambda s: s["guide"].update(us_compare=""), "guide.us_compare"),
+])
+def test_single_series_rules(cfg, change, field):
+    ind, uni = copy.deepcopy(cfg)
+    change(_asx_pair(uni, "asx_audjpy"))
+    _fails(ind, uni, "universe.asx_pairs.asx_audjpy", field)
+
+
+def test_a_two_sided_pair_cannot_drop_its_benchmark(cfg):
+    ind, uni = copy.deepcopy(cfg)
+    _asx_pair(uni, "asx_xdj_xsj")["roles"].pop("benchmark")
+    _fails(ind, uni, "universe.asx_pairs.asx_xdj_xsj", "roles")
+
+
+def test_asx_pair_ticker_needs_ticker_meta(cfg):
+    ind, uni = copy.deepcopy(cfg)
+    uni["ticker_meta"].pop(_asx_pair(uni, "asx_cba_mvb")["roles"]["subject"])
+    _fails(ind, uni, "universe.asx_pairs.asx_cba_mvb", "roles.subject")
+
+
+def test_a_pair_never_mixes_price_indices_with_adjusted_prices(cfg):
+    """Spec G.6: both sides of an ASX pair are of the same kind (futures and FX carry no dividends)."""
+    _, uni = cfg
+    meta = uni["ticker_meta"]
+    for s in uni["asx_pairs"]["subjects"]:
+        kinds = {meta[t]["kind"] for t in s["roles"].values()}
+        assert len(kinds) == 1, (s["id"], kinds)

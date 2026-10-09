@@ -387,5 +387,310 @@
          "caveat": "NVDA 是 SMH 的最大成份股，比率的變動會被這個比重壓縮。"
        }}
     ]
+  },
+  "calendars": {
+    "us":  {"tz": "America/New_York", "rule": "session_close", "final_after": "16:30"},
+    "asx": {"tz": "Australia/Sydney", "rule": "session_close", "final_after": "16:30"},
+    "fx":  {"tz": "America/New_York", "rule": "previous_day"}
+  },
+  "ticker_meta": {
+    "^AXJO": {"calendar": "asx", "kind": "price_index", "code": "XJO", "name": "S&P/ASX 200"},
+    "^AXFJ": {"calendar": "asx", "kind": "price_index", "code": "XFJ", "name": "S&P/ASX 200 Financials"},
+    "^AXMJ": {"calendar": "asx", "kind": "price_index", "code": "XMJ", "name": "S&P/ASX 200 Materials"},
+    "^AXHJ": {"calendar": "asx", "kind": "price_index", "code": "XHJ", "name": "S&P/ASX 200 Health Care"},
+    "^AXDJ": {"calendar": "asx", "kind": "price_index", "code": "XDJ", "name": "S&P/ASX 200 Consumer Discretionary"},
+    "^AXNJ": {"calendar": "asx", "kind": "price_index", "code": "XNJ", "name": "S&P/ASX 200 Industrials"},
+    "^AXPJ": {"calendar": "asx", "kind": "price_index", "code": "XPJ", "name": "S&P/ASX 200 A-REIT"},
+    "^AXSJ": {"calendar": "asx", "kind": "price_index", "code": "XSJ", "name": "S&P/ASX 200 Consumer Staples"},
+    "^AXTJ": {"calendar": "asx", "kind": "price_index", "code": "XTJ", "name": "S&P/ASX 200 Communication Services"},
+    "^AXEJ": {"calendar": "asx", "kind": "price_index", "code": "XEJ", "name": "S&P/ASX 200 Energy"},
+    "^AXUJ": {"calendar": "asx", "kind": "price_index", "code": "XUJ", "name": "S&P/ASX 200 Utilities"},
+    "^AXIJ": {"calendar": "asx", "kind": "price_index", "code": "XIJ", "name": "S&P/ASX 200 Information Technology"},
+    "^AXSO": {"calendar": "asx", "kind": "price_index", "code": "XSO", "name": "S&P/ASX Small Ordinaries"},
+    "^AXEC": {"calendar": "asx", "kind": "price_index", "code": "XEC", "name": "S&P/ASX Emerging Companies"},
+    "^AXBK": {"calendar": "asx", "kind": "price_index", "code": "XBK", "name": "S&P/ASX 200 Banks"},
+    "^AXJR": {"calendar": "asx", "kind": "price_index", "code": "XJR", "name": "S&P/ASX 200 Resources"},
+    "^AXGD": {"calendar": "asx", "kind": "price_index", "code": "XGD", "name": "S&P/ASX All Ordinaries Gold"},
+    "^AXEW": {"calendar": "asx", "kind": "price_index", "code": "XEW", "name": "S&P/ASX 200 Equal Weight"},
+    "^ATLI": {"calendar": "asx", "kind": "price_index", "code": "XTL", "name": "S&P/ASX 20"},
+    "^AXMD": {"calendar": "asx", "kind": "price_index", "code": "XMD", "name": "S&P/ASX MidCap 50"},
+    "ILB.AX": {"calendar": "asx", "kind": "adjusted", "name": "iShares Government Inflation ETF"},
+    "VGB.AX": {"calendar": "asx", "kind": "adjusted", "name": "Vanguard Australian Government Bond ETF"},
+    "HBRD.AX": {"calendar": "asx", "kind": "adjusted", "name": "Betashares Active Australian Hybrids Fund"},
+    "A200.AX": {"calendar": "asx", "kind": "adjusted", "name": "Betashares Australia 200 ETF"},
+    "IVV.AX": {"calendar": "asx", "kind": "adjusted", "name": "iShares S&P 500 ETF"},
+    "AQLT.AX": {"calendar": "asx", "kind": "adjusted", "name": "Betashares Australian Quality ETF"},
+    "VHY.AX": {"calendar": "asx", "kind": "adjusted", "name": "Vanguard Australian Shares High Yield ETF"},
+    "CBA.AX": {"calendar": "asx", "kind": "adjusted", "name": "Commonwealth Bank of Australia"},
+    "MVB.AX": {"calendar": "asx", "kind": "adjusted", "name": "VanEck Australian Banks ETF"},
+    "BHP.AX": {"calendar": "asx", "kind": "adjusted", "name": "BHP Group"},
+    "QRE.AX": {"calendar": "asx", "kind": "adjusted", "name": "Betashares Australian Resources Sector ETF"},
+    "TIO=F": {"calendar": "us", "kind": "futures", "name": "Iron Ore 62% Fe 期貨"},
+    "GC=F": {"calendar": "us", "kind": "futures", "name": "黃金期貨"},
+    "HG=F": {"calendar": "us", "kind": "futures", "name": "銅期貨"},
+    "AUDJPY=X": {"calendar": "fx", "kind": "fx", "name": "澳元兌日圓"}
+  },
+  "asx_sector": {
+    "subjects": [
+      {"id": "asx_financials", "name_zh": "金融", "roles": {"subject": "^AXFJ", "benchmark": "^AXJO"}},
+      {"id": "asx_materials", "name_zh": "原材料", "roles": {"subject": "^AXMJ", "benchmark": "^AXJO"}},
+      {"id": "asx_health_care", "name_zh": "醫療保健", "roles": {"subject": "^AXHJ", "benchmark": "^AXJO"}},
+      {"id": "asx_consumer_discretionary", "name_zh": "非必需消費", "roles": {"subject": "^AXDJ", "benchmark": "^AXJO"}},
+      {"id": "asx_industrials", "name_zh": "工業", "roles": {"subject": "^AXNJ", "benchmark": "^AXJO"}},
+      {"id": "asx_real_estate", "name_zh": "房地產（A-REIT）", "roles": {"subject": "^AXPJ", "benchmark": "^AXJO"}},
+      {"id": "asx_consumer_staples", "name_zh": "必需消費", "roles": {"subject": "^AXSJ", "benchmark": "^AXJO"}},
+      {"id": "asx_communication", "name_zh": "通訊服務", "roles": {"subject": "^AXTJ", "benchmark": "^AXJO"}},
+      {"id": "asx_energy", "name_zh": "能源", "roles": {"subject": "^AXEJ", "benchmark": "^AXJO"}},
+      {"id": "asx_utilities", "name_zh": "公用事業", "roles": {"subject": "^AXUJ", "benchmark": "^AXJO"}},
+      {"id": "asx_information_technology", "name_zh": "資訊科技", "roles": {"subject": "^AXIJ", "benchmark": "^AXJO"}}
+    ]
+  },
+  "asx_pairs": {
+    "groups": {"macro": "一、宏觀風險與流動性", "rotation": "二、行業輪動", "structure": "三、指數內部結構"},
+    "state_conditions": {"RISING": "比率高於 21、50、200 日線，而且 50 日線向上", "FALLING": "比率低於 50 日和 200 日線，而且 50 日線向下", "MIXED": "其他情況，例如比率在兩條線之間，或者 50 日線走平"},
+    "subjects": [
+      {"id": "asx_xdj_xsj", "name_zh": "非必需消費 ÷ 必需消費", "group": "macro", "roles": {"subject": "^AXDJ", "benchmark": "^AXSJ"}, "tag": "經典",
+       "guide": {
+         "compare": "非必需消費（零售、博彩、旅遊等，經濟好時才多花的開支）對必需消費（超市、日用品，經濟差時仍要買）。量度本地消費者和市場的風險偏好。",
+         "states": {"RISING": "資金偏向受經濟週期影響的消費股，通常配合減息預期或消費信心回升。", "FALLING": "資金轉向防守，市場擔心家庭開支受高利率或失業上升壓抑。", "MIXED": "方向未明，可能處於轉換期，留意比率先穿越哪一條線。"},
+         "signals": [
+           {"condition": "市場出現減息預期時比率率先轉升", "meaning": "市場提早反映消費復甦。"},
+           {"condition": "ASX 200 創新高，但比率下跌", "meaning": "升勢不是由本地消費推動，多數由銀行或資源股帶動。"}
+         ],
+         "caveat": "XDJ 中 Wesfarmers 和 Aristocrat 的比重很大；XSJ 成分股少，以超市為主。比率有時只反映幾隻股票。兩者都是價格指數，未計股息。",
+         "us_compare": "對應美國版 XLY / XLP。美國版用 ETF（已按股息調整），這裏用價格指數；澳洲兩個板塊的成分股比美國少得多，比率較容易被個別公司左右。"
+       }},
+      {"id": "asx_xso_xjo", "name_zh": "小型股 ÷ ASX 200", "group": "macro", "roles": {"subject": "^AXSO", "benchmark": "^AXJO"},
+       "guide": {
+         "compare": "Small Ordinaries（大約第 101 至 300 大的公司）對 ASX 200。量度升勢的參與面。",
+         "states": {"RISING": "資金擴散到中小型股，升勢參與面闊，通常是較健康的升市特徵。", "FALLING": "資金集中在大型股（四大銀行、BHP、CSL 等），市場偏向防守或只追逐少數龍頭。", "MIXED": "中小型股未有明確方向。"},
+         "signals": [
+           {"condition": "ASX 200 創新高，但比率在 200 日線之下", "meaning": "升勢參與面窄。"},
+           {"condition": "比率升穿 200 日線，而且 50 日線轉為向上", "meaning": "中小型股的週期可能開始。"}
+         ],
+         "caveat": "Small Ordinaries 有不少資源和鋰礦股，商品價格大升時比率會被推高，不一定代表整體風險偏好。可以與「新興公司 ÷ ASX 200」和「銀行 ÷ 資源」一起看。",
+         "us_compare": "對應美國版 IWM / SPY。Small Ordinaries 的資源股比重遠高於 Russell 2000，比率較受商品價格影響；這裏用價格指數，美國版用 ETF。"
+       }},
+      {"id": "asx_xec_xjo", "name_zh": "新興公司 ÷ ASX 200", "group": "macro", "roles": {"subject": "^AXEC", "benchmark": "^AXJO"},
+       "guide": {
+         "compare": "Emerging Companies（市值最小的一批上市公司，多為小型礦業、科技和生物科技）對 ASX 200。量度投機情緒。",
+         "states": {"RISING": "投機資金活躍，小型勘探和題材股受追捧，風險偏好強。", "FALLING": "投機退潮，資金撤離高風險的小型股。", "MIXED": "投機情緒未有方向。"},
+         "signals": [
+           {"condition": "比率急升，但「小型股 ÷ ASX 200」不跟", "meaning": "投機只集中在個別題材，例如某種金屬的勘探熱潮。"},
+           {"condition": "比率長期在 200 日線之下", "meaning": "小型公司的集資環境偏差。"}
+         ],
+         "caveat": "成分股流動性低、波動大，比率雜訊多。只看趨勢，不看單日變化。",
+         "us_compare": "美國版沒有對應組合。可以視為比「小型股 ÷ ASX 200」更進取的版本。"
+       }},
+      {"id": "asx_audjpy", "name_zh": "澳元 ÷ 日圓", "group": "macro", "roles": {"subject": "AUDJPY=X"}, "single": true, "caption": "AUD/JPY", "tag": "單一序列",
+       "guide": {
+         "compare": "澳元兌日圓的匯率。澳元是高息和商品貨幣，日圓是低息和避險貨幣，所以這個匯率反映套息交易和全球風險偏好。",
+         "states": {"RISING": "套息交易活躍，全球風險偏好上升，通常利好澳股和資源股。", "FALLING": "套息交易平倉或避險升溫，常與全球股市下跌同時出現。", "MIXED": "風險偏好未有方向。"},
+         "signals": [
+           {"condition": "匯率急跌，而澳股仍在高位", "meaning": "外匯市場可能先反映風險偏好轉差。"},
+           {"condition": "匯率和「鐵礦石 ÷ 黃金」同時上升", "meaning": "增長和風險偏好互相印證。"}
+         ],
+         "caveat": "受日本央行和澳洲儲備銀行（RBA）的政策影響很大，議息前後會有與股市無關的大幅波動。這是單一序列，不是兩個標的相除；數據不用當天未完結的一筆，比其他組合遲一日。",
+         "us_compare": "美國版沒有對應組合。美國版的 VIX ÷ VIX3M 同樣量度風險偏好，但那是期權市場的恐慌程度，這裏是外匯市場的套息交易，計法完全不同。"
+       }},
+      {"id": "asx_iron_gold", "name_zh": "鐵礦石 ÷ 黃金", "group": "macro", "roles": {"subject": "TIO=F", "benchmark": "GC=F"},
+       "guide": {
+         "compare": "鐵礦石（62% 品位期貨）對黃金。鐵礦石代表中國鋼鐵和基建需求，黃金代表避險需求。",
+         "states": {"RISING": "市場看好中國增長，利好 BHP、RIO、FMG 和澳元。", "FALLING": "中國需求轉弱，或避險需求上升；資源股之中，金礦可能跑贏鐵礦。", "MIXED": "增長和避險需求未分勝負。"},
+         "signals": [
+           {"condition": "比率上升，但原材料板塊的相對強度不跟", "meaning": "礦業股未反映商品價格，或市場懷疑升勢能否持續。"},
+           {"condition": "比率下跌，同時黃金創新高", "meaning": "資金由增長轉向避險。"}
+         ],
+         "caveat": "期貨連續合約換月時比率會跳動。鐵礦石受中國政策和港口庫存影響，與全球增長不一定同步。",
+         "us_compare": "美國版沒有對應組合。思路與美國版的銅 ÷ 金相同，但鐵礦石更直接反映中國需求和澳洲礦業股。"
+       }},
+      {"id": "asx_copper_gold", "name_zh": "銅 ÷ 金", "group": "macro", "roles": {"subject": "HG=F", "benchmark": "GC=F"},
+       "guide": {
+         "compare": "銅對黃金。銅代表全球工業需求，黃金代表避險。",
+         "states": {"RISING": "市場對全球經濟增長的預期升溫。", "FALLING": "增長預期轉弱，避險需求上升。", "MIXED": "未有方向。"},
+         "signals": [
+           {"condition": "銅金比與「鐵礦石 ÷ 黃金」方向一致", "meaning": "增長訊號較可靠。"},
+           {"condition": "兩者背馳", "meaning": "可能只反映中國鋼鐵或個別商品的供求。"}
+         ],
+         "caveat": "期貨連續合約換月時比率會跳動。",
+         "us_compare": "與「板塊」分頁的銅 ÷ 金用完全相同的數據，放在這裏方便與鐵礦石 ÷ 黃金對照。"
+       }},
+      {"id": "asx_ilb_vgb", "name_zh": "通脹掛鈎債 ÷ 政府債", "group": "macro", "roles": {"subject": "ILB.AX", "benchmark": "VGB.AX"},
+       "guide": {
+         "compare": "澳洲通脹掛鈎債 ETF 對澳洲政府債 ETF。量度市場的通脹預期。",
+         "states": {"RISING": "通脹掛鈎債跑贏，市場預期通脹上升，RBA 減息的空間收窄。", "FALLING": "通脹預期回落，有利減息預期和對利率敏感的板塊（房託、科技）。", "MIXED": "通脹預期未有方向。"},
+         "signals": [
+           {"condition": "比率上升，同時「A-REIT ÷ ASX 200」下跌", "meaning": "通脹和利率預期正在壓抑房託。"},
+           {"condition": "比率持續下跌，同時「銀行 ÷ 資源」上升", "meaning": "低通脹環境下資金偏好國內股。"}
+         ],
+         "caveat": "ILB 的存續期比 VGB 長，利率大幅變動時比率會同時反映存續期的差異，不純粹是通脹預期。兩隻 ETF 都已按派息調整。",
+         "us_compare": "對應美國版 TIP / IEF。兩邊都是 ETF 相除，但 ILB 與 VGB 的存續期差距和 TIP 與 IEF 不同，讀數不可以直接比較。"
+       }},
+      {"id": "asx_hbrd_vgb", "name_zh": "混合證券 ÷ 政府債", "group": "macro", "roles": {"subject": "HBRD.AX", "benchmark": "VGB.AX"}, "tag": "弱代理",
+       "guide": {
+         "compare": "銀行混合證券（hybrids）ETF 對政府債 ETF，作為澳洲信用風險偏好的代理。澳洲沒有高收益債 ETF。",
+         "states": {"RISING": "投資者願意承擔銀行的信用和次級風險。", "FALLING": "信用風險的憂慮上升，資金轉向政府債。", "MIXED": "信用市場平靜。"},
+         "signals": [
+           {"condition": "比率急跌，而銀行股仍然強勢", "meaning": "信用市場可能先反映壓力。"},
+           {"condition": "比率與「澳元 ÷ 日圓」同時下跌", "meaning": "本地和全球的風險偏好一齊轉差。"}
+         ],
+         "caveat": "這只是弱代理。HBRD 主要持有浮息證券，利率上升時本身受惠，與定息的 VGB 相除會混入利率方向。APRA 已決定逐步淘汰銀行 AT1 混合證券，HBRD 的成分將來會改變。",
+         "us_compare": "替代美國版 HYG / IEF。美國版是高收益公司債對國債；這裏是銀行混合證券對政府債，風險來源和利率特性都不同，讀數不可以與 HYG / IEF 直接比較。"
+       }},
+      {"id": "asx_a200_ivv", "name_zh": "澳股 ÷ 美股（澳元計）", "group": "macro", "roles": {"subject": "A200.AX", "benchmark": "IVV.AX"},
+       "guide": {
+         "compare": "澳股（ASX 200 ETF）對美股（在 ASX 上市的 S&P 500 ETF，以澳元計）。量度資金偏好澳洲還是美國。",
+         "states": {"RISING": "澳股跑贏，通常在商品和銀行股強勢、或美國科技股回調時出現。", "FALLING": "美股跑贏，或澳元轉弱（IVV 以澳元計，會因匯率而上升）。", "MIXED": "兩地表現相若。"},
+         "signals": [
+           {"condition": "比率下跌，同時澳元兌美元下跌", "meaning": "部分是匯率效應，不一定是澳股弱。"},
+           {"condition": "比率上升，同時澳元也上升", "meaning": "澳洲資產整體受追捧。"}
+         ],
+         "caveat": "比率包括匯率影響。兩隻 ETF 都已按派息調整（澳股股息率較高）。",
+         "us_compare": "替代美國版 EEM / SPY。美國版比較新興市場和美國；這裏比較澳洲和美國，而且以澳元計，包括匯率影響。"
+       }},
+      {"id": "asx_banks_resources", "name_zh": "銀行 ÷ 資源", "group": "rotation", "roles": {"subject": "^AXBK", "benchmark": "^AXJR"}, "tag": "經典",
+       "guide": {
+         "compare": "S&P/ASX 200 銀行指數對 S&P/ASX 200 資源指數。這是澳股最主要的輪動：國內利率和信貸，對中國需求和商品價格。",
+         "states": {"RISING": "資金轉向銀行，通常在商品價格回落、或市場看好本地經濟和信貸時出現。", "FALLING": "資金轉向資源股，通常配合中國刺激政策、商品價格上升或澳元轉強。", "MIXED": "輪動未有方向，或正在轉換。"},
+         "signals": [
+           {"condition": "比率創新高，同時「CBA ÷ 銀行」也創新高", "meaning": "銀行的升勢集中在 CBA 一隻股票。"},
+           {"condition": "「鐵礦石 ÷ 黃金」轉升，而比率仍在高位", "meaning": "輪動可能即將由銀行轉向資源。"}
+         ],
+         "caveat": "兩者都是價格指數。銀行的股息率一般高於資源股，長期來說比率會稍為向下偏。",
+         "us_compare": "美國版沒有對應組合。銀行和資源股在 ASX 200 的比重都很大，所以這是澳股獨有的主要輪動。"
+       }},
+      {"id": "asx_xfj_xuj", "name_zh": "金融 ÷ 公用事業", "group": "rotation", "roles": {"subject": "^AXFJ", "benchmark": "^AXUJ"},
+       "guide": {
+         "compare": "金融（銀行、保險、資產管理）對公用事業（電力、燃氣、管道）。進攻對防守。",
+         "states": {"RISING": "市場預期利率較高或經濟向好，防守需求下降。", "FALLING": "防守需求上升，資金轉向穩定收息的公用股。", "MIXED": "未有方向。"},
+         "signals": [
+           {"condition": "比率與「澳元 ÷ 日圓」同向", "meaning": "風險偏好的訊號互相印證。"},
+           {"condition": "比率上升，但 ASX 200 下跌", "meaning": "資金在弱市中仍然偏好金融，防守需求不強。"}
+         ],
+         "caveat": "XUJ 成分股很少（主要是 APA、Origin、AGL），比率經常受個別公司消息影響；Origin 同時受能源價格影響，不是純防守股。",
+         "us_compare": "對應美國版 XLF / XLU。XUJ 的成分股遠少於 XLU，個別公司的消息影響較大；這裏用價格指數，美國版用 ETF。"
+       }},
+      {"id": "asx_xij_xej", "name_zh": "資訊科技 ÷ 能源", "group": "rotation", "roles": {"subject": "^AXIJ", "benchmark": "^AXEJ"},
+       "guide": {
+         "compare": "資訊科技（軟件和平台公司）對能源（油氣、煤和鈾）。增長股對商品和通脹。",
+         "states": {"RISING": "增長股主導，通脹和油價壓力較低。", "FALLING": "能源和通脹交易主導。", "MIXED": "未有方向。"},
+         "signals": [
+           {"condition": "比率下跌，同時「通脹掛鈎債 ÷ 政府債」上升", "meaning": "通脹交易升溫。"},
+           {"condition": "比率上升，同時美國的 XLK / XLE 也上升", "meaning": "全球一致的增長股行情。"}
+         ],
+         "caveat": "XIJ 成分股少而估值高，經常受個別公司消息影響。XEJ 包括煤和鈾礦股，不只是油氣。",
+         "us_compare": "對應美國版 XLK / XLE。澳洲科技板塊規模遠小於美國，以軟件公司為主，沒有大型半導體和硬件公司；能源板塊包括煤和鈾礦股。"
+       }},
+      {"id": "asx_xnj_xuj", "name_zh": "工業 ÷ 公用事業", "group": "rotation", "roles": {"subject": "^AXNJ", "benchmark": "^AXUJ"},
+       "guide": {
+         "compare": "工業（交通基建、物流、航空、商業服務）對公用事業。景氣循環對防守。",
+         "states": {"RISING": "市場預期經濟擴張。", "FALLING": "景氣轉弱的憂慮上升，資金轉向防守。", "MIXED": "未有方向。"},
+         "signals": [
+           {"condition": "比率上升，同時「小型股 ÷ ASX 200」也上升", "meaning": "景氣復甦的參與面闊。"},
+           {"condition": "比率上升，但「澳元 ÷ 日圓」下跌", "meaning": "可能只是個別工業股的消息，不是整體風險偏好。"}
+         ],
+         "caveat": "XNJ 中 Transurban、Qantas、Brambles 的比重大。Transurban 對利率敏感，不完全是景氣循環股。XUJ 成分股少。",
+         "us_compare": "對應美國版 XLI / XLU。澳洲工業板塊以交通基建和服務為主，製造業的成分比美國少。"
+       }},
+      {"id": "asx_xij_xhj", "name_zh": "資訊科技 ÷ 醫療保健", "group": "rotation", "roles": {"subject": "^AXIJ", "benchmark": "^AXHJ"},
+       "guide": {
+         "compare": "資訊科技對醫療保健，兩類不同的增長股。",
+         "states": {"RISING": "市場偏好高增長、高估值的科技股，願意承擔估值風險。", "FALLING": "資金轉向較穩定的醫療股，或醫療龍頭重拾升勢。", "MIXED": "未有方向。"},
+         "signals": [
+           {"condition": "比率急升，但 ASX 200 不升", "meaning": "只是科技股估值擴張，升勢基礎窄。"},
+           {"condition": "比率下跌，同時「優質因子 ÷ 大市」上升", "meaning": "資金由高估值轉向穩健公司。"}
+         ],
+         "caveat": "XHJ 中 CSL 的比重很大，比率經常只反映 CSL 的走勢。兩個板塊的成分股都少。",
+         "us_compare": "對應美國版 XLK / XLV。澳洲醫療板塊由 CSL 主導，比率經常只反映一隻股票。"
+       }},
+      {"id": "asx_xgd_xjo", "name_zh": "金礦股 ÷ ASX 200", "group": "rotation", "roles": {"subject": "^AXGD", "benchmark": "^AXJO"},
+       "guide": {
+         "compare": "All Ordinaries 金礦股指數對 ASX 200。澳股獨有的大主題。",
+         "states": {"RISING": "避險和金價主題受追捧，金礦股跑贏大市。", "FALLING": "風險偏好回升，資金離開金礦。", "MIXED": "未有方向。"},
+         "signals": [
+           {"condition": "比率上升，但金價（GC=F）不升", "meaning": "金礦股的升勢可能由併購或成本下降帶動。"},
+           {"condition": "金價創新高，但比率下跌", "meaning": "金礦股跑輸金價，可能是成本上升，或市場懷疑金價能否持續。"}
+         ],
+         "caveat": "XGD 以澳元計，金價以美元計，澳元走勢會影響兩者的關係。金礦股的波動遠大於大市。",
+         "us_compare": "替代美國版 SMH / SPY。澳洲沒有半導體板塊，改用澳股獨有的金礦股主題。兩者都是看一個主題行業相對大市的強弱，但經濟含義不同：半導體偏增長，金礦偏避險。"
+       }},
+      {"id": "asx_xpj_xjo", "name_zh": "A-REIT ÷ ASX 200", "group": "rotation", "roles": {"subject": "^AXPJ", "benchmark": "^AXJO"},
+       "guide": {
+         "compare": "房地產信託（A-REIT）對 ASX 200。這是對利率最敏感的板塊。",
+         "states": {"RISING": "市場預期利率下降或債息回落。", "FALLING": "利率上升的預期壓抑房託。", "MIXED": "利率預期未有方向。"},
+         "signals": [
+           {"condition": "比率上升，同時「通脹掛鈎債 ÷ 政府債」下跌", "meaning": "減息預期主導。"},
+           {"condition": "比率上升，但其他對利率敏感的組合不跟", "meaning": "可能只是個別房託（例如數據中心題材）的消息。"}
+         ],
+         "caveat": "XPJ 中 Goodman Group（物流和數據中心）的比重很大，比率有時反映 Goodman 的增長題材多於利率。價格指數未計股息，而 A-REIT 股息率高，長期比率會向下偏。",
+         "us_compare": "替代美國版 XHB / SPY。澳洲沒有房屋建築指數，改用 A-REIT。兩者都對利率敏感，但 A-REIT 是收租資產，不是建屋商。"
+       }},
+      {"id": "asx_xew_xjo", "name_zh": "等權重 ÷ 市值加權", "group": "structure", "roles": {"subject": "^AXEW", "benchmark": "^AXJO"},
+       "guide": {
+         "compare": "S&P/ASX 200 等權重指數對市值加權的 ASX 200。量度升勢是否只靠大型股。",
+         "states": {"RISING": "大部分成分股參與升勢，升勢闊而健康。", "FALLING": "升勢集中在少數大型股（例如 CBA、BHP）。", "MIXED": "參與面未有方向。"},
+         "signals": [
+           {"condition": "ASX 200 創新高，但比率下跌", "meaning": "升勢參與面窄。"},
+           {"condition": "比率升穿 200 日線", "meaning": "參與面擴散。"}
+         ],
+         "caveat": "兩者都是價格指數。^AXEW 在 Yahoo 沒有成交量，不影響比率。",
+         "us_compare": "對應美國版 RSP / SPY。美國版用 ETF（已按股息調整），這裏用指數（未計股息）。ASX 板塊分頁沒有等權重比率一欄，這個組合是大市層面的代替。"
+       }},
+      {"id": "asx_xtl_xmd", "name_zh": "ASX 20 ÷ 中型 50", "group": "structure", "roles": {"subject": "^ATLI", "benchmark": "^AXMD"}, "tag": "上升＝集中",
+       "guide": {
+         "compare": "最大的 20 隻股票對 MidCap 50（大約第 51 至 100 大）。量度大型股的集中程度。",
+         "states": {"RISING": "資金集中在最大型的股票，中型股跑輸。", "FALLING": "中型股跑贏，資金擴散。", "MIXED": "未有方向。"},
+         "signals": [
+           {"condition": "比率上升，同時「等權重 ÷ 市值加權」下跌", "meaning": "兩個角度都確認集中度上升。"},
+           {"condition": "比率下跌，同時「小型股 ÷ ASX 200」上升", "meaning": "資金由大型股一路擴散到小型股。"}
+         ],
+         "caveat": "ASX 20 由銀行和資源股主導，所以比率也會受「銀行 ÷ 資源」輪動影響。",
+         "us_compare": "美國版沒有對應組合。可以與美國版的 RSP / SPY 一起看，兩者都量度集中程度，但這裏上升代表集中，方向相反。"
+       }},
+      {"id": "asx_aqlt_a200", "name_zh": "優質因子 ÷ 大市", "group": "structure", "roles": {"subject": "AQLT.AX", "benchmark": "A200.AX"},
+       "guide": {
+         "compare": "澳洲優質因子 ETF（盈利穩定、負債低的公司）對 ASX 200 ETF。",
+         "states": {"RISING": "市場偏好穩健公司，常見於經濟放緩或不確定時期。", "FALLING": "投機或低質素股票跑贏，風險偏好強。", "MIXED": "未有方向。"},
+         "signals": [
+           {"condition": "比率上升，同時「新興公司 ÷ ASX 200」下跌", "meaning": "資金由投機轉向質素。"},
+           {"condition": "比率下跌，同時「小型股 ÷ ASX 200」上升", "meaning": "風險偏好擴散。"}
+         ],
+         "caveat": "AQLT 在 2022 年上市，歷史較短。成分按規則定期調整。兩隻 ETF 都已按派息調整。",
+         "us_compare": "替代美國版 MTUM / SPY。澳洲沒有動量因子 ETF，改用優質因子。優質因子偏防守，動量因子跟隨趨勢，兩者的含義不同。"
+       }},
+      {"id": "asx_vhy_a200", "name_zh": "高息股 ÷ 大市", "group": "structure", "roles": {"subject": "VHY.AX", "benchmark": "A200.AX"},
+       "guide": {
+         "compare": "澳洲高息股 ETF 對 ASX 200 ETF。量度收息和防守需求。",
+         "states": {"RISING": "資金追逐收息和防守，常見於減息預期或市場波動時。", "FALLING": "增長股主導，收息不受重視。", "MIXED": "未有方向。"},
+         "signals": [
+           {"condition": "比率上升，同時「A-REIT ÷ ASX 200」也上升", "meaning": "收息需求主導。"},
+           {"condition": "比率上升，但「金融 ÷ 公用事業」也上升", "meaning": "可能只是 VHY 中的銀行股在帶動。"}
+         ],
+         "caveat": "VHY 中銀行和資源股的比重高，比率會受「銀行 ÷ 資源」輪動影響。兩隻 ETF 都已按派息調整。",
+         "us_compare": "美國版沒有對應組合。澳洲股息率高，加上股息抵免（franking），收息需求是澳股的重要資金來源。"
+       }},
+      {"id": "asx_cba_mvb", "name_zh": "CBA ÷ 銀行", "group": "structure", "roles": {"subject": "CBA.AX", "benchmark": "MVB.AX"}, "tag": "個股",
+       "guide": {
+         "compare": "聯邦銀行（CBA）對澳洲銀行 ETF。量度單一龍頭的擁擠程度。",
+         "states": {"RISING": "CBA 跑贏其他銀行，資金集中在一隻股票。", "FALLING": "資金由 CBA 轉向其他銀行，可能反映對 CBA 估值的憂慮。", "MIXED": "未有方向。"},
+         "signals": [
+           {"condition": "比率上升，同時「銀行 ÷ 資源」下跌", "meaning": "銀行板塊的強勢只靠 CBA。"},
+           {"condition": "比率急跌，同時 ASX 200 下跌", "meaning": "龍頭股獲利回吐，可能帶動大市回調。"}
+         ],
+         "caveat": "MVB 用上限權重，CBA 在 MVB 中的比重低於在銀行指數中的比重。用 ETF 而不用銀行指數，是為了與 CBA 一樣按派息調整。",
+         "us_compare": "對應美國版 AAPL / XLK 的做法：最大單一股票對所屬板塊。兩邊都已按派息調整。"
+       }},
+      {"id": "asx_bhp_qre", "name_zh": "BHP ÷ 資源", "group": "structure", "roles": {"subject": "BHP.AX", "benchmark": "QRE.AX"}, "tag": "個股",
+       "guide": {
+         "compare": "BHP 對 ASX 200 資源 ETF。龍頭對整個資源板塊。",
+         "states": {"RISING": "龍頭跑贏，資金偏好業務分散的大型礦業。", "FALLING": "中小型資源股（鋰、金、稀土等）跑贏 BHP。", "MIXED": "未有方向。"},
+         "signals": [
+           {"condition": "比率下跌，同時「新興公司 ÷ ASX 200」上升", "meaning": "資源板塊內的投機升溫。"},
+           {"condition": "比率上升，同時「鐵礦石 ÷ 黃金」上升", "meaning": "鐵礦石主導資源股行情。"}
+         ],
+         "caveat": "BHP 在 QRE 中的比重很大，比率的變動幅度會較小。兩者都已按派息調整。",
+         "us_compare": "對應美國版 NVDA / SMH 的做法：龍頭對所屬板塊。"
+       }}
+    ]
   }
 }

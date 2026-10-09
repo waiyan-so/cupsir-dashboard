@@ -38,7 +38,7 @@ def imports(path):
 
 def universe_tickers():
     universe = json.loads((ROOT / "config" / "universe.json").read_text(encoding="utf-8"))
-    return {t for scope in ("market", "sector", "pairs") for s in universe.get(scope, {}).get("subjects", [])
+    return {t for scope in ("market", "sector", "pairs", "asx_sector", "asx_pairs") for s in universe.get(scope, {}).get("subjects", [])
             for t in s["roles"].values()}
 
 
@@ -110,12 +110,17 @@ def test_5b_front_end_holds_no_pair_copy():
         return
     text = FRONT_END.read_text(encoding="utf-8")
     universe = json.loads((ROOT / "config" / "universe.json").read_text(encoding="utf-8"))
-    block = universe.get("pairs", {})
-    copy = list(block.get("groups", {}).values()) + list(block.get("state_conditions", {}).values())
-    for s in block.get("subjects", []):
-        g = s["guide"]
-        copy += [s["name_zh"], g["compare"], g.get("caveat", "")] + list(g["states"].values())
-        copy += [x for item in g.get("signals", []) for x in (item["condition"], item["meaning"])]
-        assert s["id"] not in text, f"breadth.js names pair {s['id']}"
+    copy = []
+    for scope in ("pairs", "asx_pairs"):
+        block = universe.get(scope, {})
+        copy += list(block.get("groups", {}).values()) + list(block.get("state_conditions", {}).values())
+        for s in block.get("subjects", []):
+            g = s["guide"]
+            copy += [s["name_zh"], g["compare"], g.get("caveat", ""), g.get("us_compare", ""), s.get("caption", "")]
+            copy += list(g["states"].values())
+            copy += [x for item in g.get("signals", []) for x in (item["condition"], item["meaning"])]
+            assert s["id"] not in text, f"breadth.js names pair {s['id']}"
+    for m in universe.get("ticker_meta", {}).values():
+        copy += [m.get("name", ""), m.get("code", "")]
     for sentence in filter(None, copy):
         assert sentence not in text, f"breadth.js contains pair copy: {sentence}"

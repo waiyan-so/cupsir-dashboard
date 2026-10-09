@@ -132,3 +132,18 @@ def test_too_few_usable_days_is_na_not_ok():
     subject, benchmark = _random_frames(n=230)
     benchmark.loc[benchmark.index[100:140], "close"] = 0.0      # 40 unusable days leave 190 < 205
     assert calc.run(defn, {"subject": subject, "benchmark": benchmark})["reason"] == "calc_error"
+
+
+# ---- single series (spec G.7): a subject without a benchmark is the ratio itself
+
+@pytest.mark.parametrize("series", [[1, 2, 3, 4, 5, 6, 7], [10, 9, 8, 7, 6, 5], [3, 5, 4, 6, 5, 7, 6, 5]])
+def test_single_series_equals_the_same_series_divided_by_one(series):
+    single = compute({"subject": frame(series)}, SMALL)
+    divided = compute({"subject": frame(series), "benchmark": frame([1.0] * len(series))}, SMALL)
+    assert single == divided
+
+
+def test_single_series_through_calc_run_with_only_the_subject_role():
+    d = dict(shipped_indicator("pair_trend"), inputs=["subject"], min_history_days=5, params=SMALL)
+    result = calc.run(d, {"subject": frame([1, 2, 3, 4, 5, 6, 7])})
+    assert result["status"] == "ok" and result["state"] == "RISING" and result["values"]["ratio"] == 7

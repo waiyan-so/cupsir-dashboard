@@ -15,24 +15,38 @@ browser, never a broken page.
 import json
 import re
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 # Each data source has its own roles and its own scopes (guide 5.3, S2-S5).
 SOURCES = ("prices", "cftc")
 DEFAULT_SOURCE = "prices"
 ROLES_OF_SOURCE = {"prices": ("subject", "equal_weight", "benchmark"), "cftc": ("positions",)}
-SCOPES_OF_SOURCE = {"prices": ("market", "sector", "pairs"), "cftc": ("cot",)}
+SCOPES_OF_SOURCE = {"prices": ("market", "sector", "pairs", "asx_sector", "asx_pairs"), "cftc": ("cot",)}
 ROLES = tuple(role for roles in ROLES_OF_SOURCE.values() for role in roles)
-SCOPES = ("market", "sector", "cot", "pairs")
+SCOPES = ("market", "sector", "cot", "pairs", "asx_sector", "asx_pairs")
 # Scopes every universe.json must have. "cot" and "pairs" are optional blocks.
 PRICE_SCOPES = ("market", "sector")
 COT_SCOPE = "cot"
 PAIRS_SCOPE = "pairs"
+# ASX scopes (spec G). Optional blocks; every ticker they use needs a ticker_meta entry.
+ASX_SECTOR_SCOPE = "asx_sector"
+ASX_PAIRS_SCOPE = "asx_pairs"
+ASX_SCOPES = (ASX_SECTOR_SCOPE, ASX_PAIRS_SCOPE)
+# Scopes that are lists of ratio pairs.
+PAIR_SCOPES = (PAIRS_SCOPE, ASX_PAIRS_SCOPE)
+# Scopes that are tables of sectors: ranked against each other, sorted by their own table entry.
+SECTOR_TABLES = {"sector": "sector_table", ASX_SECTOR_SCOPE: "asx_sector_table"}
+# When a ticker's daily bar counts as finished (spec G.5). Same names as collect/prices.py.
+CALENDAR_RULES = ("session_close", "previous_day")
+TIME_PATTERN = re.compile(r"^([01][0-9]|2[0-3]):[0-5][0-9]$")
+# What kind of series a ticker is; the page shows a label for each (ui_labels.source_kind_<kind>).
+SOURCE_KINDS = ("price_index", "adjusted", "futures", "fx")
 # A pair divides its subject (numerator) by its benchmark (denominator).
 PAIR_ROLES = ("subject", "benchmark")
 COMPONENTS = ("status_card", "table_column")
 # Where each component can appear: cards on the market tab, columns in a table.
 COMPONENT_OF_SCOPE = {"market": "status_card", "sector": "table_column", "cot": "table_column",
-                      "pairs": "table_column"}
+                      "pairs": "table_column", ASX_SECTOR_SCOPE: "table_column", ASX_PAIRS_SCOPE: "table_column"}
 FORMATS = ("state_chip", "count", "rank", "pct", "signed_pct", "percentile", "number")
 CHART_TYPES = ("line", "price_with_ma", "line_with_markers")
 TONE_RULE_TYPES = ("state_map", "sign", "bands")
@@ -200,42 +214,56 @@ def _validate_guide(where, guide, state_names):
         _need(isinstance(item, dict) and _is_str(item.get("condition")) and _is_str(item.get("meaning")),
               where, f"guide.signals[{i}]", "格式是 {condition, meaning}，兩者都是非空字串")
         _check_text(where, f"guide.signals[{i}]", [item["condition"], item["meaning"]])
-    if "caveat" in guide:
-        _need(_is_str(guide["caveat"]), where, "guide.caveat", "必須是非空字串")
-        _check_text(where, "guide.caveat", guide["caveat"])
+    for key in ("caveat", "us_compare"):          # us_compare: how an ASX pair differs from the US list
+        if key in guide:
+            _need(_is_str(guide[key]), where, f"guide.{key}", "必須是非空字串")
+            _check_text(where, f"guide.{key}", guide[key])
 
 
-def _validate_pairs_universe(universe_cfg):
-    """The pairs scope is optional. Each subject is one ratio: subject (numerator) / benchmark
-    (denominator), with a group, an optional tag, optional chart levels and a reading guide."""
-    block = universe_cfg.get(PAIRS_SCOPE)
+def _validate_pairs_universe(universe_cfg, scope=PAIRS_SCOPE):
+    """A pairs scope is optional. Each subject is one ratio: subject (numerator) / benchmark
+    (denominator), with a group, an optional tag, optional chart levels and a reading guide.
+    `"single": true` marks a series that is a ratio already (an exchange rate, spec G.7): it has
+    a subject only, and a `caption` to show in place of "A / B"."""
+    block = universe_cfg.get(scope)
     if block is None:
         return
     _need(isinstance(block, dict) and isinstance(block.get("subjects"), list),
-          "universe", f"{PAIRS_SCOPE}.subjects", "必須是清單")
+          "universe", f"{scope}.subjects", "必須是清單")
     groups = block.get("groups")
     _need(isinstance(groups, dict) and groups and all(_is_str(v) for v in groups.values()),
-          "universe", f"{PAIRS_SCOPE}.groups", "必填，「組別 id: 顯示名稱」")
-    _check_text("universe", f"{PAIRS_SCOPE}.groups", list(groups.values()))
-    _validate_text_map("universe", f"{PAIRS_SCOPE}.state_conditions", block.get("state_conditions"))
+          "universe", f"{scope}.groups", "必填，「組別 id: 顯示名稱」")
+    _check_text("universe", f"{scope}.groups", list(groups.values()))
+    _validate_text_map("universe", f"{scope}.state_conditions", block.get("state_conditions"))
     state_names = set(block["state_conditions"])
     seen = set()
     for i, s in enumerate(block["subjects"]):
-        where = f"universe.{PAIRS_SCOPE}.subjects[{i}]"
+        where = f"universe.{scope}.subjects[{i}]"
         _need(isinstance(s, dict), where, "", "必須是物件")
         _need(_is_id(s.get("id")), where, "id", "必填，只可以用小寫英文字母、數字和底線")
-        where = f"universe.{PAIRS_SCOPE}.{s['id']}"
+        where = f"universe.{scope}.{s['id']}"
         _need(s["id"] not in seen, where, "id", "id 重複")
         seen.add(s["id"])
         _need(_is_str(s.get("name_zh")), where, "name_zh", "必填")
         _check_text(where, "name_zh", s["name_zh"])
         _need(isinstance(s.get("group"), str) and s["group"] in groups, where, "group", f"只可以是 {list(groups)}")
+        single = s.get("single", False)
+        _need(isinstance(single, bool), where, "single", "必須是 true 或 false")
         roles = s.get("roles")
-        _need(isinstance(roles, dict) and set(roles) == set(PAIR_ROLES), where, "roles",
-              f"必須剛好有 {list(PAIR_ROLES)} 兩個角色（分子、分母）")
+        if single:
+            _need(isinstance(roles, dict) and set(roles) == {"subject"}, where, "roles",
+                  "single 的組合只可以有 subject 一個角色")
+            _need(_is_str(s.get("caption")), where, "caption", "single 的組合必填，例如「AUD/JPY」")
+        else:
+            _need(isinstance(roles, dict) and set(roles) == set(PAIR_ROLES), where, "roles",
+                  f"必須剛好有 {list(PAIR_ROLES)} 兩個角色（分子、分母）")
         for role, ticker in roles.items():
             _need(_is_str(ticker), where, f"roles.{role}", "ticker 必須是非空字串")
-        _need(roles["subject"] != roles["benchmark"], where, "roles", "分子和分母不可以是同一個 ticker")
+        if not single:
+            _need(roles["subject"] != roles["benchmark"], where, "roles", "分子和分母不可以是同一個 ticker")
+        if "caption" in s:
+            _need(_is_str(s["caption"]), where, "caption", "必須是非空字串")
+            _check_text(where, "caption", s["caption"])
         if "tag" in s:
             _need(_is_str(s["tag"]), where, "tag", "必須是非空字串")
             _check_text(where, "tag", s["tag"])
@@ -245,31 +273,89 @@ def _validate_pairs_universe(universe_cfg):
         _validate_guide(where, s.get("guide"), state_names)
 
 
+def _validate_price_subjects(universe_cfg, scope):
+    block = universe_cfg.get(scope)
+    _need(isinstance(block, dict) and isinstance(block.get("subjects"), list),
+          "universe", f"{scope}.subjects", "必須是清單")
+    seen = set()
+    for i, s in enumerate(block["subjects"]):
+        where = f"universe.{scope}.subjects[{i}]"
+        _need(isinstance(s, dict), where, "", "必須是物件")
+        _need(_is_id(s.get("id")), where, "id", "必填，只可以用小寫英文字母、數字和底線")
+        where = f"universe.{scope}.{s['id']}"
+        _need(s["id"] not in seen, where, "id", "id 重複")
+        seen.add(s["id"])
+        _need(_is_str(s.get("name_zh")), where, "name_zh", "必填")
+        _check_text(where, "name_zh", s["name_zh"])
+        roles = s.get("roles")
+        _need(isinstance(roles, dict) and roles, where, "roles", "必填，而且不可為空")
+        for role, ticker in roles.items():
+            _need(role in ROLES_OF_SOURCE["prices"], where, f"roles.{role}",
+                  f"角色名只可以是 {list(ROLES_OF_SOURCE['prices'])}")
+            _need(_is_str(ticker), where, f"roles.{role}", "ticker 必須是非空字串")
+        _need("subject" in roles, where, "roles.subject", "每個標的至少要有 subject 角色")
+
+
+def _validate_calendars(universe_cfg):
+    """calendars: {name: rule}. Optional; needed as soon as ticker_meta names one."""
+    calendars = universe_cfg.get("calendars", {})
+    _need(isinstance(calendars, dict), "universe", "calendars", "必須是物件")
+    for name, rule in calendars.items():
+        where = f"universe.calendars.{name}"
+        _need(_is_id(name), where, "", "名稱只可以用小寫英文字母、數字和底線")
+        _need(isinstance(rule, dict), where, "", "必須是物件")
+        _need(rule.get("rule") in CALENDAR_RULES, where, "rule", f"只可以是 {list(CALENDAR_RULES)}")
+        _need(_is_str(rule.get("tz")), where, "tz", "必填，IANA 時區名稱，例如 Australia/Sydney")
+        try:
+            ZoneInfo(rule["tz"])
+        except Exception:  # noqa: BLE001 - any failure means the name is unusable
+            raise RegistryError(where, "tz", f"「{rule['tz']}」不是有效的時區名稱") from None
+        if rule["rule"] == "session_close":
+            _need(isinstance(rule.get("final_after"), str) and TIME_PATTERN.match(rule["final_after"]),
+                  where, "final_after", "session_close 必填，格式 HH:MM")
+    return calendars
+
+
+def _validate_ticker_meta(universe_cfg, calendars):
+    """ticker_meta: {ticker: {calendar, kind, code?, name?}}. Optional for the US scopes,
+    required for every ticker an ASX scope uses (the page shows where each number comes from)."""
+    meta = universe_cfg.get("ticker_meta", {})
+    _need(isinstance(meta, dict), "universe", "ticker_meta", "必須是物件")
+    for ticker, m in meta.items():
+        where = f"universe.ticker_meta.{ticker}"
+        _need(_is_str(ticker), "universe", "ticker_meta", "代號必須是非空字串")
+        _need(isinstance(m, dict), where, "", "必須是物件")
+        _need(isinstance(m.get("calendar"), str) and m["calendar"] in calendars, where, "calendar",
+              f"只可以是 universe.calendars 已列出的名稱 {sorted(calendars)}")
+        _need(m.get("kind") in SOURCE_KINDS, where, "kind", f"只可以是 {list(SOURCE_KINDS)}")
+        for key in ("code", "name"):
+            if key in m:
+                _need(_is_str(m[key]), where, key, "必須是非空字串")
+                _check_text(where, key, m[key])
+    for scope in ASX_SCOPES:
+        for s in subjects(universe_cfg, scope):
+            for role, ticker in s["roles"].items():
+                _need(ticker in meta, f"universe.{scope}.{s['id']}", f"roles.{role}",
+                      f"「{ticker}」沒有 universe.ticker_meta 條目（ASX 範圍的每一隻代號都要有）")
+
+
+def ticker_rules(universe_cfg):
+    """{ticker: finished-bar rule} for every ticker with a ticker_meta entry (spec G.5)."""
+    calendars = universe_cfg.get("calendars", {})
+    return {ticker: calendars[m["calendar"]] for ticker, m in universe_cfg.get("ticker_meta", {}).items()}
+
+
 def validate_universe(universe_cfg):
     _need(isinstance(universe_cfg, dict), "universe", "", "頂層必須是物件")
     _validate_cot_universe(universe_cfg)
-    _validate_pairs_universe(universe_cfg)
+    for scope in PAIR_SCOPES:
+        _validate_pairs_universe(universe_cfg, scope)
     for scope in PRICE_SCOPES:
-        block = universe_cfg.get(scope)
-        _need(isinstance(block, dict) and isinstance(block.get("subjects"), list),
-              "universe", f"{scope}.subjects", "必須是清單")
-        seen = set()
-        for i, s in enumerate(block["subjects"]):
-            where = f"universe.{scope}.subjects[{i}]"
-            _need(isinstance(s, dict), where, "", "必須是物件")
-            _need(_is_id(s.get("id")), where, "id", "必填，只可以用小寫英文字母、數字和底線")
-            where = f"universe.{scope}.{s['id']}"
-            _need(s["id"] not in seen, where, "id", "id 重複")
-            seen.add(s["id"])
-            _need(_is_str(s.get("name_zh")), where, "name_zh", "必填")
-            _check_text(where, "name_zh", s["name_zh"])
-            roles = s.get("roles")
-            _need(isinstance(roles, dict) and roles, where, "roles", "必填，而且不可為空")
-            for role, ticker in roles.items():
-                _need(role in ROLES_OF_SOURCE["prices"], where, f"roles.{role}",
-                      f"角色名只可以是 {list(ROLES_OF_SOURCE['prices'])}")
-                _need(_is_str(ticker), where, f"roles.{role}", "ticker 必須是非空字串")
-            _need("subject" in roles, where, "roles.subject", "每個標的至少要有 subject 角色")
+        _validate_price_subjects(universe_cfg, scope)
+    if universe_cfg.get(ASX_SECTOR_SCOPE) is not None:
+        _validate_price_subjects(universe_cfg, ASX_SECTOR_SCOPE)
+    calendars = _validate_calendars(universe_cfg)
+    _validate_ticker_meta(universe_cfg, calendars)
 
 
 # ---------------------------------------------------------------- indicators
@@ -337,6 +423,8 @@ def _validate_scope(entry, scope, block, universe_cfg):
         _need(universe_cfg.get(COT_SCOPE) is not None, entry, field, "universe.json 沒有 cot 範圍")
     if scope == PAIRS_SCOPE:
         _need(universe_cfg.get(PAIRS_SCOPE) is not None, entry, field, "universe.json 沒有 pairs 範圍")
+    if scope in ASX_SCOPES:
+        _need(universe_cfg.get(scope) is not None, entry, field, f"universe.json 沒有 {scope} 範圍")
 
 
 def _validate_indicator(iid, d, universe_cfg, calculators):
@@ -399,7 +487,8 @@ def _validate_indicator(iid, d, universe_cfg, calculators):
     if "cross_section" in d:
         cs = d["cross_section"]
         _need(isinstance(cs, list), entry, "cross_section", "必須是清單")
-        _need("sector" in d["scopes"], entry, "cross_section", "只適用於有 sector 範圍的指標")
+        _need(any(scope in d["scopes"] for scope in SECTOR_TABLES), entry, "cross_section",
+              f"只適用於有 {list(SECTOR_TABLES)} 範圍的指標")
         for i, op in enumerate(cs):
             where = f"cross_section[{i}]"
             _need(isinstance(op, dict), entry, where, "必須是物件")
@@ -460,11 +549,12 @@ def validate(indicators_cfg, universe_cfg, calculators):
                   f"order {order} 與「{seen.get(order)}」重複")
             seen[order] = iid
 
-    # Rule 6: the sector table's default sort points at an enabled sector indicator.
-    sector_ids = {iid for iid, _ in enabled_indicators(indicators_cfg, "sector")}
-    if sector_ids:
-        table = indicators_cfg.get("sector_table")
-        _need(isinstance(table, dict), "sector_table", "", "有板塊範圍指標時必填")
-        _validate_sort("sector_table", "default_sort", table.get("default_sort"), sector_ids)
-        if table.get("tie_break") is not None:
-            _validate_sort("sector_table", "tie_break", table["tie_break"], sector_ids)
+    # Rule 6: each sector table's default sort points at an enabled indicator of that scope.
+    for scope, table_key in SECTOR_TABLES.items():
+        sector_ids = {iid for iid, _ in enabled_indicators(indicators_cfg, scope)}
+        if sector_ids:
+            table = indicators_cfg.get(table_key)
+            _need(isinstance(table, dict), table_key, "", f"有 {scope} 範圍指標時必填")
+            _validate_sort(table_key, "default_sort", table.get("default_sort"), sector_ids)
+            if table.get("tie_break") is not None:
+                _validate_sort(table_key, "tie_break", table["tie_break"], sector_ids)
