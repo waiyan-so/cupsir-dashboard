@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-08 15:10 UTC",
+  "updated_at": "2026-10-09 00:03 UTC",
   "overall_signal": "BULLISH",
   "total_score": 5,
   "category_labels": {
@@ -171,9 +171,9 @@
       "category": "macro",
       "name": "10Y-2Y Treasury Spread",
       "name_zh": "十年減兩年孳息差",
-      "value": 0.51,
+      "value": 0.47,
       "unit": "%",
-      "data_date": "2026-10-07",
+      "data_date": "2026-10-08",
       "signal": "NORMAL",
       "signal_color": "positive",
       "interpretation": "CupSir 框架分類：NORMAL。",
@@ -189,10 +189,6 @@
         "target": "T10Y2Y"
       },
       "history": [
-        {
-          "date": "2026-08-26",
-          "value": 0.47
-        },
         {
           "date": "2026-08-27",
           "value": 0.47
@@ -308,6 +304,10 @@
         {
           "date": "2026-10-07",
           "value": 0.51
+        },
+        {
+          "date": "2026-10-08",
+          "value": 0.47
         }
       ],
       "chart": {
@@ -479,7 +479,7 @@
       "category": "macro",
       "name": "Atlanta Fed GDPNow",
       "name_zh": "GDPNow 實時預估",
-      "value": 3.684,
+      "value": 3.586,
       "unit": "%",
       "data_date": "2026 年第三季",
       "signal": "STRONG",
@@ -615,7 +615,7 @@
         },
         {
           "date": "2026-07-01",
-          "value": 3.6844
+          "value": 3.5862
         }
       ],
       "chart": {
@@ -634,9 +634,9 @@
       "category": "market",
       "name": "CBOE Volatility Index",
       "name_zh": "VIX 波動率指數",
-      "value": 15.08,
+      "value": 15.41,
       "unit": "",
-      "data_date": "2026-10-07",
+      "data_date": "2026-10-08",
       "signal": "NEUTRAL",
       "signal_color": "positive",
       "interpretation": "CupSir 框架分類：NEUTRAL。",
@@ -652,10 +652,6 @@
         "target": "TVC:VIX"
       },
       "history": [
-        {
-          "date": "2026-08-27",
-          "value": 14.51
-        },
         {
           "date": "2026-08-28",
           "value": 14.43
@@ -771,6 +767,10 @@
         {
           "date": "2026-10-07",
           "value": 15.08
+        },
+        {
+          "date": "2026-10-08",
+          "value": 15.41
         }
       ],
       "chart": {
