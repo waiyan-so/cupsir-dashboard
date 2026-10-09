@@ -1,19 +1,5 @@
 [
   {
-    "title": "CNBC Daily Open: Another Fed hike is on the horizon — but when?",
-    "source": "CNBC",
-    "url": "https://www.cnbc.com/2026/10/08/fed-hike-inflation-samsung-lululemon-iea-oil.html",
-    "published_at": "2026-10-08T01:11:32Z",
-    "summary": "Another hike from the U.S. Fed is on the way, after meeting minutes released Wednesday showed officials expect to increase interest rates before year-end."
-  },
-  {
-    "title": "Inside India newsletter: Food crisis, economic shock ahead as India braces for El Niño",
-    "source": "CNBC",
-    "url": "https://www.cnbc.com/2026/10/08/el-nino-food-economy-crisis-india.html",
-    "published_at": "2026-10-08T00:14:40Z",
-    "summary": "The super El Niño weather phenomenon is emerging as the latest headwind for the Indian economy."
-  },
-  {
     "title": "Trump trade chief Greer reports higher cash holdings as law firm pay topped $650K",
     "source": "CNBC",
     "url": "https://www.cnbc.com/2026/10/07/jamieson-greer-financial-disclosure-coupang.html",
@@ -54,5 +40,19 @@
     "url": "https://www.cnbc.com/2026/10/07/trump-red-dye-offroad-diesel-price-iran-ukraine-war-midterm.html",
     "published_at": "2026-10-07T18:09:33Z",
     "summary": "President Trump's order comes amid mounting political pressure to take action on surging diesel prices, with the midterm elections only a month away."
+  },
+  {
+    "title": "Fed officials see another hike coming, but no sign as to when, minutes show",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/2026/10/07/fed-officials-see-another-hike-coming-but-no-sign-as-to-when-minutes-show.html",
+    "published_at": "2026-10-07T18:07:09Z",
+    "summary": "The Federal Reserve on Wednesday released minutes from its Sept. 15-16 policy meeting."
+  },
+  {
+    "title": "High Treasury yields: Stocks vs. bonds for investors",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/make-it/2026/10/07/stocks-vs-bonds-treasury-yields.html",
+    "published_at": "2026-10-07T17:12:16Z",
+    "summary": "Higher Treasury yields are giving investors more choices beyond stocks. Financial planners explain how time horizon should shape your asset mix."
   }
 ]
