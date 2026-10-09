@@ -13,6 +13,9 @@ ratio is welcome for some pairs and a warning for others.
 Ratios can be of any size (copper / gold is about 0.0016), so the output is
 rounded to significant figures, not to a fixed number of decimals.
 
+A subject handed in without a benchmark is read as the ratio itself: an
+exchange rate such as AUD/JPY is already "one currency / another".
+
 A day on which either close is zero, negative or missing gives no usable ratio
 (it would be 0 or infinite and distort every average around it). Such a day is
 left out, as a missing day is. If too few days remain, or the state cannot be
@@ -40,7 +43,8 @@ def _change_pct(series, window):
 
 @calculator("ratio_trend", params=PARAMS)
 def compute(frames, params):
-    ratio = frames["subject"]["close"] / frames["benchmark"]["close"]
+    # A series that is a ratio already (an exchange rate, spec G.7) comes without a benchmark.
+    ratio = frames["subject"]["close"] / frames["benchmark"]["close"] if "benchmark" in frames else frames["subject"]["close"]
     ratio = ratio[np.isfinite(ratio) & (ratio > 0)]
     if len(ratio) < max(params["slow"] + params["slope_window"], params["long_window"] + 1):
         raise ValueError(f"only {len(ratio)} days with a usable ratio")

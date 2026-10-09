@@ -257,7 +257,7 @@
   /*
    * Where a row's numbers come from (rows that carry `sources`, i.e. the ASX tab). Every word
    * is data: tickers, index codes and names from the file, kind labels from ui_labels.
-   *   short - under the row's name: "^AXEJ · XEJ · <kind>", or for a pair "<caption> · <kind>"
+   *   short - under the row's name: "<ticker> · <code> · <kind>", or for a pair "<caption> · <kind>"
    *   full  - the detail panel: each role's name (code), ticker and kind; a sector's benchmark
    *           follows under ui_labels.source_benchmark, a pair's two sides are joined by "÷".
    */
@@ -299,6 +299,7 @@
       ${states ? `<div class="guide-states">${states}</div>` : ''}
       ${signals ? `<h4>${esc(labels.guide_signals || '')}</h4><ul class="guide-signals">${signals}</ul>` : ''}
       ${guide.caveat ? `<p class="guide-caveat"><b>${esc(labels.guide_caveat || '')}</b>　${esc(guide.caveat)}</p>` : ''}
+      ${guide.us_compare ? `<p class="guide-caveat guide-us"><b>${esc(labels.guide_us_compare || '')}</b>　${esc(guide.us_compare)}</p>` : ''}
     </div>`;
   }
 
@@ -604,6 +605,7 @@
     // An added tab: its button stays hidden until one of its files has loaded with rows in it,
     // so the page looks exactly as before until the first data refresh that writes the files.
     { file: 'data/asx_sectors.json', box: '#asxTable', tab: 'asx', sourceNote: { box: '#asxSource', label: 'asx_source_note' }, render: p => renderRows(p, { toggle: '#asxView', split: '#asxSplit', table: '#asxTable', detail: '#asxDetail', nameLabel: 'asx_sector_column', note: 'asx_volume_note', remember: 'asx_sectors' }) },
+    { file: 'data/asx_pairs.json', box: '#asxPairTable', tab: 'asx', panel: '#asxPairPanel', sourceNote: { box: '#asxSource', label: 'asx_source_note' }, render: p => renderRows(p, { toggle: '#asxPairView', split: '#asxPairSplit', table: '#asxPairTable', detail: '#asxPairDetail', heading: '#asxPairHeading', title: 'asx_pair_heading', nameLabel: 'pair_column', note: 'asx_pair_note', remember: 'asx_pairs' }) },
   ];
 
   function showTab(name) {

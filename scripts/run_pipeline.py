@@ -35,6 +35,7 @@ SECTOR_FILE = "sectors.json"
 COT_FILE = "cot.json"
 PAIRS_FILE = "pairs.json"
 ASX_SECTOR_FILE = "asx_sectors.json"
+ASX_PAIRS_FILE = "asx_pairs.json"
 
 EXIT_OK, EXIT_NO_DATA, EXIT_BAD_CONFIG = 0, 1, 2
 
@@ -138,28 +139,38 @@ def build_cot(universe, indicators_cfg, indicators, store):
     return {"meta": meta, "rows": rows}, cells
 
 
-def _pair_tickers(universe, indicators):
+def _pair_tickers(universe, indicators, scope="pairs"):
     roles_needed = {role for _, d in indicators for role in d["inputs"]}
-    return {ticker for s in registry.subjects(universe, "pairs")
+    return {ticker for s in registry.subjects(universe, scope)
             for role, ticker in s["roles"].items() if role in roles_needed}
 
 
-def build_pairs(universe, indicators_cfg, indicators, store):
+def _for_subject(d, subject):
+    """A single-series pair (spec G.7) has no benchmark: its indicators read the subject only."""
+    if not subject.get("single"):
+        return d
+    return dict(d, inputs=[role for role in d["inputs"] if role in subject["roles"]])
+
+
+def build_pairs(universe, indicators_cfg, indicators, store, scope="pairs"):
     """One row per ratio pair (subject / benchmark). Pairs are not ranked against each other,
     so, as for COT, the orchestrator calls the calculation layer directly. The reading guide,
     tag and chart levels are passed through from universe.json for the page to show."""
-    block = universe.get("pairs", {})
+    block = universe.get(scope, {})
     rows = []
-    for subject in registry.subjects(universe, "pairs"):
+    for subject in registry.subjects(universe, scope):
         frames = _frames_for(subject, store)
-        results = {iid: calc.run(d, frames) for iid, d in indicators}
+        results = {iid: calc.run(_for_subject(d, subject), frames) for iid, d in indicators}
+        roles = subject["roles"]
+        caption = subject.get("caption") or (roles["subject"] if subject.get("single")
+                                             else f"{roles['subject']} / {roles['benchmark']}")
         row = {"id": subject["id"], "name_zh": subject["name_zh"], "group": subject["group"],
-               "tickers": dict(subject["roles"]),
-               "caption": f"{subject['roles']['subject']} / {subject['roles']['benchmark']}",
-               "guide": subject["guide"], "results": results}
+               "tickers": dict(roles), "caption": caption, "guide": subject["guide"], "results": results}
         for optional in ("tag", "levels"):
             if optional in subject:
                 row[optional] = subject[optional]
+        if scope in registry.ASX_SCOPES:
+            row["sources"] = _sources(universe, roles)
         rows.append(row)
     meta = {
         "ui_labels": indicators_cfg["ui_labels"],
@@ -167,7 +178,7 @@ def build_pairs(universe, indicators_cfg, indicators, store):
         "tie_break": None,
         "groups": block.get("groups", {}),
         "state_conditions": block.get("state_conditions", {}),
-        "indicators": _meta_indicators(indicators, "pairs"),
+        "indicators": _meta_indicators(indicators, scope),
     }
     cells = [(iid, row["id"], row["results"][iid]) for row in rows for iid, _ in indicators]
     return {"meta": meta, "rows": rows}, cells
@@ -307,11 +318,13 @@ def main(argv=None, data_dir=DATA_DIR, config_dir=CONFIG_DIR, fetch=None, fetch_
     cot_inds = registry.enabled_indicators(indicators_cfg, "cot")
     pair_inds = registry.enabled_indicators(indicators_cfg, "pairs")
     asx_sector_inds = registry.enabled_indicators(indicators_cfg, registry.ASX_SECTOR_SCOPE)
+    asx_pair_inds = registry.enabled_indicators(indicators_cfg, registry.ASX_PAIRS_SCOPE)
 
     # 2-3. Work out what each source must deliver and fetch every item once.
     tickers = (_market_tickers(universe, market_inds) | sectors.required_tickers(universe, sector_inds)
                | _pair_tickers(universe, pair_inds)
-               | sectors.required_tickers(universe, asx_sector_inds, registry.ASX_SECTOR_SCOPE))
+               | sectors.required_tickers(universe, asx_sector_inds, registry.ASX_SECTOR_SCOPE)
+               | _pair_tickers(universe, asx_pair_inds, registry.ASX_PAIRS_SCOPE))
     # Each ticker's own finished-bar rule (spec G.5); tickers without one keep the US rule.
     rules = registry.ticker_rules(universe)
     codes = {s["cftc_code"] for s in registry.subjects(universe, "cot")} if cot_inds else set()
@@ -335,6 +348,8 @@ def main(argv=None, data_dir=DATA_DIR, config_dir=CONFIG_DIR, fetch=None, fetch_
         ("pairs", PAIRS_FILE, build_pairs, pair_inds, store),
         (registry.ASX_SECTOR_SCOPE, ASX_SECTOR_FILE,
          functools.partial(build_sectors, scope=registry.ASX_SECTOR_SCOPE), asx_sector_inds, store),
+        (registry.ASX_PAIRS_SCOPE, ASX_PAIRS_FILE,
+         functools.partial(build_pairs, scope=registry.ASX_PAIRS_SCOPE), asx_pair_inds, store),
     ):
         body, cells = builder(universe, indicators_cfg, inds, source)
         if scope == "market":

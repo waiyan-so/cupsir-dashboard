@@ -22,7 +22,7 @@ Each run:
 
 1. Builds the 14-day economic calendar (`data/events.json`).
 2. Fetches news (`data/news.json`).
-3. Builds the market breadth, sector, COT, ratio-pair and ASX sector data (`data/market_breadth.json`, `data/sectors.json`, `data/cot.json`, `data/pairs.json`, `data/asx_sectors.json`).
+3. Builds the market breadth, sector, COT, ratio-pair and ASX sector data (`data/market_breadth.json`, `data/sectors.json`, `data/cot.json`, `data/pairs.json`, `data/asx_sectors.json`, `data/asx_pairs.json`).
 4. Builds the 13 indicators and the overall signal (`data/dashboard.json`), then the summary (`data/summary.json`). The five COT indicators are read from `data/cot.json`, so they always match the COT tab.
 5. Commits `data/` and pushes. The deploy workflow then publishes the page.
 
@@ -104,7 +104,14 @@ Every ticker used by an ASX block needs an entry in `ticker_meta` (`universe.jso
 - `kind`: what the series is - `price_index` (no dividends), `adjusted` (adjusted for dividends), `futures` or `fx`. The page shows the matching `source_kind_*` label from `ui_labels`.
 - `code` and `name` (optional): the ASX index code and full name, shown with the ticker.
 
-The note at the top of the tab is `ui_labels.asx_source_note`; the note under the table, `asx_volume_note`, says that an ASX sector index's volume is the share volume of its constituents. The tab button stays hidden until `data/asx_sectors.json` has rows, and nothing on it counts toward the overall score.
+Under the sectors, the tab lists 22 Australian ratio pairs: the `asx_pairs` block of `universe.json`, built like the `pairs` block. Two additions:
+
+- `"single": true` with a `caption` marks a series that is a ratio already (AUD/JPY): it has `roles.subject` only, and its chart is the rate itself.
+- `guide.us_compare` says how the pair differs from the US list (which US pair it replaces, or that it is new). The page shows it under the guide.
+
+Both sides of a pair are of the same kind (two price indices, or two series adjusted for dividends), so dividends do not tilt the ratio.
+
+The note at the top of the tab is `ui_labels.asx_source_note`; the note under the table, `asx_volume_note`, says that an ASX sector index's volume is the share volume of its constituents. The tab button stays hidden until `data/asx_sectors.json` or `data/asx_pairs.json` has rows, and nothing on it counts toward the overall score.
 
 `python scripts/run_pipeline.py --dry-run` checks the configuration and runs everything without writing files.
 

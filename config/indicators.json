@@ -31,7 +31,10 @@
     "guide_caveat": "留意",
     "tab_asx": "ASX 板塊",
     "asx_sector_column": "板塊",
-    "asx_source_note": "數據來源：Yahoo Finance 日線。板塊數據用 S&P/ASX 200 的 GICS 板塊指數，屬價格指數，未計股息，與「板塊」分頁所用的美國板塊 ETF 不同。數據以悉尼時間收市為準，通常比 ASX 收市遲一個晚上更新。這些數值不計入總分。",
+    "asx_source_note": "數據來源：Yahoo Finance 日線。板塊數據用 S&P/ASX 200 的 GICS 板塊指數，屬價格指數，未計股息，與「板塊」分頁所用的美國板塊 ETF 不同。比率組合中的 ETF 和股票已按股息調整，期貨用連續合約，AUD/JPY 是匯率。每行都註明代號和數據性質。數據以悉尼時間收市為準，通常比 ASX 收市遲一個晚上更新。這些數值不計入總分。",
+    "asx_pair_heading": "ASX 相對強度比率組合",
+    "asx_pair_note": "比率是兩個標的收市價相除（AUD/JPY 是匯率本身），只反映兩者的相對表現，不是買賣訊號。指數是價格指數，未計股息；ETF 和股票已按股息調整；同一個組合的兩邊用同一種口徑。比率上升是好是壞要視乎組合，請看每個組合的解讀和「與美國版的分別」。這些數值不計入總分。",
+    "guide_us_compare": "與美國版的分別",
     "asx_volume_note": "ASX 板塊的成交量是成分股成交股數的加總，低價股的影響較大，與美國板塊 ETF 的成交量口徑不同。",
     "source_column": "代號",
     "source_benchmark": "基準",
@@ -183,7 +186,11 @@
         "pairs": {"component": "table_column", "order": 10, "column_label": "比率趨勢／距 200 日線", "value_key": "state", "format": "state_chip",
                   "secondary_key": "vs_sma200_pct", "secondary_format": "signed_pct",
                   "sort_order": ["RISING", "MIXED", "FALLING"],
-                  "list": {"order": 10, "value_key": "state", "format": "state_chip"}}
+                  "list": {"order": 10, "value_key": "state", "format": "state_chip"}},
+        "asx_pairs": {"component": "table_column", "order": 10, "column_label": "比率趨勢／距 200 日線", "value_key": "state", "format": "state_chip",
+                      "secondary_key": "vs_sma200_pct", "secondary_format": "signed_pct",
+                      "sort_order": ["RISING", "MIXED", "FALLING"],
+                      "list": {"order": 10, "value_key": "state", "format": "state_chip"}}
       },
       "detail_chart": {"type": "price_with_ma", "series": ["ratio", "sma50", "sma200"]},
       "value_labels": {"ratio": "比率", "sma21": "21 日線", "sma50": "50 日線", "sma200": "200 日線",
@@ -203,7 +210,10 @@
       "scopes": {
         "pairs": {"component": "table_column", "order": 20, "column_label": "比率變化 63D／21D", "value_key": "change_63d_pct", "format": "signed_pct",
                   "secondary_key": "change_21d_pct", "secondary_format": "signed_pct",
-                  "list": {"order": 20, "value_key": "change_63d_pct", "format": "signed_pct"}}
+                  "list": {"order": 20, "value_key": "change_63d_pct", "format": "signed_pct"}},
+        "asx_pairs": {"component": "table_column", "order": 20, "column_label": "比率變化 63D／21D", "value_key": "change_63d_pct", "format": "signed_pct",
+                      "secondary_key": "change_21d_pct", "secondary_format": "signed_pct",
+                      "list": {"order": 20, "value_key": "change_63d_pct", "format": "signed_pct"}}
       },
       "detail_chart": null,
       "value_labels": {"change_21d_pct": "21 日變化（%）", "change_63d_pct": "63 日變化（%）"},

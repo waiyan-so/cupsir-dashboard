@@ -13,8 +13,8 @@ from helpers import ROOT
 
 ENVELOPE = set(calc.RESULT_KEYS)
 MARKET, SECTORS, COT, PAIRS = "market_breadth.json", "sectors.json", "cot.json", "pairs.json"
-ASX_SECTORS = "asx_sectors.json"
-NEW_FILES = (MARKET, SECTORS, COT, PAIRS, ASX_SECTORS)
+ASX_SECTORS, ASX_PAIRS = "asx_sectors.json", "asx_pairs.json"
+NEW_FILES = (MARKET, SECTORS, COT, PAIRS, ASX_SECTORS, ASX_PAIRS)
 
 
 def run(tmp_path, *argv, data=None):
@@ -647,3 +647,65 @@ def test_the_live_fetch_gets_each_tickers_rule(tmp_path, monkeypatch):
         assert seen["rules"][ticker] == universe["calendars"]["asx"]
     us_sector = universe["sector"]["subjects"][0]["roles"]["subject"]
     assert us_sector in seen["tickers"] and us_sector not in seen["rules"]
+
+
+# ---- ASX pairs (spec G.6, G.7)
+
+def test_asx_pairs_file_shape(tmp_path, offline_dir):
+    code, data = run(tmp_path, "--offline", str(offline_dir))
+    assert code == 0
+    payload, universe = load(data, ASX_PAIRS), _universe()
+    block = universe["asx_pairs"]
+    meta = payload["meta"]
+    assert meta["groups"] == block["groups"] and meta["state_conditions"] == block["state_conditions"]
+    assert [i["id"] for i in meta["indicators"]] == ["pair_trend", "pair_change"]
+    assert [r["id"] for r in payload["rows"]] == [s["id"] for s in block["subjects"]]
+    for row, subject in zip(payload["rows"], block["subjects"]):
+        assert row["tickers"] == subject["roles"] and row["guide"] == subject["guide"]
+        assert set(row["sources"]) == set(subject["roles"])
+        expected = subject.get("caption") or f"{subject['roles']['subject']} / {subject['roles']['benchmark']}"
+        assert row["caption"] == expected
+        assert all(r["status"] == "ok" for r in row["results"].values()), row["id"]
+    audjpy = next(r for r in payload["rows"] if r["id"] == "asx_audjpy")
+    assert audjpy["caption"] == "AUD/JPY" and set(audjpy["tickers"]) == {"subject"}
+
+
+def test_single_series_ratio_is_the_rate_itself(tmp_path, offline_dir):
+    code, data = run(tmp_path, "--offline", str(offline_dir))
+    audjpy = next(r for r in load(data, ASX_PAIRS)["rows"] if r["id"] == "asx_audjpy")
+    ticker = audjpy["tickers"]["subject"]
+    closes = __import__("pandas").read_csv(offline_dir / "prices" / f"{ticker}.csv", index_col=0)["close"]
+    last = audjpy["results"]["pair_trend"]["history"][-1]
+    assert last["ratio"] == calc._math.sig(closes.iloc[-1], 6)
+
+
+def test_asx_pairs_do_not_change_the_us_files(tmp_path, offline_dir):
+    _, with_asx = run(tmp_path, "--offline", str(offline_dir), data=tmp_path / "a")
+    def drop_asx_pairs(cfg):
+        for d in cfg["indicators"].values():
+            d["scopes"].pop("asx_pairs", None)
+    _, without = run(tmp_path, "--offline", str(offline_dir), "--registry", registry_with(tmp_path, drop_asx_pairs),
+                     data=tmp_path / "b")
+    for name in (MARKET, SECTORS, COT, PAIRS, ASX_SECTORS):
+        a, b = load(with_asx, name), load(without, name)
+        a.pop("updated_at"), b.pop("updated_at")
+        assert a == b, name
+
+
+def test_us_pairs_carry_no_sources(tmp_path, offline_dir):
+    """The US files keep the shape they had: only ASX rows name their sources."""
+    _, data = run(tmp_path, "--offline", str(offline_dir))
+    assert all("sources" not in r for r in load(data, PAIRS)["rows"])
+    assert all("sources" not in r for r in load(data, SECTORS)["rows"])
+
+
+def test_missing_futures_only_blanks_the_asx_pairs_that_use_it(tmp_path, offline_dir):
+    block = _universe()["asx_pairs"]["subjects"]
+    target = next(s for s in block if s["id"] == "asx_iron_gold")["roles"]["subject"]
+    users = {s["id"] for s in block if target in s["roles"].values()}
+    (offline_dir / "prices" / f"{target}.csv").unlink()
+    code, data = run(tmp_path, "--offline", str(offline_dir))
+    assert code == 0
+    for row in load(data, ASX_PAIRS)["rows"]:
+        statuses = {r["status"] for r in row["results"].values()}
+        assert statuses == ({"na"} if row["id"] in users else {"ok"}), row["id"]
