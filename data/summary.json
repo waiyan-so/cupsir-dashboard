@@ -1,5 +1,5 @@
 {
-  "headline": "整體 CupSir 框架訊號：BULLISH（分數 5）",
+  "headline": "整體 CupSir 框架訊號：BULLISH（分數 4）",
   "macro": "此為規則式研究摘要，綜合宏觀環境（Sahm Rule、孳息曲線、信用差、GDPNow）、市場溫度（VIX、DXY、銅、油）及機構持倉（COT）三大類指標，不應依賴任何單一指標。",
   "market_sentiment": "VIX、DXY、銅價及油價提供市場溫度的交叉檢查；COT Index／Sentiment Index 反映五個市場（S&P 500、10年債、黃金、原油、美元）的機構聰明錢持倉極端程度。",
   "catalysts": [
@@ -7,12 +7,12 @@
     "重要數據發布後，觀察股票、美元、長債及波動率是否同向確認"
   ],
   "checklist": [
+    "VIX 波動率指數：COMPLACENT",
     "美元指數 DXY：STRONG USD",
     "銅價：NEUTRAL",
     "WTI 原油：DECLINING",
     "黃金 COT：NEUTRAL",
-    "原油 COT：NEUTRAL",
-    "美元指數 COT：BEARISH LEAN"
+    "原油 COT：NEUTRAL"
   ],
   "disclaimer": "此內容僅供研究與教育用途，不構成投資建議。資料可能存在時滯、修正或供應商限制。"
 }
