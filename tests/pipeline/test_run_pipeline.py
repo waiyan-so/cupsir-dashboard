@@ -13,7 +13,8 @@ from helpers import ROOT
 
 ENVELOPE = set(calc.RESULT_KEYS)
 MARKET, SECTORS, COT, PAIRS = "market_breadth.json", "sectors.json", "cot.json", "pairs.json"
-NEW_FILES = (MARKET, SECTORS, COT, PAIRS)
+ASX_SECTORS = "asx_sectors.json"
+NEW_FILES = (MARKET, SECTORS, COT, PAIRS, ASX_SECTORS)
 
 
 def run(tmp_path, *argv, data=None):
@@ -76,7 +77,7 @@ def test_offline_run_writes_both_files_with_the_documented_shape(tmp_path, offli
             assert result["data_date"] == "2026-10-02"
 
 
-def test_only_the_four_new_files_are_written(tmp_path, offline_dir):
+def test_only_the_pipeline_files_are_written(tmp_path, offline_dir):
     data = tmp_path / "data"
     shutil.copytree(ROOT / "data", data)
     before = {p.name: p.read_bytes() for p in data.iterdir()}
@@ -293,6 +294,7 @@ def test_scope_with_no_enabled_indicator_gets_an_empty_file_not_a_failure(tmp_pa
         for d in cfg["indicators"].values():
             if "market" in d["scopes"]:
                 d["scopes"].pop("sector", None)      # keep it for the market tab only
+                d["scopes"].pop("asx_sector", None)
             else:
                 d["enabled"] = False                 # sector-only indicator: switch it off
     code, data = run(tmp_path, "--offline", str(offline_dir), "--registry", registry_with(tmp_path, only_market))
@@ -534,3 +536,114 @@ def test_adding_a_pair_needs_only_a_universe_entry(tmp_path, offline_dir):
     rows = load(tmp_path / "data", PAIRS)["rows"]
     assert len(rows) == 24 and rows[-1]["id"] == "extra_pair"
     assert all(r["status"] == "ok" for r in rows[-1]["results"].values())
+
+
+# ---- ASX sectors (spec G)
+
+ASX_SECTOR_INDICATORS = ["relative_strength", "trend_regime", "distribution_days", "realized_vol"]
+
+
+def _universe():
+    return json.loads((ROOT / "config" / "universe.json").read_text(encoding="utf-8"))
+
+
+def test_asx_sectors_file_shape(tmp_path, offline_dir):
+    code, data = run(tmp_path, "--offline", str(offline_dir))
+    assert code == 0
+    payload, universe = load(data, ASX_SECTORS), _universe()
+    meta = payload["meta"]
+    assert [i["id"] for i in meta["indicators"]] == ASX_SECTOR_INDICATORS        # no equal-weight column (G-Q1)
+    assert meta["indicators"][0]["column_label"] == "RS vs XJO（63D）"
+    assert meta["default_sort"]["value_key"] == "return_63d_excess_pct"
+    assert meta["ui_labels"]["tab_asx"] and meta["ui_labels"]["asx_source_note"]
+    assert [r["id"] for r in payload["rows"]] == [s["id"] for s in universe["asx_sector"]["subjects"]]
+    ticker_meta = universe["ticker_meta"]
+    for row in payload["rows"]:
+        assert set(row) == {"id", "name_zh", "tickers", "sources", "results"}
+        for role, ticker in row["tickers"].items():
+            source = row["sources"][role]
+            assert source["ticker"] == ticker and source["kind"] == ticker_meta[ticker]["kind"] == "price_index"
+            assert source["code"] == ticker_meta[ticker]["code"] and source["name"] == ticker_meta[ticker]["name"]
+        assert all(r["status"] == "ok" for r in row["results"].values())
+    ranks = sorted(r["results"]["relative_strength"]["values"]["rank_by_63d"] for r in payload["rows"])
+    assert ranks == list(range(1, 12))
+
+
+def test_asx_sectors_do_not_change_the_us_files(tmp_path, offline_dir):
+    _, with_asx = run(tmp_path, "--offline", str(offline_dir), data=tmp_path / "a")
+    def drop_asx(cfg):
+        for d in cfg["indicators"].values():
+            d["scopes"].pop("asx_sector", None)
+    _, without = run(tmp_path, "--offline", str(offline_dir), "--registry", registry_with(tmp_path, drop_asx),
+                     data=tmp_path / "b")
+    for name in (MARKET, SECTORS, COT, PAIRS):
+        a, b = load(with_asx, name), load(without, name)
+        a.pop("updated_at"), b.pop("updated_at")
+        assert a == b, name
+    assert load(without, ASX_SECTORS)["rows"][0]["results"] == {}
+
+
+def test_missing_asx_index_only_blanks_that_sector(tmp_path, offline_dir):
+    subjects = _universe()["asx_sector"]["subjects"]
+    target = subjects[0]
+    (offline_dir / "prices" / f"{target['roles']['subject']}.csv").unlink()
+    code, data = run(tmp_path, "--offline", str(offline_dir))
+    assert code == 0
+    rows = load(data, ASX_SECTORS)["rows"]
+    for row in rows:
+        statuses = {r["status"] for r in row["results"].values()}
+        assert statuses == ({"na"} if row["id"] == target["id"] else {"ok"}), row["id"]
+    ranks = [r["results"]["relative_strength"]["values"].get("rank_by_63d") for r in rows if r["id"] != target["id"]]
+    assert sorted(ranks) == list(range(1, 11))
+
+
+def test_missing_asx_benchmark_blanks_only_relative_strength(tmp_path, offline_dir):
+    benchmark = _universe()["asx_sector"]["subjects"][0]["roles"]["benchmark"]
+    (offline_dir / "prices" / f"{benchmark}.csv").unlink()
+    code, data = run(tmp_path, "--offline", str(offline_dir))
+    assert code == 0
+    for row in load(data, ASX_SECTORS)["rows"]:
+        assert row["results"]["relative_strength"]["reason"] == "fetch_failed"
+        assert all(row["results"][i]["status"] == "ok" for i in ASX_SECTOR_INDICATORS[1:])
+
+
+def test_adding_an_asx_sector_needs_only_universe_entries(tmp_path, offline_dir):
+    config = tmp_path / "config"
+    shutil.copytree(ROOT / "config", config)
+    universe = json.loads((config / "universe.json").read_text(encoding="utf-8"))
+    extra = copy.deepcopy(universe["asx_sector"]["subjects"][0])
+    extra.update(id="asx_extra", name_zh="另一個板塊")
+    extra["roles"]["subject"] = universe["asx_sector"]["subjects"][1]["roles"]["subject"]
+    universe["asx_sector"]["subjects"].append(extra)
+    (config / "universe.json").write_text(json.dumps(universe, ensure_ascii=False), encoding="utf-8")
+    code = run_pipeline.main(["--offline", str(offline_dir)], data_dir=tmp_path / "data", config_dir=config)
+    assert code == 0
+    rows = load(tmp_path / "data", ASX_SECTORS)["rows"]
+    assert len(rows) == 12 and rows[-1]["id"] == "asx_extra"
+
+
+def test_asx_ticker_without_ticker_meta_exits_2(tmp_path, offline_dir):
+    config = tmp_path / "config"
+    shutil.copytree(ROOT / "config", config)
+    universe = json.loads((config / "universe.json").read_text(encoding="utf-8"))
+    universe["ticker_meta"].pop(universe["asx_sector"]["subjects"][0]["roles"]["subject"])
+    (config / "universe.json").write_text(json.dumps(universe, ensure_ascii=False), encoding="utf-8")
+    code = run_pipeline.main(["--offline", str(offline_dir)], data_dir=tmp_path / "data", config_dir=config)
+    assert code == 2 and not (tmp_path / "data").exists()
+
+
+def test_the_live_fetch_gets_each_tickers_rule(tmp_path, monkeypatch):
+    seen = {}
+    def fake_fetch(tickers, rules=None, **kwargs):
+        seen.update(tickers=set(tickers), rules=rules)
+        raise RuntimeError("offline test")
+    monkeypatch.setattr(run_pipeline.prices, "fetch_prices", fake_fetch)
+    monkeypatch.setattr(run_pipeline.cftc, "fetch_positions", lambda codes: (_ for _ in ()).throw(RuntimeError("x")))
+    run_pipeline.main(["--dry-run"], data_dir=tmp_path / "data")
+    universe = _universe()
+    asx = {t for s in universe["asx_sector"]["subjects"] for t in s["roles"].values()}
+    assert asx <= seen["tickers"]
+    for ticker in asx:
+        assert seen["rules"][ticker] == universe["calendars"]["asx"]
+    us_sector = universe["sector"]["subjects"][0]["roles"]["subject"]
+    assert us_sector in seen["tickers"] and us_sector not in seen["rules"]

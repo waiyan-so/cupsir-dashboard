@@ -387,5 +387,39 @@
          "caveat": "NVDA 是 SMH 的最大成份股，比率的變動會被這個比重壓縮。"
        }}
     ]
+  },
+  "calendars": {
+    "us":  {"tz": "America/New_York", "rule": "session_close", "final_after": "16:30"},
+    "asx": {"tz": "Australia/Sydney", "rule": "session_close", "final_after": "16:30"},
+    "fx":  {"tz": "America/New_York", "rule": "previous_day"}
+  },
+  "ticker_meta": {
+    "^AXJO": {"calendar": "asx", "kind": "price_index", "code": "XJO", "name": "S&P/ASX 200"},
+    "^AXFJ": {"calendar": "asx", "kind": "price_index", "code": "XFJ", "name": "S&P/ASX 200 Financials"},
+    "^AXMJ": {"calendar": "asx", "kind": "price_index", "code": "XMJ", "name": "S&P/ASX 200 Materials"},
+    "^AXHJ": {"calendar": "asx", "kind": "price_index", "code": "XHJ", "name": "S&P/ASX 200 Health Care"},
+    "^AXDJ": {"calendar": "asx", "kind": "price_index", "code": "XDJ", "name": "S&P/ASX 200 Consumer Discretionary"},
+    "^AXNJ": {"calendar": "asx", "kind": "price_index", "code": "XNJ", "name": "S&P/ASX 200 Industrials"},
+    "^AXPJ": {"calendar": "asx", "kind": "price_index", "code": "XPJ", "name": "S&P/ASX 200 A-REIT"},
+    "^AXSJ": {"calendar": "asx", "kind": "price_index", "code": "XSJ", "name": "S&P/ASX 200 Consumer Staples"},
+    "^AXTJ": {"calendar": "asx", "kind": "price_index", "code": "XTJ", "name": "S&P/ASX 200 Communication Services"},
+    "^AXEJ": {"calendar": "asx", "kind": "price_index", "code": "XEJ", "name": "S&P/ASX 200 Energy"},
+    "^AXUJ": {"calendar": "asx", "kind": "price_index", "code": "XUJ", "name": "S&P/ASX 200 Utilities"},
+    "^AXIJ": {"calendar": "asx", "kind": "price_index", "code": "XIJ", "name": "S&P/ASX 200 Information Technology"}
+  },
+  "asx_sector": {
+    "subjects": [
+      {"id": "asx_financials", "name_zh": "金融", "roles": {"subject": "^AXFJ", "benchmark": "^AXJO"}},
+      {"id": "asx_materials", "name_zh": "原材料", "roles": {"subject": "^AXMJ", "benchmark": "^AXJO"}},
+      {"id": "asx_health_care", "name_zh": "醫療保健", "roles": {"subject": "^AXHJ", "benchmark": "^AXJO"}},
+      {"id": "asx_consumer_discretionary", "name_zh": "非必需消費", "roles": {"subject": "^AXDJ", "benchmark": "^AXJO"}},
+      {"id": "asx_industrials", "name_zh": "工業", "roles": {"subject": "^AXNJ", "benchmark": "^AXJO"}},
+      {"id": "asx_real_estate", "name_zh": "房地產（A-REIT）", "roles": {"subject": "^AXPJ", "benchmark": "^AXJO"}},
+      {"id": "asx_consumer_staples", "name_zh": "必需消費", "roles": {"subject": "^AXSJ", "benchmark": "^AXJO"}},
+      {"id": "asx_communication", "name_zh": "通訊服務", "roles": {"subject": "^AXTJ", "benchmark": "^AXJO"}},
+      {"id": "asx_energy", "name_zh": "能源", "roles": {"subject": "^AXEJ", "benchmark": "^AXJO"}},
+      {"id": "asx_utilities", "name_zh": "公用事業", "roles": {"subject": "^AXUJ", "benchmark": "^AXJO"}},
+      {"id": "asx_information_technology", "name_zh": "資訊科技", "roles": {"subject": "^AXIJ", "benchmark": "^AXJO"}}
+    ]
   }
 }

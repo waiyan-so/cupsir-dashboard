@@ -2,7 +2,7 @@
 import logging
 
 from .. import calc
-from .universe import sector_subjects
+from .universe import SCOPE, sector_subjects
 
 log = logging.getLogger("pipeline.sectors")
 
@@ -30,11 +30,11 @@ def _rank(rows, indicator_id, op):
 CROSS_SECTION_OPS = {"rank": _rank}
 
 
-def run(universe, indicators, store):
-    """rows for data/sectors.json. `indicators` is [(id, definition)] for the sector scope;
-    `store` is the PriceStore handed in by the orchestrator."""
+def run(universe, indicators, store, scope=SCOPE):
+    """rows for one sector scope's output file. `indicators` is [(id, definition)] for that
+    scope; `store` is the PriceStore handed in by the orchestrator."""
     rows = []
-    for subject in sector_subjects(universe):
+    for subject in sector_subjects(universe, scope):
         frames = {role: store.get(ticker) for role, ticker in subject["roles"].items()}
         results = {}
         for iid, defn in indicators:

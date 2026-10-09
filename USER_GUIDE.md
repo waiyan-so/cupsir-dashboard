@@ -22,7 +22,7 @@ Each run:
 
 1. Builds the 14-day economic calendar (`data/events.json`).
 2. Fetches news (`data/news.json`).
-3. Builds the market breadth, sector, COT and ratio-pair data (`data/market_breadth.json`, `data/sectors.json`, `data/cot.json`, `data/pairs.json`).
+3. Builds the market breadth, sector, COT, ratio-pair and ASX sector data (`data/market_breadth.json`, `data/sectors.json`, `data/cot.json`, `data/pairs.json`, `data/asx_sectors.json`).
 4. Builds the 13 indicators and the overall signal (`data/dashboard.json`), then the summary (`data/summary.json`). The five COT indicators are read from `data/cot.json`, so they always match the COT tab.
 5. Commits `data/` and pushes. The deploy workflow then publishes the page.
 
@@ -93,6 +93,18 @@ The 板塊 tab ends with a panel of relative strength ratios such as XLY / XLP, 
 - `guide` is the reading guide shown under the chart: `compare`, a sentence for each state in `pairs.state_conditions`, `signals` (other situations, each a `condition` and its `meaning`) and an optional `caveat`.
 
 Adding, removing or reordering a pair is an edit to that block only. The two columns come from the `pair_trend` and `pair_change` indicators in `config/indicators.json`. The panel stays hidden until `data/pairs.json` exists, and none of it counts toward the overall score.
+
+### ASX sectors (tab ASX 板塊)
+
+The ASX 板塊 tab shows the 11 S&P/ASX 200 GICS sector indices with the same relative strength (against the S&P/ASX 200), trend regime, distribution day and realized volatility indicators as the US sectors. It has no equal-weight column: there are no ASX equal-weight sector indices. The list is the `asx_sector` block of `config/universe.json`; the indicators show there because they carry a `scopes.asx_sector` entry, and the table's default order is `asx_sector_table` in `config/indicators.json`.
+
+Every ticker used by an ASX block needs an entry in `ticker_meta` (`universe.json`):
+
+- `calendar`: which entry of `calendars` decides when a day's bar is final. `asx` takes a day's bar from 16:30 Sydney time; `us` from 16:30 New York time (the rule every ticker without an entry uses); `fx` never takes the current day's bar.
+- `kind`: what the series is - `price_index` (no dividends), `adjusted` (adjusted for dividends), `futures` or `fx`. The page shows the matching `source_kind_*` label from `ui_labels`.
+- `code` and `name` (optional): the ASX index code and full name, shown with the ticker.
+
+The note at the top of the tab is `ui_labels.asx_source_note`; the note under the table, `asx_volume_note`, says that an ASX sector index's volume is the share volume of its constituents. The tab button stays hidden until `data/asx_sectors.json` has rows, and nothing on it counts toward the overall score.
 
 `python scripts/run_pipeline.py --dry-run` checks the configuration and runs everything without writing files.
 

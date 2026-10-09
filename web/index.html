@@ -21,6 +21,7 @@
     <div class="tabs">
       <button class="tab active" data-tab="market">整體市場</button>
       <button class="tab" data-tab="sectors">板塊</button>
+      <button class="tab" data-tab="asx" hidden>ASX 板塊</button>
       <button class="tab" data-tab="cot">COT 持倉</button>
     </div>
     <div id="marketTab" class="tab-panel">
@@ -46,6 +47,16 @@
         <div id="pairSplit" class="split">
           <div id="pairTable"></div>
           <div id="pairDetail"></div>
+        </div>
+      </section>
+    </div>
+    <div id="asxTab" class="tab-panel" hidden>
+      <p id="asxSource" class="muted breadth-note source-note" hidden></p>
+      <section class="panel breadth-table-panel">
+        <div id="asxView" class="view-toggle"></div>
+        <div id="asxSplit" class="split">
+          <div id="asxTable"></div>
+          <div id="asxDetail"></div>
         </div>
       </section>
     </div>

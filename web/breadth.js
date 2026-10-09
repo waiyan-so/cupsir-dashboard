@@ -1,7 +1,7 @@
 /*
- * Presentation layer for the market breadth cards, the sector and COT tabs and
- * the ratio pairs under the sectors (each: a list with the charts beside it, or
- * the sortable comparison table).
+ * Presentation layer for the market breadth cards, the sector, ASX sector and COT
+ * tabs and the ratio pairs under the sectors (each: a list with the charts beside
+ * it, or the sortable comparison table).
  *
  * Everything drawn here comes from the `meta` block of the JSON files: which
  * indicators exist, where each one appears, how a value is formatted, which
@@ -255,6 +255,31 @@
   }
 
   /*
+   * Where a row's numbers come from (rows that carry `sources`, i.e. the ASX tab). Every word
+   * is data: tickers, index codes and names from the file, kind labels from ui_labels.
+   *   short - under the row's name: "^AXEJ · XEJ · <kind>", or for a pair "<caption> · <kind>"
+   *   full  - the detail panel: each role's name (code), ticker and kind; a sector's benchmark
+   *           follows under ui_labels.source_benchmark, a pair's two sides are joined by "÷".
+   */
+  const kindLabel = (source, labels) => labels[`source_kind_${source.kind}`] || source.kind;
+
+  function sourceShort(row, labels) {
+    const sources = row.sources || {};
+    const kinds = [...new Set(Object.values(sources).map(s => kindLabel(s, labels)))].join('／');
+    if (row.caption) return `${row.caption} · ${kinds}`;
+    const subject = sources.subject || {};
+    return [subject.ticker, subject.code, kindLabel(subject, labels)].filter(Boolean).join(' · ');
+  }
+
+  function sourceFull(row, labels) {
+    const describe = s => `${s.name ? `${s.name}${s.code ? `（${s.code}）` : ''} · ` : ''}${s.ticker} · ${kindLabel(s, labels)}`;
+    const sources = row.sources || {};
+    const parts = ['subject', 'benchmark'].filter(role => sources[role]).map(role => describe(sources[role]));
+    if (parts.length < 2) return parts.join('');
+    return row.caption ? parts.join(' ÷ ') : `${parts[0]}；${labels.source_benchmark || ''}：${parts[1]}`;
+  }
+
+  /*
    * A row's reading guide (ratio pairs): what is compared, what each state usually means -
    * the current one marked - other situations worth watching, and a caveat. Every word comes
    * from the row and from meta (state_conditions, ui_labels); `state` is the row's current state.
@@ -395,7 +420,9 @@
     const listSpecs = inds.filter(ind => ind.list).map(ind => Object.assign({ id: ind.id }, ind.list)).sort((a, b) => a.order - b.order);
     const groups = meta.groups || null;
     const groupIds = groups ? Object.keys(groups) : [];
-    const caption = row => row.caption || (row.tickers || {}).subject || (row.cftc || {}).code || '';
+    const caption = row => (row.sources ? sourceShort(row, labels) : row.caption || (row.tickers || {}).subject || (row.cftc || {}).code || '');
+    // Rows that name their sources get a column of them in the table (ui_labels.source_column).
+    const sourceCol = payload.rows.some(row => row.sources) && labels.source_column;
     const tagOf = row => (row.tag ? `<span class="tag">${esc(row.tag)}</span>` : '');
     // The indicator whose main value is the row's state: the guide marks that state as current.
     const stateInd = inds.find(ind => ind.value_key === 'state');
@@ -454,14 +481,16 @@
       const arrow = col => (sort && sort.column === col ? (sort.dir === 'desc' ? ' ▼' : ' ▲') : '');
       const head = `<th data-col="${NAME_COLUMN}">${esc(labels[opts.nameLabel] || '')}${arrow(NAME_COLUMN)}</th>`
         + (groups ? `<th data-col="${GROUP_COLUMN}" class="text-col">${esc(labels.group_column || '')}${arrow(GROUP_COLUMN)}</th>` : '')
+        + (sourceCol ? `<th class="text-col">${esc(sourceCol)}</th>` : '')
         + inds.map(ind => `<th data-col="${esc(ind.id)}">${esc(ind.column_label)}${arrow(ind.id)}</th>`).join('');
       const body = sortedRows(sort).map(row => `<tr data-id="${esc(row.id)}" class="${row.id === openRow ? 'active' : ''}">
-        <td>${esc(row.name_zh)}${tagOf(row)}<small>${esc(caption(row))}</small></td>
+        <td>${esc(row.name_zh)}${tagOf(row)}${sourceCol ? '' : `<small>${esc(caption(row))}</small>`}</td>
         ${groups ? `<td class="text-col">${esc(groups[row.group] || row.group || '')}</td>` : ''}
+        ${sourceCol ? `<td class="text-col source-cell">${esc(caption(row))}</td>` : ''}
         ${inds.map(ind => COMPONENTS.table_column(ind, row, labels)).join('')}</tr>`).join('');
       tableBox.innerHTML = `<div class="table-scroll"><table class="breadth-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>${footnotes(true)}`;
 
-      tableBox.querySelectorAll('th').forEach(th => th.onclick = () => {
+      tableBox.querySelectorAll('th[data-col]').forEach(th => th.onclick = () => {
         const col = th.dataset.col;
         if (sort && sort.column === col) {
           sort = Object.assign({}, sort, { dir: sort.dir === 'desc' ? 'asc' : 'desc' });
@@ -500,7 +529,7 @@
           const result = row.results[spec.id];
           return `<b class="${toneClass(result)}">${esc(mainText(spec, result, labels))}</b>`;
         }).join('');
-        const sub = row.caption ? `<small class="side-caption">${esc(row.caption)}</small>` : '';
+        const sub = row.caption || row.sources ? `<small class="side-caption">${esc(caption(row))}</small>` : '';
         return `<button class="indicator side-item${row.id === openRow ? ' active' : ''}" data-id="${esc(row.id)}"><span>${esc(row.name_zh)}${tagOf(row)}${sub}</span><span class="side-values">${values}</span></button>`;
       };
       tableBox.innerHTML = `<div class="side-list">${sections.map(section =>
@@ -541,7 +570,8 @@
       const rowDate = latestDate(inds.map(ind => row.results[ind.id]));
       const fileDate = latestDate(payload.rows.flatMap(r => inds.map(ind => r.results[ind.id])));
       const lag = rowDate && fileDate && rowDate < fileDate ? `（${labels.data_date || ''}：${rowDate}）` : '';
-      const subtitle = (row.caption || (row.tickers ? Object.values(row.tickers).join(' · ') : (row.cftc || {}).name || '')) + lag;
+      const subtitle = (row.sources ? sourceFull(row, labels)
+        : row.caption || (row.tickers ? Object.values(row.tickers).join(' · ') : (row.cftc || {}).name || '')) + lag;
       const state = stateInd && isOk(row.results[stateInd.id]) ? row.results[stateInd.id].state : null;
       detailBox.innerHTML = `<div class="detail-head breadth-detail-head"><div><h2>${esc(row.name_zh)}${tagOf(row)}</h2><p class="muted">${esc(subtitle)}</p></div></div>`
         + (sharedView && !asList ? `<div class="subject-grid">${blocks}</div>` : blocks)
@@ -571,18 +601,38 @@
     // An added section: its panel stays hidden until its file has loaded, so a page deployed
     // before the first data refresh that writes the file looks exactly as it did before.
     { file: 'data/pairs.json', box: '#pairTable', panel: '#pairPanel', render: p => renderRows(p, { toggle: '#pairView', split: '#pairSplit', table: '#pairTable', detail: '#pairDetail', heading: '#pairHeading', title: 'pair_heading', nameLabel: 'pair_column', note: 'pair_note', remember: 'pairs' }) },
+    // An added tab: its button stays hidden until one of its files has loaded with rows in it,
+    // so the page looks exactly as before until the first data refresh that writes the files.
+    { file: 'data/asx_sectors.json', box: '#asxTable', tab: 'asx', sourceNote: { box: '#asxSource', label: 'asx_source_note' }, render: p => renderRows(p, { toggle: '#asxView', split: '#asxSplit', table: '#asxTable', detail: '#asxDetail', nameLabel: 'asx_sector_column', note: 'asx_volume_note', remember: 'asx_sectors' }) },
   ];
+
+  function showTab(name) {
+    const button = document.querySelector(`.tab[data-tab="${name}"]`);
+    if (button) button.hidden = false;
+  }
+
+  function showSourceNote(note, labels) {
+    const box = $(note.box);
+    if (!box || !labels[note.label]) return;
+    box.textContent = labels[note.label];
+    box.hidden = false;
+  }
 
   // Each file loads on its own: one failing never affects the other or the existing page.
   SOURCES.forEach(async source => {
     try {
       const payload = await load(source.file);
-      setTabLabels((payload.meta || {}).ui_labels || {});
+      const labels = (payload.meta || {}).ui_labels || {};
+      setTabLabels(labels);
+      if (source.tab && !(payload.rows || []).length) return;   // nothing to show: tab stays hidden
       if (source.panel) $(source.panel).hidden = false;
+      if (source.tab) showTab(source.tab);
+      if (source.sourceNote) showSourceNote(source.sourceNote, labels);
       source.render(payload);
     } catch (err) {
       console.warn(`[breadth] ${source.file}: ${err.message}`);
       if (source.panel) { $(source.panel).hidden = true; return; }
+      if (source.tab) return;                                     // an added tab simply stays hidden
       const box = $(source.box);
       if (box) box.innerHTML = `<p class="muted breadth-error">${LOAD_ERROR}</p>`;
     }

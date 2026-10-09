@@ -38,7 +38,7 @@ def imports(path):
 
 def universe_tickers():
     universe = json.loads((ROOT / "config" / "universe.json").read_text(encoding="utf-8"))
-    return {t for scope in ("market", "sector", "pairs") for s in universe.get(scope, {}).get("subjects", [])
+    return {t for scope in ("market", "sector", "pairs", "asx_sector", "asx_pairs") for s in universe.get(scope, {}).get("subjects", [])
             for t in s["roles"].values()}
 
 

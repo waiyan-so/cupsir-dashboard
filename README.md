@@ -12,6 +12,7 @@ The page is in Traditional Chinese.
 | News | Macro and market headlines from NewsAPI | `data/news.json` |
 | Tab 整體市場 | Status cards for market breadth (trend regime, distribution days, equal-weight ratio, follow-through day, for SPY and QQQ), then 13 indicators in three groups: macro (4), market temperature (4), COT positioning (5). Nine of them feed the overall signal and score in the header: the four macro, the four market and the S&P 500 COT. The other four COT indicators are shown but not scored | `data/market_breadth.json`, `data/dashboard.json` |
 | Tab 板塊 | 11 sectors by 5 indicators: relative strength, trend regime, distribution days, equal-weight ratio, realized volatility. Opens as a list of sectors with the selected sector's charts beside it; a button switches to the sortable comparison table | `data/sectors.json` |
+| Tab ASX 板塊 | The 11 S&P/ASX 200 GICS sector indices by 4 indicators: relative strength against the S&P/ASX 200, trend regime, distribution days, realized volatility (no equal-weight column: the ASX has no equal-weight sector indices). Same two views as the sector tab. A note at the top and a code under every row say where the numbers come from (price indices without dividends; index volume is the constituents' share volume). Not scored | `data/asx_sectors.json` |
 | Tab COT 持倉 | 16 futures markets in four categories by 3 lookbacks (1 year, 3 years, 6 months): COT Index and Sentiment Index from the CFTC Legacy report. Same two views as the sector tab | `data/cot.json` |
 | Tab 板塊, ratio pairs | 23 relative strength ratios (for example XLY / XLP, HYG / IEF, copper / gold) in three groups, each with a ratio chart, its 50- and 200-day lines and a reading guide. Not scored | `data/pairs.json` |
 | Research summary | Rule-based text built from the 13 indicators | `data/summary.json` |
@@ -24,7 +25,7 @@ The breadth, sector and COT tabs do not add to the overall score. The one link i
 .github/workflows/update-data.yml   weekdays 20:00 UTC (often runs later), or by hand
   scripts/fetch_events.py      -> data/events.json
   scripts/fetch_news.py        -> data/news.json          (keeps the old file on failure)
-  scripts/run_pipeline.py      -> data/market_breadth.json, data/sectors.json, data/cot.json, data/pairs.json
+  scripts/run_pipeline.py      -> data/market_breadth.json, data/sectors.json, data/cot.json, data/pairs.json, data/asx_sectors.json
   scripts/build_dashboard.py   -> data/dashboard.json     (FRED, Yahoo Finance, and data/cot.json for the five COT indicators; keeps the old file if every source fails)
   scripts/generate_summary.py  -> data/summary.json
   commit data/ and push

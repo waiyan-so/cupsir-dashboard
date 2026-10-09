@@ -28,9 +28,23 @@
     "guide_now": "現時",
     "guide_signals": "其他要留意的情況",
     "guide_situation": "情況",
-    "guide_caveat": "留意"
+    "guide_caveat": "留意",
+    "tab_asx": "ASX 板塊",
+    "asx_sector_column": "板塊",
+    "asx_source_note": "數據來源：Yahoo Finance 日線。板塊數據用 S&P/ASX 200 的 GICS 板塊指數，屬價格指數，未計股息，與「板塊」分頁所用的美國板塊 ETF 不同。數據以悉尼時間收市為準，通常比 ASX 收市遲一個晚上更新。這些數值不計入總分。",
+    "asx_volume_note": "ASX 板塊的成交量是成分股成交股數的加總，低價股的影響較大，與美國板塊 ETF 的成交量口徑不同。",
+    "source_column": "代號",
+    "source_benchmark": "基準",
+    "source_kind_price_index": "價格指數（未計股息）",
+    "source_kind_adjusted": "已按股息調整",
+    "source_kind_futures": "期貨連續合約",
+    "source_kind_fx": "匯率"
   },
   "sector_table": {
+    "default_sort": {"indicator": "relative_strength", "value_key": "return_63d_excess_pct", "dir": "desc"},
+    "tie_break":    {"indicator": "relative_strength", "value_key": "return_21d_excess_pct", "dir": "desc"}
+  },
+  "asx_sector_table": {
     "default_sort": {"indicator": "relative_strength", "value_key": "return_63d_excess_pct", "dir": "desc"},
     "tie_break":    {"indicator": "relative_strength", "value_key": "return_21d_excess_pct", "dir": "desc"}
   },
@@ -47,7 +61,10 @@
         "market": {"subjects": ["spy", "qqq"], "component": "status_card", "order": 10, "value_key": "state", "format": "state_chip"},
         "sector": {"component": "table_column", "order": 20, "column_label": "趨勢", "value_key": "state", "format": "state_chip",
                    "sort_order": ["BULLISH", "NEUTRAL", "BEARISH"],
-                   "list": {"order": 20, "value_key": "state", "format": "state_chip"}}
+                   "list": {"order": 20, "value_key": "state", "format": "state_chip"}},
+        "asx_sector": {"component": "table_column", "order": 20, "column_label": "趨勢", "value_key": "state", "format": "state_chip",
+                       "sort_order": ["BULLISH", "NEUTRAL", "BEARISH"],
+                       "list": {"order": 20, "value_key": "state", "format": "state_chip"}}
       },
       "detail_chart": {"type": "price_with_ma", "series": ["close", "sma21", "sma50", "sma200"]},
       "value_labels": {"close": "收市價", "sma21": "21 日線", "sma50": "50 日線", "sma200": "200 日線", "slope50_5d": "50 日線 5 日變化"},
@@ -66,7 +83,8 @@
       "scopes": {
         "market": {"subjects": ["spy", "qqq"], "component": "status_card", "order": 20, "value_key": "count_25d", "format": "count",
                    "secondary_key": "state", "secondary_format": "state_chip"},
-        "sector": {"component": "table_column", "order": 30, "column_label": "出貨日 25D", "value_key": "count_25d", "format": "count"}
+        "sector": {"component": "table_column", "order": 30, "column_label": "出貨日 25D", "value_key": "count_25d", "format": "count"},
+        "asx_sector": {"component": "table_column", "order": 30, "column_label": "出貨日 25D", "value_key": "count_25d", "format": "count"}
       },
       "detail_chart": {"type": "line_with_markers", "series": ["close"]},
       "value_labels": {"count_25d": "25 日內出貨日數", "close": "收市價"},
@@ -120,7 +138,9 @@
       "tone_rule": {"type": "bands", "key": "percentile_252d", "bands": [[33, "positive"], [67, "warning"], [100, "negative"]]},
       "scopes": {
         "sector": {"component": "table_column", "order": 50, "column_label": "已實現波幅 RV 21D",
-                   "value_key": "percentile_252d", "format": "percentile", "secondary_key": "annualized_pct", "secondary_format": "pct"}
+                   "value_key": "percentile_252d", "format": "percentile", "secondary_key": "annualized_pct", "secondary_format": "pct"},
+        "asx_sector": {"component": "table_column", "order": 50, "column_label": "已實現波幅 RV 21D",
+                       "value_key": "percentile_252d", "format": "percentile", "secondary_key": "annualized_pct", "secondary_format": "pct"}
       },
       "detail_chart": {"type": "line", "series": ["annualized_pct"]},
       "value_labels": {"annualized_pct": "年化波幅（%）", "percentile_252d": "一年百分位"},
@@ -139,7 +159,10 @@
       "scopes": {
         "sector": {"component": "table_column", "order": 10, "column_label": "RS vs SPY（63D）",
                    "value_key": "return_63d_excess_pct", "format": "signed_pct",
-                   "list": {"order": 10, "value_key": "rank_by_63d", "format": "rank"}}
+                   "list": {"order": 10, "value_key": "rank_by_63d", "format": "rank"}},
+        "asx_sector": {"component": "table_column", "order": 10, "column_label": "RS vs XJO（63D）",
+                       "value_key": "return_63d_excess_pct", "format": "signed_pct",
+                       "list": {"order": 10, "value_key": "rank_by_63d", "format": "rank"}}
       },
       "cross_section": [{"op": "rank", "value_key": "return_63d_excess_pct", "dir": "desc", "target_key": "rank_by_63d"}],
       "detail_chart": null,
