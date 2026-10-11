@@ -225,11 +225,18 @@
 
   // ------------------------------------------------------------ shared detail blocks
 
+  // A coded value (a string such as "IDEAL") is shown by its label "<key>.<value>" when
+  // value_labels has one; any other value is formatted as it is.
+  function labelledValue(names, key, value, labels) {
+    const coded = typeof value === 'string' ? names[`${key}.${value}`] : undefined;
+    return coded !== undefined ? coded : formatPlain(value, labels);
+  }
+
   function valuesList(ind, result, labels) {
     const names = ind.value_labels || {};
     const rows = Object.keys(names)
       .filter(key => isOk(result) && key in (result.values || {}))
-      .map(key => `<div class="kv"><span>${esc(names[key])}</span><b>${esc(formatPlain(result.values[key], labels))}</b></div>`);
+      .map(key => `<div class="kv"><span>${esc(names[key])}</span><b>${esc(labelledValue(names, key, result.values[key], labels))}</b></div>`);
     return rows.length ? `<div class="kv-list">${rows.join('')}</div>` : '';
   }
 

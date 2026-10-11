@@ -4,7 +4,10 @@ days into a rally attempt that follows a correction.
 
 Formula: implementation guide section 4.4, which replaces spec 3.4 steps 1-4
 with the approved revisions R1, R2, R3, R7 and the defaults F1-F4.
-R5 (late tag) and R6 (market-level date) are not approved and not built.
+R5 (day-count tag) was approved by the owner on 2026-10-11: every FTD carries a
+`timing` tag, IDEAL up to `ideal_max_day`, SLIGHTLY_LATE up to `late_after_day`,
+LATE after that. It is a tag only and never removes an FTD. R6 (market-level
+date) is not approved and not built: SPY and QQQ stay separate.
 
 F3 as revised by the owner on 2026-10-04: a new Day 1 is also looked for
 while the state is CONFIRMED. When one is found the state moves to WATCHING
@@ -38,6 +41,10 @@ WATCHING = "WATCHING_RALLY_ATTEMPT"
 CONFIRMED = "CONFIRMED"
 FAILED = "FAILED"
 
+IDEAL = "IDEAL"
+SLIGHTLY_LATE = "SLIGHTLY_LATE"
+LATE = "LATE"
+
 DAY1 = "day1"
 FTD = "ftd"
 FAILED_EVENT = "failed"
@@ -65,12 +72,21 @@ def _has_run(flags, length):
     return False
 
 
+def timing(day_count, params):
+    """R5: how late in its rally attempt an FTD came. A tag only."""
+    if day_count <= params["ideal_max_day"]:
+        return IDEAL
+    if day_count <= params["late_after_day"]:
+        return SLIGHTLY_LATE
+    return LATE
+
+
 def replay(df, params):
     """Replay the state machine over every day of `df`.
 
     Returns {"events": [...], "states": [...], "state", "attempt", "last_ftd"}.
     Each event: {"index", "date", "type", "day_count"}; an ftd event also has
-    "low", "gain_pct" and "above_avg_volume". `states` holds the state at the
+    "low", "gain_pct", "above_avg_volume" and "timing". `states` holds the state at the
     end of each replayed day as (date, state).
     """
     close = df["close"].to_numpy(dtype=float)
@@ -126,11 +142,12 @@ def replay(df, params):
                         and gain >= params["min_gain"]
                         and volume[t] > volume[t - 1]):
                     above = bool(not np.isnan(vol_avg[t]) and volume[t] > vol_avg[t])  # R2: a tag only
+                    tag = timing(attempt["day_count"], params)                     # R5: a tag only
                     ftd = {"index": t, "date": date_str(dates[t]), "low": float(low[t]),
-                           "day_count": attempt["day_count"], "above_avg_volume": above}
+                           "day_count": attempt["day_count"], "above_avg_volume": above, "timing": tag}
                     last_ftd = ftd
                     emit(t, FTD, attempt["day_count"], low=float(low[t]),
-                         gain_pct=round(gain * 100, 2), above_avg_volume=above)
+                         gain_pct=round(gain * 100, 2), above_avg_volume=above, timing=tag)
                     state = CONFIRMED
                     attempt = None
 
@@ -153,7 +170,8 @@ def replay(df, params):
 
 
 @calculator("follow_through_day", params=TREND_PARAMS + (
-    "peak_window", "min_day", "min_gain", "sma_fast", "below_sma_days", "vol_avg_window", "events_days"))
+    "peak_window", "min_day", "min_gain", "sma_fast", "below_sma_days", "vol_avg_window", "events_days",
+    "ideal_max_day", "late_after_day"))
 def compute(frames, params):
     df = frames["subject"]
     out = replay(df, params)
@@ -167,8 +185,15 @@ def compute(frames, params):
             "days_since": (n - 1 - last_ftd["index"]) if last_ftd else None,
             "day_count": out["attempt"]["day_count"] if out["state"] == WATCHING and out["attempt"] else None,
             "above_avg_volume": last_ftd["above_avg_volume"] if last_ftd else None,
+            "timing": last_ftd["timing"] if last_ftd else None,
         },
         "history": [],
-        "events": [{"date": e["date"], "type": e["type"], "day_count": e["day_count"]}
-                   for e in out["events"] if e["index"] >= first_shown],
+        "events": [_shown(e) for e in out["events"] if e["index"] >= first_shown],
     }
+
+
+def _shown(event):
+    shown = {"date": event["date"], "type": event["type"], "day_count": event["day_count"]}
+    if event["type"] == FTD:
+        shown["timing"] = event["timing"]
+    return shown

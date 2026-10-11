@@ -120,16 +120,18 @@
       "inputs": ["subject"],
       "min_history_days": 205,
       "params": {"peak_window": 63, "min_day": 4, "min_gain": 0.0125, "sma_fast": 21, "below_sma_days": 2, "vol_avg_window": 50,
-                 "fast": 21, "mid": 50, "slow": 200, "slope_window": 5, "events_days": 90},
+                 "fast": 21, "mid": 50, "slow": 200, "slope_window": 5, "events_days": 90,
+                 "ideal_max_day": 7, "late_after_day": 10},
       "tone_rule": {"type": "state_map", "map": {"CONFIRMED": "positive", "WATCHING_RALLY_ATTEMPT": "warning", "FAILED": "negative"}},
       "scopes": {
         "market": {"subjects": ["spy", "qqq"], "component": "status_card", "order": 40, "value_key": "state", "format": "state_chip"}
       },
       "detail_chart": null,
-      "value_labels": {"last_confirmed_date": "最近一次跟進日", "days_since": "距今交易日數", "day_count": "反彈第幾日", "above_avg_volume": "成交量高於 50 日均量"},
+      "value_labels": {"last_confirmed_date": "最近一次跟進日", "days_since": "距今交易日數", "day_count": "反彈第幾日", "above_avg_volume": "成交量高於 50 日均量",
+                       "timing": "最近一次跟進日的日數", "timing.IDEAL": "理想（第 4 至 7 日）", "timing.SLIGHTLY_LATE": "稍遲（第 8 至 10 日）", "timing.LATE": "遲（第 11 日起）"},
       "expert_view": ["反彈是否已到第 4 日或之後", "升幅與成交量是否同時達標", "訊號出現後有否跌穿當日低位"],
-      "disclaimer": null,
-      "notes": "公式見實作指引 4.4（已併入 R1、R2、R3、R7 和 F1–F4）。F3 於 2026-10-04 經使用者修訂：CONFIRMED 期間也會找新的 Day 1，找到後狀態轉為 WATCHING，之前的跟進日保留為最近一次跟進日。R5、R6 未批准，沒有實作。門檻未經量化回測，前提只要求連續 2 日低於 21 日線，誤報率未知。每次執行都由下載回來的兩年歷史重新重播，不儲存狀態：重播起點之前的跟進日不會被知道，所以狀態有可能隨歷史窗口移動而改變；出現 63 日收市新高後會重新對齊。"
+      "disclaimer": "日數標籤：跟進日出現在反彈第 4 至 7 日為「理想」，第 8 至 10 日為「稍遲」，第 11 日起為「遲」。IBD 認為第 4 至 7 日最理想，亦有交易者認為第 10 日之後的訊號較弱。標籤只供參考，遲的跟進日照樣確認。",
+      "notes": "公式見實作指引 4.4（已併入 R1、R2、R3、R7 和 F1–F4）。F3 於 2026-10-04 經使用者修訂：CONFIRMED 期間也會找新的 Day 1，找到後狀態轉為 WATCHING，之前的跟進日保留為最近一次跟進日。R5 於 2026-10-11 經使用者批准：每次跟進日按反彈第幾日加 timing 標籤（ideal_max_day、late_after_day），只是標籤，不排除任何跟進日。R6 未批准，SPY、QQQ 分開計算。門檻未經量化回測，前提只要求連續 2 日低於 21 日線，誤報率未知。每次執行都由下載回來的兩年歷史重新重播，不儲存狀態：重播起點之前的跟進日不會被知道，所以狀態有可能隨歷史窗口移動而改變；出現 63 日收市新高後會重新對齊。"
     },
     "realized_vol": {
       "enabled": true,

@@ -8,11 +8,12 @@ day (intraday low 97), 10 is Day 1, 13 is Day 4.
 import pytest
 
 from pipeline import calc
-from pipeline.calc.follow_through_day import replay
+from pipeline.calc.follow_through_day import replay, timing
 from helpers import frame, shipped_indicator
 
 P = {"peak_window": 10, "min_day": 4, "min_gain": 0.0125, "sma_fast": 3, "below_sma_days": 2,
-     "vol_avg_window": 5, "fast": 2, "mid": 3, "slow": 5, "slope_window": 1, "events_days": 90}
+     "vol_avg_window": 5, "fast": 2, "mid": 3, "slow": 5, "slope_window": 1, "events_days": 90,
+     "ideal_max_day": 7, "late_after_day": 10}
 
 BASE_CLOSES = [100, 101, 102, 103, 104, 105, 106, 104, 101, 98, 99, 99.5, 99.2, 101.5]
 LOW_DAY, DAY1, DAY4 = 9, 10, 13
@@ -180,14 +181,15 @@ def test_compute_output_shape_and_tone():
     watching = calc.run(defn, {"subject": series(volumes={13: 1000})})
     assert watching["state"] == "WATCHING_RALLY_ATTEMPT" and watching["tone"] == "warning"
     assert watching["values"] == {"last_confirmed_date": None, "days_since": None, "day_count": 4,
-                                  "above_avg_volume": None}
+                                  "above_avg_volume": None, "timing": None}
     confirmed = calc.run(defn, {"subject": series()})
     assert confirmed["tone"] == "positive" and confirmed["values"]["days_since"] == 0
     assert confirmed["history"] == []
     assert confirmed["events"] == [
         {"date": "2024-01-16", "type": "day1", "day_count": 1},
-        {"date": "2024-01-19", "type": "ftd", "day_count": 4},
+        {"date": "2024-01-19", "type": "ftd", "day_count": 4, "timing": "IDEAL"},
     ]
+    assert confirmed["values"]["timing"] == "IDEAL"
     failed = calc.run(defn, {"subject": series(extra=[102, 100.8])})
     assert failed["state"] == "FAILED" and failed["tone"] == "negative"
     none = calc.run(defn, {"subject": series(extra=[103, 105, 107])})
@@ -207,3 +209,26 @@ def test_shipped_definition_history_boundary():
     closes = [100 + i * 0.1 for i in range(need)]
     assert calc.run(defn, {"subject": frame(closes)})["status"] == "ok"
     assert calc.run(defn, {"subject": frame(closes[:-1])})["reason"] == "insufficient_history"
+
+
+# ---- R5 (approved 2026-10-11): a day-count tag on every FTD, never a filter
+
+@pytest.mark.parametrize("day, tag", [(4, "IDEAL"), (7, "IDEAL"), (8, "SLIGHTLY_LATE"), (10, "SLIGHTLY_LATE"),
+                                      (11, "LATE"), (25, "LATE")])
+def test_r5_timing_boundaries(day, tag):
+    assert timing(day, P) == tag
+
+
+def test_r5_the_ftd_event_carries_its_tag():
+    ftd = [e for e in replay(series(), P)["events"] if e["type"] == "ftd"]
+    assert [(e["day_count"], e["timing"]) for e in ftd] == [(4, "IDEAL")]
+
+
+def test_r5_a_late_ftd_is_still_confirmed():
+    # Days 4-10 never qualify (the volume does not rise); day 11 does.
+    closes = {11: 99.6, 12: 99.8, 13: 100.0}
+    extra = [100.1, 100.2, 100.3, 100.4, 100.5, 100.6, 102.0]
+    vols = {13: 1000, 20: 1500}
+    out = replay(series(closes=closes, volumes=vols, extra=extra), dict(P, peak_window=30))  # day 20 is no new high
+    assert out["state"] == "CONFIRMED"
+    assert (out["last_ftd"]["day_count"], out["last_ftd"]["timing"]) == (11, "LATE")
