@@ -12,7 +12,7 @@ from pipeline.calc.follow_through_day import replay, timing, track
 from helpers import frame, shipped_indicator
 
 P = {"peak_window": 10, "min_day": 4, "min_gain": 0.0125, "sma_fast": 3, "below_sma_days": 2,
-     "vol_avg_window": 5, "fast": 2, "mid": 3, "slow": 5, "slope_window": 1, "events_days": 90,
+     "vol_avg_window": 5, "fast": 2, "mid": 3, "slow": 5, "slope_window": 1, "chart_lead_days": 2, "chart_fallback_days": 6,
      "ideal_max_day": 7, "late_after_day": 10, "track_count": 3,
      "track_tones": {"ACTIVE": "positive", "FAILED": "negative", "NEW_HIGH": None}}
 
@@ -185,11 +185,14 @@ def test_compute_output_shape_and_tone():
                                   "above_avg_volume": None, "timing": None}
     confirmed = calc.run(defn, {"subject": series()})
     assert confirmed["tone"] == "positive" and confirmed["values"]["days_since"] == 0
-    assert confirmed["history"] == []
+    assert [p["date"] for p in confirmed["history"]][0] == "2024-01-12"       # Day 1 (01-16) less 2 sessions
+    assert confirmed["history"][-1] == {"date": "2024-01-19", "close": 101.5, "volume": 1200, "volume_sma5": 1040}
     assert confirmed["events"] == [
-        {"date": "2024-01-16", "type": "day1", "day_count": 1},
-        {"date": "2024-01-19", "type": "ftd", "day_count": 4, "timing": "IDEAL", "low": 101.0, "gain_pct": 2.32,
-         "above_avg_volume": True, "status": "ACTIVE", "status_date": None, "tracked": True, "tone": "positive"},
+        {"date": "2024-01-16", "type": "day1", "day_count": 1, "change_pct": 1.02, "volume_up": False,
+         "above_avg_volume": False},
+        {"date": "2024-01-19", "type": "ftd", "day_count": 4, "change_pct": 2.32, "volume_up": True,
+         "above_avg_volume": True, "timing": "IDEAL", "low": 101.0, "status": "ACTIVE", "status_date": None,
+         "tracked": True, "tone": "positive"},
     ]
     assert confirmed["values"]["timing"] == "IDEAL"
     failed = calc.run(defn, {"subject": series(extra=[102, 100.8])})
@@ -198,11 +201,20 @@ def test_compute_output_shape_and_tone():
     assert none["state"] == "NONE_PENDING" and none["tone"] is None
 
 
-def test_events_are_limited_to_the_recent_window():
+def test_chart_window_starts_before_the_day1_of_the_oldest_tracked_ftd():
     defn = {"calculator": "follow_through_day", "inputs": ["subject"], "min_history_days": 5,
-            "params": dict(P, events_days=3), "tone_rule": None}
+            "params": dict(P, chart_lead_days=0), "tone_rule": None}
     result = calc.run(defn, {"subject": series()})
-    assert [e["type"] for e in result["events"]] == ["ftd"]         # Day 1 is 4 sessions back
+    assert result["history"][0]["date"] == result["events"][0]["date"] == "2024-01-16"   # Day 1
+
+
+def test_chart_window_without_an_ftd_is_the_fallback_length():
+    defn = {"calculator": "follow_through_day", "inputs": ["subject"], "min_history_days": 5,
+            "params": P, "tone_rule": None}
+    result = calc.run(defn, {"subject": series(volumes={13: 1000})})        # an attempt, no FTD
+    assert len(result["history"]) == P["chart_fallback_days"]
+    assert [e["type"] for e in result["events"]] == ["day1"]
+    assert all(set(p) == {"date", "close", "volume", "volume_sma5"} for p in result["history"])
 
 
 def test_shipped_definition_history_boundary():
@@ -276,14 +288,16 @@ def test_p1_track_checks_failure_before_a_new_high():
     assert track([10.0], 0, 9.5, 63) == ("ACTIVE", None)
 
 
-def test_p1_only_the_most_recent_ftds_are_tracked_and_they_stay_in_the_output():
+def test_p1_only_the_most_recent_ftds_are_tracked_and_the_window_reaches_them():
     # FTD on day 13 fails on day 15; a new Day 1 on day 18 leads to a second FTD on day 21.
     df = series(extra=[102, 100.8, 99.9, 99.0, 99.6, 99.8, 100.0, 101.8], volumes={21: 5000})
     out = replay(df, P)
     assert [e["type"] for e in out["events"]].count("ftd") == 2
-    result = _run(df, dict(P, track_count=1, events_days=3))
+    result = _run(df, dict(P, track_count=1, chart_lead_days=0))
     ftds = [e for e in result["events"] if e["type"] == "ftd"]
-    assert [e["tracked"] for e in ftds] == [True]           # the older one is outside the window and untracked
+    assert [e["tracked"] for e in ftds] == [True]           # the older one is before the window and untracked
     assert ftds[0]["date"] == df.index[21].strftime("%Y-%m-%d")
-    older = _run(df, dict(P, track_count=2, events_days=3))
-    assert [e["tracked"] for e in older["events"] if e["type"] == "ftd"] == [True, True]   # kept despite the window
+    assert result["history"][0]["date"] == df.index[18].strftime("%Y-%m-%d")
+    both = _run(df, dict(P, track_count=2, chart_lead_days=0))
+    assert [e["tracked"] for e in both["events"] if e["type"] == "ftd"] == [True, True]
+    assert both["history"][0]["date"] == df.index[DAY1].strftime("%Y-%m-%d")   # the window reaches back

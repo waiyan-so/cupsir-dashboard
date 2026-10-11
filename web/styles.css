@@ -89,3 +89,11 @@ h2 .tag{font-size:12px;vertical-align:3px}
 .tracked-list h4 { margin: 0 0 6px; font-size: 13px; }
 .tracked-list ul { margin: 0; padding-left: 18px; }
 .tracked-list li { margin: 0 0 6px; font-size: 13px; line-height: 1.45; }
+.event-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 6px 8px 4px; font-size: 12px; color: var(--muted); }
+.event-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.event-table { margin-top: 12px; }
+.event-table h4 { margin: 0 0 6px; font-size: 13px; }
+.event-table-scroll { overflow-x: auto; max-height: 320px; overflow-y: auto; }
+.event-table table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+.event-table th { position: sticky; top: 0; background: var(--panel); color: var(--muted); font-weight: 600; text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); }
+.event-table td { padding: 5px 8px; border-bottom: 1px solid var(--line); color: var(--text); }
