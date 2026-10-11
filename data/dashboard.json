@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-09 23:42 UTC",
+  "updated_at": "2026-10-11 00:04 UTC",
   "overall_signal": "BULLISH",
   "total_score": 4,
   "category_labels": {
@@ -789,9 +789,9 @@
       "category": "market",
       "name": "US Dollar Index",
       "name_zh": "美元指數 DXY",
-      "value": 102.14,
+      "value": 102.21,
       "unit": "",
-      "data_date": "2026-10-08",
+      "data_date": "2026-10-09",
       "signal": "STRONG USD",
       "signal_color": "negative",
       "interpretation": "CupSir 框架分類：STRONG USD。",
@@ -807,10 +807,6 @@
         "target": "TVC:DXY"
       },
       "history": [
-        {
-          "date": "2026-08-27",
-          "value": 99.16
-        },
         {
           "date": "2026-08-28",
           "value": 99.7
@@ -926,6 +922,10 @@
         {
           "date": "2026-10-08",
           "value": 102.14
+        },
+        {
+          "date": "2026-10-09",
+          "value": 102.21
         }
       ],
       "chart": {
@@ -939,9 +939,9 @@
       "category": "market",
       "name": "Copper Futures",
       "name_zh": "銅價",
-      "value": 6.519,
+      "value": 6.642,
       "unit": "USD",
-      "data_date": "2026-10-08",
+      "data_date": "2026-10-09",
       "signal": "NEUTRAL",
       "signal_color": "warning",
       "interpretation": "CupSir 框架分類：NEUTRAL。",
@@ -957,10 +957,6 @@
         "target": "COMEX:HG1!"
       },
       "history": [
-        {
-          "date": "2026-08-27",
-          "value": 6.587
-        },
         {
           "date": "2026-08-28",
           "value": 6.562
@@ -1076,6 +1072,10 @@
         {
           "date": "2026-10-08",
           "value": 6.519
+        },
+        {
+          "date": "2026-10-09",
+          "value": 6.642
         }
       ],
       "chart": {
@@ -1089,9 +1089,9 @@
       "category": "market",
       "name": "WTI Crude Oil",
       "name_zh": "WTI 原油",
-      "value": 91.49,
+      "value": 91.85,
       "unit": "USD",
-      "data_date": "2026-10-08",
+      "data_date": "2026-10-09",
       "signal": "DECLINING",
       "signal_color": "warning",
       "interpretation": "CupSir 框架分類：DECLINING。",
@@ -1107,10 +1107,6 @@
         "target": "NYMEX:CL1!"
       },
       "history": [
-        {
-          "date": "2026-08-27",
-          "value": 83.53
-        },
         {
           "date": "2026-08-28",
           "value": 83.4
@@ -1226,6 +1222,10 @@
         {
           "date": "2026-10-08",
           "value": 91.49
+        },
+        {
+          "date": "2026-10-09",
+          "value": 91.85
         }
       ],
       "chart": {
