@@ -4,7 +4,18 @@ days into a rally attempt that follows a correction.
 
 Formula: implementation guide section 4.4, which replaces spec 3.4 steps 1-4
 with the approved revisions R1, R2, R3, R7 and the defaults F1-F4.
-R5 (late tag) and R6 (market-level date) are not approved and not built.
+R5 (day-count tag) was approved by the owner on 2026-10-11: every FTD carries a
+`timing` tag, IDEAL up to `ideal_max_day`, SLIGHTLY_LATE up to `late_after_day`,
+LATE after that. It is a tag only and never removes an FTD. R6 (market-level
+date) is not approved and not built: SPY and QQQ stay separate.
+
+P1 as decided by the owner on 2026-10-11: the most recent `track_count` FTDs are
+each followed on their own, whatever the state machine does next (track()).
+The state machine itself is unchanged.
+
+Chart window (2026-10-11): history and events start `chart_lead_days` before the
+Day 1 of the oldest tracked FTD, or cover the last `chart_fallback_days` when
+no FTD is tracked. It replaces the fixed `events_days` window.
 
 F3 as revised by the owner on 2026-10-04: a new Day 1 is also looked for
 while the state is CONFIRMED. When one is found the state moves to WATCHING
@@ -38,6 +49,13 @@ WATCHING = "WATCHING_RALLY_ATTEMPT"
 CONFIRMED = "CONFIRMED"
 FAILED = "FAILED"
 
+IDEAL = "IDEAL"
+SLIGHTLY_LATE = "SLIGHTLY_LATE"
+LATE = "LATE"
+
+ACTIVE = "ACTIVE"
+NEW_HIGH = "NEW_HIGH"
+
 DAY1 = "day1"
 FTD = "ftd"
 FAILED_EVENT = "failed"
@@ -65,12 +83,21 @@ def _has_run(flags, length):
     return False
 
 
+def timing(day_count, params):
+    """R5: how late in its rally attempt an FTD came. A tag only."""
+    if day_count <= params["ideal_max_day"]:
+        return IDEAL
+    if day_count <= params["late_after_day"]:
+        return SLIGHTLY_LATE
+    return LATE
+
+
 def replay(df, params):
     """Replay the state machine over every day of `df`.
 
     Returns {"events": [...], "states": [...], "state", "attempt", "last_ftd"}.
     Each event: {"index", "date", "type", "day_count"}; an ftd event also has
-    "low", "gain_pct" and "above_avg_volume". `states` holds the state at the
+    "low", "gain_pct", "above_avg_volume" and "timing". `states` holds the state at the
     end of each replayed day as (date, state).
     """
     close = df["close"].to_numpy(dtype=float)
@@ -126,11 +153,12 @@ def replay(df, params):
                         and gain >= params["min_gain"]
                         and volume[t] > volume[t - 1]):
                     above = bool(not np.isnan(vol_avg[t]) and volume[t] > vol_avg[t])  # R2: a tag only
-                    ftd = {"index": t, "date": date_str(dates[t]), "low": float(low[t]),
-                           "day_count": attempt["day_count"], "above_avg_volume": above}
+                    tag = timing(attempt["day_count"], params)                     # R5: a tag only
+                    ftd = {"index": t, "date": date_str(dates[t]), "low": float(low[t]), "day1_index": attempt["day1_index"],
+                           "day_count": attempt["day_count"], "above_avg_volume": above, "timing": tag}
                     last_ftd = ftd
-                    emit(t, FTD, attempt["day_count"], low=float(low[t]),
-                         gain_pct=round(gain * 100, 2), above_avg_volume=above)
+                    emit(t, FTD, attempt["day_count"], low=float(low[t]), day1_index=attempt["day1_index"],
+                         gain_pct=round(gain * 100, 2), above_avg_volume=above, timing=tag)
                     state = CONFIRMED
                     attempt = None
 
@@ -143,7 +171,7 @@ def replay(df, params):
                     and not any(close[j] > close[j - 1] for j in range(low_i + 1, t))
                     and regime[low_i] is not None and regime[low_i] != BULLISH
                     and _has_run(below[peak + 1:low_i + 1], params["below_sma_days"])):
-                attempt = {"rally_low": float(low[low_i]), "day_count": 1, "low_index": low_i}
+                attempt = {"rally_low": float(low[low_i]), "day_count": 1, "low_index": low_i, "day1_index": t}
                 state = WATCHING
                 emit(t, DAY1, 1)
 
@@ -152,14 +180,52 @@ def replay(df, params):
     return {"events": events, "states": states, "state": state, "attempt": attempt, "last_ftd": last_ftd}
 
 
+def track(close, ftd_index, ftd_low, peak_window):
+    """P1: follow one FTD after its day, on its own.
+
+    FAILED   the first close below the FTD day's low                      (as step 1)
+    NEW_HIGH the first close that is the highest of the last `peak_window`
+             days, if it comes before any failure; tracking stops there
+    ACTIVE   neither has happened yet
+    A day that is both is FAILED, the order the state machine checks them in.
+    Returns (status, index of the deciding day or None).
+    """
+    for k in range(ftd_index + 1, len(close)):
+        if close[k] < ftd_low:
+            return FAILED, k
+        lo = max(0, k - peak_window + 1)
+        if lo + _last_argmax(close[lo:k + 1]) == k:
+            return NEW_HIGH, k
+    return ACTIVE, None
+
+
 @calculator("follow_through_day", params=TREND_PARAMS + (
-    "peak_window", "min_day", "min_gain", "sma_fast", "below_sma_days", "vol_avg_window", "events_days"))
+    "peak_window", "min_day", "min_gain", "sma_fast", "below_sma_days", "vol_avg_window",
+    "ideal_max_day", "late_after_day", "track_count", "track_tones", "chart_lead_days", "chart_fallback_days"))
 def compute(frames, params):
     df = frames["subject"]
     out = replay(df, params)
     n = len(df)
     last_ftd = out["last_ftd"]
-    first_shown = max(0, n - params["events_days"])
+    close = df["close"].to_numpy(dtype=float)
+    volume = df["volume"].to_numpy(dtype=float)
+    vol_avg = sma(df["volume"], params["vol_avg_window"]).to_numpy()
+    ftds = [e for e in out["events"] if e["type"] == FTD]
+    tracked = {e["index"] for e in ftds[-params["track_count"]:]} if params["track_count"] > 0 else set()
+    for e in ftds:
+        status, k = track(close, e["index"], e["low"], params["peak_window"])
+        e["status"], e["status_date"] = status, (date_str(df.index[k]) if k is not None else None)
+        e["tracked"] = e["index"] in tracked
+        e["tone"] = params["track_tones"].get(status)
+    oldest_day1 = min((e["day1_index"] for e in ftds if e["tracked"]), default=None)
+    first_shown = (max(0, oldest_day1 - params["chart_lead_days"]) if oldest_day1 is not None
+                   else max(0, n - params["chart_fallback_days"]))
+    for e in out["events"]:
+        t = e["index"]
+        e["change_pct"] = round((close[t] / close[t - 1] - 1) * 100, 2) if t > 0 else None
+        e["volume_up"] = bool(t > 0 and volume[t] > volume[t - 1])
+        e["above_avg_volume"] = bool(not np.isnan(vol_avg[t]) and volume[t] > vol_avg[t])
+    avg_key = f"volume_sma{params['vol_avg_window']}"
     return {
         "state": out["state"],
         "values": {
@@ -167,8 +233,24 @@ def compute(frames, params):
             "days_since": (n - 1 - last_ftd["index"]) if last_ftd else None,
             "day_count": out["attempt"]["day_count"] if out["state"] == WATCHING and out["attempt"] else None,
             "above_avg_volume": last_ftd["above_avg_volume"] if last_ftd else None,
+            "timing": last_ftd["timing"] if last_ftd else None,
         },
-        "history": [],
-        "events": [{"date": e["date"], "type": e["type"], "day_count": e["day_count"]}
-                   for e in out["events"] if e["index"] >= first_shown],
+        "history": [{"date": date_str(df.index[i]), "close": round(float(close[i]), 2),
+                     "volume": _number(volume[i]), avg_key: _number(vol_avg[i])} for i in range(first_shown, n)],
+        "events": [_shown(e) for e in out["events"] if e["index"] >= first_shown],
     }
+
+
+def _shown(event):
+    shown = {"date": event["date"], "type": event["type"], "day_count": event["day_count"],
+             "change_pct": event["change_pct"], "volume_up": event["volume_up"],
+             "above_avg_volume": event["above_avg_volume"]}
+    if event["type"] == FTD:
+        for key in ("timing", "status", "status_date", "tracked", "tone"):
+            shown[key] = event[key]
+        shown["low"] = round(event["low"], 2)            # display only; track() uses the exact low
+    return shown
+
+
+def _number(value):
+    return None if np.isnan(value) else round(float(value))

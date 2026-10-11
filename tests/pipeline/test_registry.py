@@ -565,3 +565,27 @@ def test_a_pair_never_mixes_price_indices_with_adjusted_prices(cfg):
     for s in uni["asx_pairs"]["subjects"]:
         kinds = {meta[t]["kind"] for t in s["roles"].values()}
         assert len(kinds) == 1, (s["id"], kinds)
+
+
+# ---- FTD chart (2026-10-11): fields of a chart that draws a result's events
+
+def _ftd_chart(ind):
+    return ind["indicators"]["follow_through_day"]["detail_chart"]
+
+
+@pytest.mark.parametrize("change, field", [
+    (lambda c: c.update(type="candles"), "detail_chart.type"),
+    (lambda c: c.update(bars=5), "detail_chart.bars"),
+    (lambda c: c.pop("bars"), "detail_chart.bars_avg"),
+    (lambda c: c["markers"]["ftd"].update(shape="star"), "detail_chart.markers.ftd.shape"),
+    (lambda c: c["markers"]["reset"].update(tone="green"), "detail_chart.markers.reset.tone"),
+    (lambda c: c["event_level"].pop("key"), "detail_chart.event_level.key"),
+    (lambda c: c["event_table"].pop("heading"), "detail_chart.event_table.heading"),
+    (lambda c: c["event_table"]["columns"][4].update(format="money"), "detail_chart.event_table.columns[4].format"),
+    (lambda c: c["event_table"]["columns"][0].update(keys=[]), "detail_chart.event_table.columns[0].keys"),
+    (lambda c: c["event_table"]["columns"][1].update(coded=1), "detail_chart.event_table.columns[1].coded"),
+])
+def test_event_chart_fields_are_checked(cfg, change, field):
+    ind, uni = cfg
+    change(_ftd_chart(ind))
+    _fails(ind, uni, "indicators.follow_through_day", field)

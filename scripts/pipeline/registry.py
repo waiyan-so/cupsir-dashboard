@@ -48,9 +48,10 @@ COMPONENTS = ("status_card", "table_column")
 COMPONENT_OF_SCOPE = {"market": "status_card", "sector": "table_column", "cot": "table_column",
                       "pairs": "table_column", ASX_SECTOR_SCOPE: "table_column", ASX_PAIRS_SCOPE: "table_column"}
 FORMATS = ("state_chip", "count", "rank", "pct", "signed_pct", "percentile", "number")
-CHART_TYPES = ("line", "price_with_ma", "line_with_markers")
+CHART_TYPES = ("line", "price_with_ma", "line_with_markers", "price_with_events")
 TONE_RULE_TYPES = ("state_map", "sign", "bands")
 TONES = ("positive", "warning", "negative")
+MARKER_SHAPES = ("triangle", "diamond", "cross", "circle")
 CROSS_SECTION_OPS = ("rank",)
 SORT_DIRS = ("asc", "desc")
 
@@ -360,6 +361,41 @@ def validate_universe(universe_cfg):
 
 # ---------------------------------------------------------------- indicators
 
+def _validate_event_chart(entry, chart):
+    """Optional detail_chart fields for charts that draw a result's events."""
+    markers = chart.get("markers")
+    if markers is not None:
+        _need(isinstance(markers, dict) and markers, entry, "detail_chart.markers", "必須是「事件類型: 設定」的物件")
+        for kind, m in markers.items():
+            where = f"detail_chart.markers.{kind}"
+            _need(isinstance(m, dict) and m.get("shape") in MARKER_SHAPES, entry, f"{where}.shape",
+                  f"只可以是 {list(MARKER_SHAPES)}")
+            _need(m.get("tone") is None or m.get("tone") in TONES, entry, f"{where}.tone", f"只可以是 null 或 {list(TONES)}")
+    if "marker_label" in chart:
+        _need(_is_str(chart["marker_label"]), entry, "detail_chart.marker_label", "必須是字串")
+    level = chart.get("event_level")
+    if level is not None:
+        _need(isinstance(level, dict) and _is_str(level.get("key")), entry, "detail_chart.event_level.key", "必填，字串")
+        for field in ("until", "only", "label"):
+            if field in level:
+                _need(_is_str(level[field]), entry, f"detail_chart.event_level.{field}", "必須是字串")
+    table = chart.get("event_table")
+    if table is not None:
+        _need(isinstance(table, dict) and _is_str(table.get("heading")), entry, "detail_chart.event_table.heading", "必填，字串")
+        cols = table.get("columns")
+        _need(isinstance(cols, list) and cols, entry, "detail_chart.event_table.columns", "必填，非空清單")
+        for i, col in enumerate(cols):
+            where = f"detail_chart.event_table.columns[{i}]"
+            _need(isinstance(col, dict) and _is_str(col.get("label")), entry, f"{where}.label", "必填，字串")
+            keys = col.get("keys")
+            _need(isinstance(keys, list) and keys and all(_is_str(k) for k in keys), entry, f"{where}.keys",
+                  "必填，非空的字串清單")
+            if "format" in col:
+                _need(col["format"] in FORMATS, entry, f"{where}.format", f"只可以是 {list(FORMATS)}")
+            if "coded" in col:
+                _need(col["coded"] is True or _is_str(col["coded"]), entry, f"{where}.coded", "必須是 true 或字串")
+
+
 def _validate_tone_rule(entry, rule):
     _need(isinstance(rule, dict), entry, "tone_rule", "必須是物件")
     rtype = rule.get("type")
@@ -477,6 +513,11 @@ def _validate_indicator(iid, d, universe_cfg, calculators):
         series = chart.get("series")
         _need(isinstance(series, list) and series and all(_is_str(x) for x in series), entry,
               "detail_chart.series", "必填，非空的字串清單")
+        for field in ("bars", "bars_avg"):
+            if field in chart:
+                _need(_is_str(chart[field]), entry, f"detail_chart.{field}", "必須是 history 的鍵名（字串）")
+        _need("bars_avg" not in chart or "bars" in chart, entry, "detail_chart.bars_avg", "要先有 bars")
+        _validate_event_chart(entry, chart)
         if "levels" in chart:
             _need(isinstance(chart["levels"], list) and all(_is_num(x) for x in chart["levels"]), entry,
                   "detail_chart.levels", "必須是數值清單")

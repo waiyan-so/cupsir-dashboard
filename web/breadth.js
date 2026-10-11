@@ -108,7 +108,7 @@
   }
 
   window.addEventListener('resize', () => {
-    charts.forEach(c => c.plot.setSize({ width: c.box.clientWidth || 600, height: CHART_HEIGHT }));
+    charts.forEach(c => c.plot.setSize({ width: c.box.clientWidth || 600, height: c.height || CHART_HEIGHT }));
   });
 
   /*
@@ -177,6 +177,114 @@
     charts.push({ plot, box });
   }
 
+  /*
+   * drawEventChart(box, data, opts)
+   *   data: { xs, price, bars?, barsAvg?, labels: { price, bars, barsAvg, x }, highlight: Set of x indexes,
+   *           markers: [{ i, shape, tone }], levels: [{ y, from, to, tone }] }   (i, from, to: x indexes)
+   * A price line over volume-style bars (lower third), shapes on event days and short dashed
+   * lines at event levels. Bars are coloured by the day's close against the previous one.
+   */
+  const EVENT_CHART_HEIGHT = 300;
+  const cssVar = (name, fallback) => (getComputedStyle(document.documentElement).getPropertyValue(name) || '').trim() || fallback;
+  const toneColor = tone => (tone === 'positive' ? cssVar('--green', '#34d399') : tone === 'negative' ? cssVar('--red', '#fb7185')
+    : tone === 'warning' ? cssVar('--yellow', '#fbbf24') : cssVar('--text', '#e5e7eb'));
+  const withAlpha = (hex, a) => {
+    const n = parseInt(hex.replace('#', ''), 16);
+    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+  };
+
+  function drawShape(ctx, shape, x, y, r, color) {
+    ctx.save();
+    ctx.fillStyle = color; ctx.strokeStyle = color; ctx.lineWidth = Math.max(1.5, r / 3);
+    ctx.beginPath();
+    if (shape === 'triangle') { ctx.moveTo(x, y - r); ctx.lineTo(x + r, y + r * 0.8); ctx.lineTo(x - r, y + r * 0.8); ctx.closePath(); ctx.fill(); }
+    else if (shape === 'diamond') { ctx.moveTo(x, y - r * 1.2); ctx.lineTo(x + r, y); ctx.lineTo(x, y + r * 1.2); ctx.lineTo(x - r, y); ctx.closePath(); ctx.fill(); }
+    else if (shape === 'cross') { ctx.moveTo(x - r, y - r); ctx.lineTo(x + r, y + r); ctx.moveTo(x + r, y - r); ctx.lineTo(x - r, y + r); ctx.stroke(); }
+    else { ctx.arc(x, y, r * 0.85, 0, Math.PI * 2); ctx.stroke(); }
+    ctx.restore();
+  }
+
+  function shapeIcon(shape, color) {
+    const p = { triangle: '<path d="M7 2 L12 11 L2 11 Z" fill="C"/>', diamond: '<path d="M7 1 L12 7 L7 13 L2 7 Z" fill="C"/>',
+      cross: '<path d="M3 3 L11 11 M11 3 L3 11" stroke="C" stroke-width="2"/>', circle: '<circle cx="7" cy="7" r="4.5" fill="none" stroke="C" stroke-width="2"/>',
+      bar: '<rect x="4" y="3" width="6" height="10" fill="C"/>', dash: '<path d="M1 7 H13" stroke="C" stroke-width="2" stroke-dasharray="3 2"/>' };
+    return `<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">${(p[shape] || p.circle).replace(/C/g, color)}</svg>`;
+  }
+
+  function drawEventChart(box, data) {
+    const dpr = devicePixelRatio || 1;
+    const priceColor = SERIES_COLORS[0], avgColor = SERIES_COLORS[1];
+    const isoDate = (u, v) => (v == null ? '--' : new Date(v * 1000).toISOString().slice(0, 10));
+    const count = v => (v == null ? '--' : Math.round(v).toLocaleString('en-US'));
+    const maxBar = Math.max(1, ...(data.bars || []).filter(v => v != null));
+    const levelValues = data.levels.map(l => l.y);
+    const series = [{ label: data.labels.x || '', value: isoDate },
+      { label: data.labels.price, stroke: priceColor, width: 2, points: { show: false }, scale: 'y' }];
+    const columns = [data.xs, data.price];
+    if (data.bars) {
+      series.push({ label: data.labels.bars, stroke: 'transparent', width: 0, points: { show: false }, scale: 'vol', value: (u, v) => count(v) });
+      columns.push(data.bars);
+    }
+    if (data.barsAvg) {
+      series.push({ label: data.labels.barsAvg, stroke: avgColor, width: 1.25, points: { show: false }, scale: 'vol', value: (u, v) => count(v) });
+      columns.push(data.barsAvg);
+    }
+    const plot = new uPlot({
+      width: box.clientWidth || 600,
+      height: EVENT_CHART_HEIGHT,
+      scales: {
+        x: { time: true },
+        y: { range: (u, min, max) => {
+          const lo = Math.min(min, ...levelValues), hi = Math.max(max, ...levelValues);
+          const pad = (hi - lo) * 0.06 || 1;
+          return [lo - (hi - lo) * 0.5 - pad, hi + pad];     // room below for the bars
+        } },
+        vol: { range: () => [0, maxBar * 3.2] },
+      },
+      axes: [{ stroke: AXIS, grid: { stroke: GRID } }, { stroke: AXIS, grid: { stroke: GRID }, size: 56, scale: 'y' }],
+      series,
+      legend: { show: true },
+      cursor: { points: { size: 7 } },
+      hooks: {
+        drawAxes: [u => {
+          if (!data.bars) return;
+          const ctx = u.ctx, w = Math.max(1, (u.bbox.width / data.xs.length) * 0.7);
+          const base = u.valToPos(0, 'vol', true);
+          ctx.save();
+          data.bars.forEach((v, i) => {
+            if (v == null) return;
+            const up = i > 0 && data.price[i] != null && data.price[i - 1] != null && data.price[i] >= data.price[i - 1];
+            const alpha = data.highlight.has(i) ? 0.95 : 0.35;
+            ctx.fillStyle = withAlpha(up ? cssVar('--green', '#34d399') : cssVar('--red', '#fb7185'), alpha);
+            const x = u.valToPos(data.xs[i], 'x', true), y = u.valToPos(v, 'vol', true);
+            ctx.fillRect(x - w / 2, y, w, base - y);
+          });
+          ctx.restore();
+        }],
+        draw: [u => {
+          const ctx = u.ctx;
+          ctx.save();
+          ctx.setLineDash([5 * dpr, 4 * dpr]);
+          ctx.lineWidth = 1.5 * dpr;
+          data.levels.forEach(l => {
+            const y = u.valToPos(l.y, 'y', true);
+            ctx.strokeStyle = toneColor(l.tone);
+            ctx.beginPath();
+            ctx.moveTo(u.valToPos(data.xs[l.from], 'x', true), y);
+            ctx.lineTo(u.valToPos(data.xs[l.to], 'x', true), y);
+            ctx.stroke();
+          });
+          ctx.restore();
+          data.markers.forEach(m => {
+            if (data.price[m.i] == null) return;
+            drawShape(ctx, m.shape, u.valToPos(data.xs[m.i], 'x', true), u.valToPos(data.price[m.i], 'y', true), 5.5 * dpr, toneColor(m.tone));
+          });
+        }],
+      },
+    }, columns, box);
+    charts.push({ plot, box, height: EVENT_CHART_HEIGHT });
+  }
+
   const toSeconds = date => Math.floor(new Date(date).getTime() / 1000);
   const column = (history, key) => history.map(p => (p[key] === undefined ? null : p[key]));
   const seriesLabel = (ind, key) => (ind.value_labels || {})[key] || key;
@@ -210,6 +318,36 @@
       lines.push({ label: ind.name_zh, pointsOnly: true, values: result.history.map((p, i) => (eventDates.has(p.date) ? base[i] : null)) });
       drawLineChart(box, { xs: result.history.map(p => toSeconds(p.date)), lines }, chartOptions(ind, labels, extra));
     },
+    // Price with bars below, a shape per event (detail_chart.markers by event type), dashed
+    // lines at an event field (detail_chart.event_level) and a legend for all of them.
+    price_with_events(box, ind, result, labels) {
+      const chart = ind.detail_chart, names = ind.value_labels || {}, h = result.history;
+      const at = new Map(h.map((p, i) => [p.date, i]));
+      const events = (result.events || []).filter(e => at.has(e.date));
+      const markers = chart.markers || {};
+      const lvl = chart.event_level;
+      const levels = !lvl ? [] : events.filter(e => (!lvl.only || e[lvl.only]) && typeof e[lvl.key] === 'number').map(e => ({
+        y: e[lvl.key], tone: e.tone, from: at.get(e.date),
+        to: e[lvl.until] && at.has(e[lvl.until]) ? at.get(e[lvl.until]) : h.length - 1,
+      }));
+      drawEventChart(box, {
+        xs: h.map(p => toSeconds(p.date)),
+        price: column(h, chart.series[0]),
+        bars: chart.bars ? column(h, chart.bars) : null,
+        barsAvg: chart.bars_avg ? column(h, chart.bars_avg) : null,
+        labels: { x: labels.date, price: seriesLabel(ind, chart.series[0]), bars: chart.bars && seriesLabel(ind, chart.bars),
+                  barsAvg: chart.bars_avg && seriesLabel(ind, chart.bars_avg) },
+        highlight: new Set(levels.map(l => l.from)),
+        markers: events.filter(e => markers[e.type]).map(e => ({ i: at.get(e.date), shape: markers[e.type].shape, tone: markers[e.type].tone })),
+        levels,
+      });
+      const prefix = chart.marker_label || 'event';
+      const present = new Set(events.map(e => e.type));
+      const keys = Object.keys(markers).filter(t => present.has(t));     // config order
+      const items = keys.map(t => `<span>${shapeIcon(markers[t].shape, toneColor(markers[t].tone))}${esc(names[`${prefix}.${t}`] || t)}</span>`);
+      if (levels.length && lvl.label) items.push(`<span>${shapeIcon('dash', toneColor(null))}${esc(names[lvl.label] || lvl.label)}</span>`);
+      if (items.length) box.insertAdjacentHTML('beforeend', `<div class="event-legend">${items.join('')}</div>`);
+    },
   };
 
   // Called after the HTML holding `.chart-box[data-chart]` placeholders is in the page.
@@ -225,12 +363,59 @@
 
   // ------------------------------------------------------------ shared detail blocks
 
+  // A coded value (a string such as "IDEAL") is shown by its label "<key>.<value>" when
+  // value_labels has one; any other value is formatted as it is.
+  function labelledValue(names, key, value, labels) {
+    const coded = typeof value === 'string' ? names[`${key}.${value}`] : undefined;
+    return coded !== undefined ? coded : formatPlain(value, labels);
+  }
+
   function valuesList(ind, result, labels) {
     const names = ind.value_labels || {};
     const rows = Object.keys(names)
       .filter(key => isOk(result) && key in (result.values || {}))
-      .map(key => `<div class="kv"><span>${esc(names[key])}</span><b>${esc(formatPlain(result.values[key], labels))}</b></div>`);
+      .map(key => `<div class="kv"><span>${esc(names[key])}</span><b>${esc(labelledValue(names, key, result.values[key], labels))}</b></div>`);
     return rows.length ? `<div class="kv-list">${rows.join('')}</div>` : '';
+  }
+
+  // Events the result marks `tracked` (newest first): each with its own status, tone and
+  // the labels value_labels gives them. Nothing shows for a result without such events.
+  function trackedList(ind, result) {
+    const names = ind.value_labels || {};
+    const rows = isOk(result) ? (result.events || []).filter(e => e.tracked).reverse() : [];
+    if (!rows.length || !names.tracked_heading) return '';
+    const items = rows.map(e => {
+      const day = names.day_number ? names.day_number.replace('{n}', e.day_count) : String(e.day_count);
+      const timing = names[`timing.${e.timing}`] || e.timing || '';
+      const status = names[`status.${e.status}`] || e.status || '';
+      const when = e.status_date ? ` ${names.status_date || ''} ${e.status_date}` : '';
+      return `<li><b>${esc(e.date)}</b> · ${esc(day)} · ${esc(timing)}<br><span class="${e.tone ? cls(e.tone) : 'muted-inline'}">${esc(status + when)}</span></li>`;
+    }).join('');
+    return `<div class="tracked-list"><h4>${esc(names.tracked_heading)}</h4><ul>${items}</ul></div>`;
+  }
+
+  // detail_chart.event_table: the result's events, newest first, one row each. A column joins
+  // the listed keys: `coded` looks a value up as "<prefix>.<value>" in value_labels (prefix
+  // true = the key), `template` fills "{n}", `format` uses a number format.
+  function eventTable(ind, result, labels) {
+    const spec = ind.detail_chart && ind.detail_chart.event_table;
+    const names = ind.value_labels || {};
+    const rows = isOk(result) ? (result.events || []).slice().reverse() : [];
+    if (!spec || !rows.length) return '';
+    const cell = (col, e) => {
+      const parts = (col.keys || []).map(key => {
+        const v = e[key];
+        if (v === null || v === undefined) return '';
+        if (col.coded) { const label = names[`${col.coded === true ? key : col.coded}.${String(v)}`]; return label !== undefined ? label : String(v); }
+        if (col.template && names[col.template]) return names[col.template].replace('{n}', v);
+        if (col.format) return formatValue(col.format, v, labels);
+        return String(v);
+      }).filter(Boolean);
+      return parts.length ? parts.join(' · ') : '—';
+    };
+    const head = spec.columns.map(col => `<th>${esc(names[col.label] || col.label)}</th>`).join('');
+    const body = rows.map(e => `<tr>${spec.columns.map(col => `<td>${esc(cell(col, e))}</td>`).join('')}</tr>`).join('');
+    return `<div class="event-table"><h4>${esc(names[spec.heading] || '')}</h4><div class="event-table-scroll"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div></div>`;
   }
 
   function expertView(ind, labels) {
@@ -367,6 +552,8 @@
           <div class="subject-head"><b>${esc(subject.name_zh)} <small class="muted-inline">${esc(subject.ticker)}</small></b><span class="chip ${toneClass(result)}">${esc(mainText(ind, result, labels))}</span></div>
           ${chartSlot(ind, result, sid)}
           ${valuesList(ind, result, labels)}
+          ${trackedList(ind, result)}
+          ${eventTable(ind, result, labels)}
         </div>`;
       }).join('');
       detail.innerHTML = `<div class="detail-head"><div><h2>${esc(ind.name_zh)}</h2><p class="muted">${esc(ind.name)}</p></div></div>

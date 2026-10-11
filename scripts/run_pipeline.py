@@ -41,6 +41,8 @@ EXIT_OK, EXIT_NO_DATA, EXIT_BAD_CONFIG = 0, 1, 2
 
 # Registry fields the front end needs. params, notes and calculator stay out.
 META_COMMON = ("name", "name_zh", "detail_chart", "value_labels", "expert_view", "disclaimer")
+# detail_chart fields, besides `series`, that name a key of the history rows.
+CHART_HISTORY_FIELDS = ("bars", "bars_avg")
 
 
 def _say(message):
@@ -230,9 +232,11 @@ def check_cells(scope, indicators, cells, expected, table):
                                      f"（現有：{sorted(result['values'])}）")
         chart = d.get("detail_chart")
         if chart and result["history"]:
-            for key in chart["series"]:
+            wanted = [("series", key) for key in chart["series"]]
+            wanted += [(field, chart[field]) for field in CHART_HISTORY_FIELDS if field in chart]
+            for field, key in wanted:
                 if key not in result["history"][0]:
-                    raise OutputMismatch(f"indicators.{iid}.detail_chart.series: 「{key}」不在 history 之內"
+                    raise OutputMismatch(f"indicators.{iid}.detail_chart.{field}: 「{key}」不在 history 之內"
                                          f"（現有：{sorted(result['history'][0])}）")
 
 

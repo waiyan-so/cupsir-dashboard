@@ -274,6 +274,28 @@ def test_chart_series_that_the_history_does_not_have_exits_2(tmp_path, offline_d
     assert code == 2 and not data.exists()
 
 
+def test_chart_bars_that_the_history_does_not_have_exits_2(tmp_path, offline_dir):
+    # The FTD chart's volume average is named after vol_avg_window; changing one without the other is caught.
+    stale = registry_with(tmp_path, lambda cfg: cfg["indicators"]["follow_through_day"]["params"].update(vol_avg_window=30))
+    code, data = run(tmp_path, "--offline", str(offline_dir), "--registry", stale)
+    assert code == 2 and not data.exists()
+
+
+def test_ftd_result_has_a_chart_window_and_tracked_events(tmp_path, offline_dir):
+    code, data = run(tmp_path, "--offline", str(offline_dir))
+    assert code == 0
+    payload = load(data, MARKET)
+    ind = next(i for i in payload["meta"]["indicators"] if i["id"] == "follow_through_day")
+    assert ind["detail_chart"]["type"] == "price_with_events" and ind["detail_chart"]["bars"] == "volume"
+    for result in payload["results"]["follow_through_day"].values():
+        if result["status"] != "ok":
+            continue
+        assert result["history"] and set(result["history"][0]) == {"date", "close", "volume", "volume_sma50"}
+        first = result["history"][0]["date"]
+        assert all(e["date"] >= first for e in result["events"])
+        assert sum(1 for e in result["events"] if e.get("tracked")) <= 3
+
+
 def test_one_output_failing_keeps_its_old_file_and_still_writes_the_other(tmp_path, offline_dir):
     code, data = run(tmp_path, "--offline", str(offline_dir))
     market_before = (data / MARKET).read_bytes()
