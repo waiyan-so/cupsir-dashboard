@@ -240,6 +240,22 @@
     return rows.length ? `<div class="kv-list">${rows.join('')}</div>` : '';
   }
 
+  // Events the result marks `tracked` (newest first): each with its own status, tone and
+  // the labels value_labels gives them. Nothing shows for a result without such events.
+  function trackedList(ind, result) {
+    const names = ind.value_labels || {};
+    const rows = isOk(result) ? (result.events || []).filter(e => e.tracked).reverse() : [];
+    if (!rows.length || !names.tracked_heading) return '';
+    const items = rows.map(e => {
+      const day = names.day_number ? names.day_number.replace('{n}', e.day_count) : String(e.day_count);
+      const timing = names[`timing.${e.timing}`] || e.timing || '';
+      const status = names[`status.${e.status}`] || e.status || '';
+      const when = e.status_date ? ` ${names.status_date || ''} ${e.status_date}` : '';
+      return `<li><b>${esc(e.date)}</b> · ${esc(day)} · ${esc(timing)}<br><span class="${e.tone ? cls(e.tone) : 'muted-inline'}">${esc(status + when)}</span></li>`;
+    }).join('');
+    return `<div class="tracked-list"><h4>${esc(names.tracked_heading)}</h4><ul>${items}</ul></div>`;
+  }
+
   function expertView(ind, labels) {
     const items = (ind.expert_view || []).map(v => `<li>${esc(v)}</li>`).join('');
     const note = ind.disclaimer ? `<p class="muted breadth-note">${esc(ind.disclaimer)}</p>` : '';
@@ -374,6 +390,7 @@
           <div class="subject-head"><b>${esc(subject.name_zh)} <small class="muted-inline">${esc(subject.ticker)}</small></b><span class="chip ${toneClass(result)}">${esc(mainText(ind, result, labels))}</span></div>
           ${chartSlot(ind, result, sid)}
           ${valuesList(ind, result, labels)}
+          ${trackedList(ind, result)}
         </div>`;
       }).join('');
       detail.innerHTML = `<div class="detail-head"><div><h2>${esc(ind.name_zh)}</h2><p class="muted">${esc(ind.name)}</p></div></div>

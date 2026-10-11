@@ -8,12 +8,13 @@ day (intraday low 97), 10 is Day 1, 13 is Day 4.
 import pytest
 
 from pipeline import calc
-from pipeline.calc.follow_through_day import replay, timing
+from pipeline.calc.follow_through_day import replay, timing, track
 from helpers import frame, shipped_indicator
 
 P = {"peak_window": 10, "min_day": 4, "min_gain": 0.0125, "sma_fast": 3, "below_sma_days": 2,
      "vol_avg_window": 5, "fast": 2, "mid": 3, "slow": 5, "slope_window": 1, "events_days": 90,
-     "ideal_max_day": 7, "late_after_day": 10}
+     "ideal_max_day": 7, "late_after_day": 10, "track_count": 3,
+     "track_tones": {"ACTIVE": "positive", "FAILED": "negative", "NEW_HIGH": None}}
 
 BASE_CLOSES = [100, 101, 102, 103, 104, 105, 106, 104, 101, 98, 99, 99.5, 99.2, 101.5]
 LOW_DAY, DAY1, DAY4 = 9, 10, 13
@@ -187,7 +188,8 @@ def test_compute_output_shape_and_tone():
     assert confirmed["history"] == []
     assert confirmed["events"] == [
         {"date": "2024-01-16", "type": "day1", "day_count": 1},
-        {"date": "2024-01-19", "type": "ftd", "day_count": 4, "timing": "IDEAL"},
+        {"date": "2024-01-19", "type": "ftd", "day_count": 4, "timing": "IDEAL", "low": 101.0, "gain_pct": 2.32,
+         "above_avg_volume": True, "status": "ACTIVE", "status_date": None, "tracked": True, "tone": "positive"},
     ]
     assert confirmed["values"]["timing"] == "IDEAL"
     failed = calc.run(defn, {"subject": series(extra=[102, 100.8])})
@@ -232,3 +234,56 @@ def test_r5_a_late_ftd_is_still_confirmed():
     out = replay(series(closes=closes, volumes=vols, extra=extra), dict(P, peak_window=30))  # day 20 is no new high
     assert out["state"] == "CONFIRMED"
     assert (out["last_ftd"]["day_count"], out["last_ftd"]["timing"]) == (11, "LATE")
+
+
+# ---- P1 (decided 2026-10-11): the most recent FTDs are each tracked on their own
+
+def _run(df, params=P):
+    return calc.run({"calculator": "follow_through_day", "inputs": ["subject"], "min_history_days": 5,
+                     "params": params, "tone_rule": None}, {"subject": df})
+
+
+def _ftds(result):
+    return [(e["date"], e["status"], e["status_date"], e["tracked"], e["tone"])
+            for e in result["events"] if e["type"] == "ftd"]
+
+
+def test_p1_an_ftd_hidden_by_a_later_attempt_is_still_seen_to_fail():
+    # The case 3.4.6 describes: a new attempt starts while CONFIRMED and is undercut, so the
+    # state machine says NONE_PENDING and emits no `failed`; tracking still sees day 19 close
+    # (100.0) below the FTD day's low (101.0).
+    df = series(extra=[103.5, 102.0, 101.8, 102.6, 101.5, 100.0], lows={18: 101.2})
+    result = _run(df)
+    assert result["state"] == "NONE_PENDING"
+    assert _ftds(result) == [(df.index[DAY4].strftime("%Y-%m-%d"), "FAILED", df.index[19].strftime("%Y-%m-%d"),
+                              True, "negative")]
+
+
+def test_p1_a_new_closing_high_first_ends_tracking():
+    df = series(extra=[103, 105, 107, 90])                 # day 16 is a new high; day 17 would fail
+    assert _ftds(_run(df))[0][1:3] == ("NEW_HIGH", df.index[16].strftime("%Y-%m-%d"))
+
+
+def test_p1_an_ftd_still_standing_is_active():
+    assert _ftds(_run(series(extra=[102, 101.0])))[0][1:3] == ("ACTIVE", None)
+
+
+def test_p1_track_checks_failure_before_a_new_high():
+    close = [10.0, 9.0, 12.0]                              # day 2 is a new high, but not below 12.5
+    assert track(close, 0, 12.5, 63) == ("FAILED", 1)
+    assert track([10.0, 11.0, 9.0], 0, 9.5, 63) == ("NEW_HIGH", 1)
+    assert track([10.0, 10.0], 0, 9.5, 63) == ("NEW_HIGH", 1)   # a tie with the window high counts
+    assert track([10.0], 0, 9.5, 63) == ("ACTIVE", None)
+
+
+def test_p1_only_the_most_recent_ftds_are_tracked_and_they_stay_in_the_output():
+    # FTD on day 13 fails on day 15; a new Day 1 on day 18 leads to a second FTD on day 21.
+    df = series(extra=[102, 100.8, 99.9, 99.0, 99.6, 99.8, 100.0, 101.8], volumes={21: 5000})
+    out = replay(df, P)
+    assert [e["type"] for e in out["events"]].count("ftd") == 2
+    result = _run(df, dict(P, track_count=1, events_days=3))
+    ftds = [e for e in result["events"] if e["type"] == "ftd"]
+    assert [e["tracked"] for e in ftds] == [True]           # the older one is outside the window and untracked
+    assert ftds[0]["date"] == df.index[21].strftime("%Y-%m-%d")
+    older = _run(df, dict(P, track_count=2, events_days=3))
+    assert [e["tracked"] for e in older["events"] if e["type"] == "ftd"] == [True, True]   # kept despite the window

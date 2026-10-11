@@ -9,6 +9,10 @@ R5 (day-count tag) was approved by the owner on 2026-10-11: every FTD carries a
 LATE after that. It is a tag only and never removes an FTD. R6 (market-level
 date) is not approved and not built: SPY and QQQ stay separate.
 
+P1 as decided by the owner on 2026-10-11: the most recent `track_count` FTDs are
+each followed on their own, whatever the state machine does next (track()).
+The state machine itself is unchanged.
+
 F3 as revised by the owner on 2026-10-04: a new Day 1 is also looked for
 while the state is CONFIRMED. When one is found the state moves to WATCHING
 and the earlier FTD stays as last_confirmed_date. (The first version did not
@@ -44,6 +48,9 @@ FAILED = "FAILED"
 IDEAL = "IDEAL"
 SLIGHTLY_LATE = "SLIGHTLY_LATE"
 LATE = "LATE"
+
+ACTIVE = "ACTIVE"
+NEW_HIGH = "NEW_HIGH"
 
 DAY1 = "day1"
 FTD = "ftd"
@@ -169,15 +176,42 @@ def replay(df, params):
     return {"events": events, "states": states, "state": state, "attempt": attempt, "last_ftd": last_ftd}
 
 
+def track(close, ftd_index, ftd_low, peak_window):
+    """P1: follow one FTD after its day, on its own.
+
+    FAILED   the first close below the FTD day's low                      (as step 1)
+    NEW_HIGH the first close that is the highest of the last `peak_window`
+             days, if it comes before any failure; tracking stops there
+    ACTIVE   neither has happened yet
+    A day that is both is FAILED, the order the state machine checks them in.
+    Returns (status, index of the deciding day or None).
+    """
+    for k in range(ftd_index + 1, len(close)):
+        if close[k] < ftd_low:
+            return FAILED, k
+        lo = max(0, k - peak_window + 1)
+        if lo + _last_argmax(close[lo:k + 1]) == k:
+            return NEW_HIGH, k
+    return ACTIVE, None
+
+
 @calculator("follow_through_day", params=TREND_PARAMS + (
     "peak_window", "min_day", "min_gain", "sma_fast", "below_sma_days", "vol_avg_window", "events_days",
-    "ideal_max_day", "late_after_day"))
+    "ideal_max_day", "late_after_day", "track_count", "track_tones"))
 def compute(frames, params):
     df = frames["subject"]
     out = replay(df, params)
     n = len(df)
     last_ftd = out["last_ftd"]
     first_shown = max(0, n - params["events_days"])
+    close = df["close"].to_numpy(dtype=float)
+    ftds = [e for e in out["events"] if e["type"] == FTD]
+    tracked = {e["index"] for e in ftds[-params["track_count"]:]} if params["track_count"] > 0 else set()
+    for e in ftds:
+        status, k = track(close, e["index"], e["low"], params["peak_window"])
+        e["status"], e["status_date"] = status, (date_str(df.index[k]) if k is not None else None)
+        e["tracked"] = e["index"] in tracked
+        e["tone"] = params["track_tones"].get(status)
     return {
         "state": out["state"],
         "values": {
@@ -188,12 +222,13 @@ def compute(frames, params):
             "timing": last_ftd["timing"] if last_ftd else None,
         },
         "history": [],
-        "events": [_shown(e) for e in out["events"] if e["index"] >= first_shown],
+        "events": [_shown(e) for e in out["events"] if e["index"] >= first_shown or e["index"] in tracked],
     }
 
 
 def _shown(event):
     shown = {"date": event["date"], "type": event["type"], "day_count": event["day_count"]}
     if event["type"] == FTD:
-        shown["timing"] = event["timing"]
+        for key in ("timing", "low", "gain_pct", "above_avg_volume", "status", "status_date", "tracked", "tone"):
+            shown[key] = event[key]
     return shown

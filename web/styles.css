@@ -83,3 +83,9 @@ h2 .tag{font-size:12px;vertical-align:3px}
 .guide-signals b{font-weight:600}
 .guide-caveat{font-size:12px;color:var(--muted);line-height:1.7;margin:0}
 .guide-us{margin-top:8px}
+
+/* Tracked items under a status card's detail (e.g. the most recent follow-through days). */
+.tracked-list { margin-top: 10px; }
+.tracked-list h4 { margin: 0 0 6px; font-size: 13px; }
+.tracked-list ul { margin: 0; padding-left: 18px; }
+.tracked-list li { margin: 0 0 6px; font-size: 13px; line-height: 1.45; }
