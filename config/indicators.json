@@ -231,7 +231,7 @@
       "params": {"lookback": 52, "history_points": 52, "extreme_high": 80, "extreme_low": 20, "lean_high": 70, "lean_low": 30},
       "tone_rule": {"type": "state_map", "map": {"EXTREME_LONG": "positive", "EXTREME_SHORT": "negative", "LONG_LEAN": "positive", "SHORT_LEAN": "warning"}},
       "scopes": {
-        "cot": {"component": "table_column", "order": 10, "column_label": "COT／情緒（1 年）",
+        "cot": {"component": "table_column", "order": 20, "column_label": "COT／情緒（1 年）",
                 "value_key": "cot_index", "format": "number", "secondary_key": "sentiment_index", "secondary_format": "number",
                 "list": {"order": 10, "value_key": "cot_index", "format": "number"}}
       },
@@ -251,7 +251,7 @@
       "params": {"lookback": 156, "history_points": 52, "extreme_high": 80, "extreme_low": 20, "lean_high": 70, "lean_low": 30},
       "tone_rule": {"type": "state_map", "map": {"EXTREME_LONG": "positive", "EXTREME_SHORT": "negative", "LONG_LEAN": "positive", "SHORT_LEAN": "warning"}},
       "scopes": {
-        "cot": {"component": "table_column", "order": 20, "column_label": "COT／情緒（3 年）",
+        "cot": {"component": "table_column", "order": 30, "column_label": "COT／情緒（3 年）",
                 "value_key": "cot_index", "format": "number", "secondary_key": "sentiment_index", "secondary_format": "number"}
       },
       "detail_chart": {"type": "line", "series": ["cot_index", "sentiment_index"], "levels": [80, 20], "y_range": [0, 100]},
@@ -270,7 +270,7 @@
       "params": {"lookback": 26, "history_points": 52, "extreme_high": 80, "extreme_low": 20, "lean_high": 70, "lean_low": 30},
       "tone_rule": {"type": "state_map", "map": {"EXTREME_LONG": "positive", "EXTREME_SHORT": "negative", "LONG_LEAN": "positive", "SHORT_LEAN": "warning"}},
       "scopes": {
-        "cot": {"component": "table_column", "order": 30, "column_label": "COT／情緒（6 個月）",
+        "cot": {"component": "table_column", "order": 10, "column_label": "COT／情緒（6 個月）",
                 "value_key": "cot_index", "format": "number", "secondary_key": "sentiment_index", "secondary_format": "number"}
       },
       "detail_chart": {"type": "line", "series": ["cot_index", "sentiment_index"], "levels": [80, 20], "y_range": [0, 100]},

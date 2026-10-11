@@ -312,7 +312,7 @@ def test_cot_file_shape(tmp_path, offline_dir):
     cot = load(data, COT)
     assert cot["schema_version"] == 2 and set(cot) == {"schema_version", "updated_at", "meta", "rows"}
     meta = cot["meta"]
-    assert [i["id"] for i in meta["indicators"]] == ["cot_index_1y", "cot_index_3y", "cot_index_6m"]
+    assert [i["id"] for i in meta["indicators"]] == ["cot_index_6m", "cot_index_1y", "cot_index_3y"]
     assert meta["default_sort"] is None                      # default order = the order in universe.json
     assert meta["groups"] == {"agriculture": "農產品", "energy": "能源", "metals": "金屬", "financial": "金融"}
     assert meta["ui_labels"]["tab_cot"] == "COT 持倉"
