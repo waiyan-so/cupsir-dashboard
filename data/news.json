@@ -1,5 +1,33 @@
 [
   {
+    "title": "AI may change the price of your Big Mac and groceries — what this means for shoppers",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/2026/10/11/ai-dynamic-pricing-shoppers-groceries.html",
+    "published_at": "2026-10-11T05:00:01Z",
+    "summary": "As retailers turn to AI tools to streamline operations, experts warn that collecting more detailed consumer data increases the risk of personalized pricing."
+  },
+  {
+    "title": "JPMorgan makes bullish call in fixed income space, suggests it's a once in a generation opportunity",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/2026/10/10/jpmorgan-sees-once-in-a-generation-opportunity-in-fixed-income-space.html",
+    "published_at": "2026-10-10T15:00:01Z",
+    "summary": "Why Priya Misra, a portfolio manager at the firm, is looking to take credit risk in high-quality companies."
+  },
+  {
+    "title": "Wall Street’s rate shock spreads beneath AI-fueled market rally",
+    "source": "Bloomberg",
+    "url": "https://www.bloomberg.com/news/articles/2026-10-09/wall-street-s-rate-shock-spreads-beneath-ai-fueled-market-rally",
+    "published_at": "2026-10-10T14:03:09Z",
+    "summary": "Bonds surge as rates spike and oil stays high, testing AI-driven stock resilience amid widening market risks."
+  },
+  {
+    "title": "Putin relayed Iran war proposal to Trump, Kremlin says",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/2026/10/10/putin-trump-iran-war-russia-diesel.html",
+    "published_at": "2026-10-10T13:42:36Z",
+    "summary": "Putin's reported call with Trump regarding the Iran war comes on the heels of a deal for the U.S. to buy Russian diesel amid a surge in fuel prices."
+  },
+  {
     "title": "Trump's diesel agreement with Putin accused of contradicting Russia sanctions law",
     "source": "CNBC",
     "url": "https://www.cnbc.com/2026/10/09/trump-putin-diesel-russia-sanctions-ukraine.html",
@@ -26,33 +54,5 @@
     "url": "https://www.cnbc.com/2026/10/09/trump-lisa-cook-fed-firing-committee-explained.html",
     "published_at": "2026-10-09T18:20:57Z",
     "summary": "Trump’s bid to fire the Fed's Lisa Cook follows a Supreme Court ruling and could affect Jerome Powell, central bank independence and interest rates."
-  },
-  {
-    "title": "The used car market is stagnant. Here's how to profit anyway",
-    "source": "CNBC",
-    "url": "https://www.cnbc.com/2026/10/09/the-used-car-market-is-stagnant-heres-how-to-profit-anyway.html",
-    "published_at": "2026-10-09T17:37:31Z",
-    "summary": "Michael Khouw breaks down this short strangle options trade."
-  },
-  {
-    "title": "Most workers say they regularly skip lunch: survey",
-    "source": "CNBC",
-    "url": "https://www.cnbc.com/make-it/2026/10/09/most-workers-say-they-regularly-skip-lunch-survey.html",
-    "published_at": "2026-10-09T16:24:32Z",
-    "summary": "Over half of US workers say they skip lunch to cut costs, according to a survey from ezCater."
-  },
-  {
-    "title": "Trump appoints committee to investigate statements by the Fed's Lisa Cook",
-    "source": "CNBC",
-    "url": "https://www.cnbc.com/2026/10/09/fed-lisa-cook-trump.html",
-    "published_at": "2026-10-09T14:10:59Z",
-    "summary": "Trump tried to fire Cook, a nominee of former President Joe Biden, but the Supreme Court blocked his first attempt."
-  },
-  {
-    "title": "Americans' debt problems are flashing a warning not seen since the Great Recession",
-    "source": "CNBC",
-    "url": "https://www.cnbc.com/2026/10/09/american-debt-delinquency.html",
-    "published_at": "2026-10-09T14:03:24Z",
-    "summary": "Researchers found that while wealth disparities narrowed somewhat, the ability to meet debt payments deteriorated significantly."
   }
 ]
