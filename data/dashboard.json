@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-10-12 10:45 UTC",
+  "updated_at": "2026-10-13 01:43 UTC",
   "overall_signal": "BULLISH",
-  "total_score": 4,
+  "total_score": 5,
   "category_labels": {
     "macro": "一、宏觀環境",
     "market": "二、市場溫度",
@@ -634,12 +634,12 @@
       "category": "market",
       "name": "CBOE Volatility Index",
       "name_zh": "VIX 波動率指數",
-      "value": 14.84,
+      "value": 15.21,
       "unit": "",
-      "data_date": "2026-10-09",
-      "signal": "COMPLACENT",
-      "signal_color": "warning",
-      "interpretation": "CupSir 框架分類：COMPLACENT。",
+      "data_date": "2026-10-12",
+      "signal": "NEUTRAL",
+      "signal_color": "positive",
+      "interpretation": "CupSir 框架分類：NEUTRAL。",
       "checklist": [
         "是否在 20 至 30 的不明朗區間",
         "是否超過 30 或 45",
@@ -652,10 +652,6 @@
         "target": "TVC:VIX"
       },
       "history": [
-        {
-          "date": "2026-08-31",
-          "value": 14.92
-        },
         {
           "date": "2026-09-01",
           "value": 16.34
@@ -771,6 +767,10 @@
         {
           "date": "2026-10-09",
           "value": 14.84
+        },
+        {
+          "date": "2026-10-12",
+          "value": 15.21
         }
       ],
       "chart": {

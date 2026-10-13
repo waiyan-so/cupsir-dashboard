@@ -38,5 +38,21 @@
     "notes": "房地產週期指標，對利率敏感度高。",
     "importance": 2,
     "stars": "⭐⭐"
+  },
+  {
+    "date": "2026-10-27",
+    "time": "08:30 ET",
+    "title_zh": "耐用品訂單（Durable Goods Orders）",
+    "notes": "企業資本開支意向的前瞻指標。",
+    "importance": 2,
+    "stars": "⭐⭐"
+  },
+  {
+    "date": "2026-10-27",
+    "time": "10:00 ET",
+    "title_zh": "新屋銷售（New Home Sales）",
+    "notes": "房地產成交量指標。",
+    "importance": 1,
+    "stars": "⭐"
   }
 ]
