@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-10-13",
-    "time": "10:00 ET",
-    "title_zh": "成屋銷售（Existing Home Sales）",
-    "notes": "房地產成交量指標，涵蓋範圍比新屋銷售大。",
-    "importance": 1,
-    "stars": "⭐"
-  },
-  {
     "date": "2026-10-14",
     "time": "08:30 ET",
     "title_zh": "消費者物價指數（CPI）",
@@ -54,5 +46,13 @@
     "notes": "房地產成交量指標。",
     "importance": 1,
     "stars": "⭐"
+  },
+  {
+    "date": "2026-10-28",
+    "time": "14:00 ET",
+    "title_zh": "聯儲局議息會議（FOMC）",
+    "notes": "關注利率決定、政策聲明及記者會。",
+    "importance": 3,
+    "stars": "⭐⭐⭐"
   }
 ]
