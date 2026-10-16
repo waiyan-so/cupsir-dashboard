@@ -1,5 +1,40 @@
 [
   {
+    "title": "Anthropic results may aid IPO but not AI trade, analysts say",
+    "source": "Bloomberg",
+    "url": "https://www.bloomberg.com/news/articles/2026-10-15/anthropic-results-may-aid-ipo-but-not-ai-trade-analysts-say",
+    "published_at": "2026-10-15T06:08:45Z",
+    "summary": "Anthropic’s strong Q3 results bolster its IPO prospects but fail to quell doubts about the broader AI trade and funding risks."
+  },
+  {
+    "title": "CNBC Daily Open: A Singapore ship goes down as Hormuz risks rise",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/2026/10/15/cnbc-daily-open-a-singapore-ship-goes-down-as-hormuz-risks-rise.html",
+    "published_at": "2026-10-15T01:35:53Z",
+    "summary": "Tensions in the Strait of Hormuz have taken a major step up after a Singapore registered ship was sunk in the critical waterway."
+  },
+  {
+    "title": "SK Hynix plunges 8% amid Asia tech rout as Fed rate hike fears, AI funding worries mount",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/2026/10/15/sk-hynix-samsung-softbank-stocks-asia-tech-rout-ai-funding-worries.html",
+    "published_at": "2026-10-15T00:42:30Z",
+    "summary": "A sell-off in global technology hardware stocks deepened Thursday."
+  },
+  {
+    "title": "Inside India newsletter: Billionaire Ambani’s mega-IPO faces a valuation reality check amid Musk spat",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/2026/10/15/india-starlink-musk-jio-ambani-ipo.html",
+    "published_at": "2026-10-15T00:30:13Z",
+    "summary": "Jio Platforms, the company at the center of Musk’s remarks, is launching an IPO later this month."
+  },
+  {
+    "title": "Jim Cramer explains why even strong bank earnings couldn't save their stocks",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/2026/10/14/cramer-big-bank-earnings-stock-reaction.html",
+    "published_at": "2026-10-14T22:48:06Z",
+    "summary": "All six banks fell following their earnings reports, even as some delivered strong results, reflecting concerns about interest rates and the economic outlook."
+  },
+  {
     "title": "Jim Cramer says don't give up on this unpredictable market. Here's why",
     "source": "CNBC",
     "url": "https://www.cnbc.com/2026/10/14/cramer-stock-market-selloff-inflation.html",
@@ -19,40 +54,5 @@
     "url": "https://www.cnbc.com/2026/10/14/high-inflation-fed-expectations.html",
     "published_at": "2026-10-14T16:49:18Z",
     "summary": "U.S. inflation has stayed elevated for years, raising concern at the Federal Reserve that consumers may come to expect stubbornly high prices."
-  },
-  {
-    "title": "Treasury says largest U.S. banks let politics influence who received banking services",
-    "source": "CNBC",
-    "url": "https://www.cnbc.com/2026/10/14/treasury-banks-debanking-trump-reputation-risk.html",
-    "published_at": "2026-10-14T15:44:54Z",
-    "summary": "New Treasury Department findings may lend weight to President Donald Trump’s long-running grievance that major banks have discriminated against conservatives."
-  },
-  {
-    "title": "Fannie Mae sharply raises mortgage rate forecast for 2027",
-    "source": "CNBC",
-    "url": "https://www.cnbc.com/2026/10/14/fannie-mae-sharply-raises-mortgage-rate-forecast-for-2027-.html",
-    "published_at": "2026-10-14T15:20:53Z",
-    "summary": "Fannie Mae just put out its latest forecast for mortgage rates, and they are much higher than previous estimates."
-  },
-  {
-    "title": "BlackRock's Larry Fink warns a data center moratorium could trigger a recession",
-    "source": "CNBC",
-    "url": "https://www.cnbc.com/2026/10/14/blackrocks-fink-warns-data-center-moratorium-could-spark-a-recession.html",
-    "published_at": "2026-10-14T15:19:08Z",
-    "summary": "Local opposition to data center construction has been a feature of the midterm elections set for Tuesday, Nov. 3."
-  },
-  {
-    "title": "Here's the inflation breakdown for September 2026 — in one chart",
-    "source": "CNBC",
-    "url": "https://www.cnbc.com/2026/10/14/cpi-inflation-breakdown-september-2026.html",
-    "published_at": "2026-10-14T14:44:05Z",
-    "summary": "The consumer price index rose by 3.7% in September, on the back of higher gasoline and energy prices largely due to the Iran war."
-  },
-  {
-    "title": "Social Security Administration announces 3.6% cost-of-living adjustment for 2027",
-    "source": "CNBC",
-    "url": "https://www.cnbc.com/2026/10/14/social-security-cola-2027.html",
-    "published_at": "2026-10-14T13:30:22Z",
-    "summary": "The Social Security Administration has announced a 3.6% cost-of-living adjustment for 2027."
   }
 ]

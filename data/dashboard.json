@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-15 22:47 UTC",
+  "updated_at": "2026-10-16 06:23 UTC",
   "overall_signal": "BULLISH",
   "total_score": 6,
   "category_labels": {
@@ -789,9 +789,9 @@
       "category": "market",
       "name": "US Dollar Index",
       "name_zh": "美元指數 DXY",
-      "value": 102.55,
+      "value": 102.0,
       "unit": "",
-      "data_date": "2026-10-14",
+      "data_date": "2026-10-15",
       "signal": "USD STRENGTHENING",
       "signal_color": "warning",
       "interpretation": "CupSir 框架分類：USD STRENGTHENING。",
@@ -807,10 +807,6 @@
         "target": "TVC:DXY"
       },
       "history": [
-        {
-          "date": "2026-09-02",
-          "value": 99.56
-        },
         {
           "date": "2026-09-03",
           "value": 99.0
@@ -926,6 +922,10 @@
         {
           "date": "2026-10-14",
           "value": 102.55
+        },
+        {
+          "date": "2026-10-15",
+          "value": 102.0
         }
       ],
       "chart": {
@@ -939,9 +939,9 @@
       "category": "market",
       "name": "Copper Futures",
       "name_zh": "銅價",
-      "value": 6.611,
+      "value": 6.511,
       "unit": "USD",
-      "data_date": "2026-10-14",
+      "data_date": "2026-10-15",
       "signal": "NEUTRAL",
       "signal_color": "warning",
       "interpretation": "CupSir 框架分類：NEUTRAL。",
@@ -957,10 +957,6 @@
         "target": "COMEX:HG1!"
       },
       "history": [
-        {
-          "date": "2026-09-02",
-          "value": 6.501
-        },
         {
           "date": "2026-09-03",
           "value": 6.577
@@ -1076,6 +1072,10 @@
         {
           "date": "2026-10-14",
           "value": 6.611
+        },
+        {
+          "date": "2026-10-15",
+          "value": 6.511
         }
       ],
       "chart": {
@@ -1089,12 +1089,12 @@
       "category": "market",
       "name": "WTI Crude Oil",
       "name_zh": "WTI 原油",
-      "value": 95.09,
+      "value": 97.97,
       "unit": "USD",
-      "data_date": "2026-10-14",
-      "signal": "DECLINING",
+      "data_date": "2026-10-15",
+      "signal": "STILL HIGH",
       "signal_color": "warning",
-      "interpretation": "CupSir 框架分類：DECLINING。",
+      "interpretation": "CupSir 框架分類：STILL HIGH。",
       "checklist": [
         "距六個月高位的跌幅",
         "油價是否仍處於高位",
@@ -1107,10 +1107,6 @@
         "target": "NYMEX:CL1!"
       },
       "history": [
-        {
-          "date": "2026-09-02",
-          "value": 91.01
-        },
         {
           "date": "2026-09-03",
           "value": 91.3
@@ -1226,6 +1222,10 @@
         {
           "date": "2026-10-14",
           "value": 95.09
+        },
+        {
+          "date": "2026-10-15",
+          "value": 97.97
         }
       ],
       "chart": {
