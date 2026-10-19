@@ -38,5 +38,13 @@
     "notes": "Fed 最重視的通脹指標，直接影響利率預期。",
     "importance": 3,
     "stars": "⭐⭐⭐"
+  },
+  {
+    "date": "2026-11-02",
+    "time": "10:00 ET",
+    "title_zh": "ISM 製造業採購經理指數（PMI）",
+    "notes": "50 為榮枯分界線，市場前瞻性製造業指標。",
+    "importance": 2,
+    "stars": "⭐⭐"
   }
 ]
