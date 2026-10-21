@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-10-20",
-    "time": "08:30 ET",
-    "title_zh": "新屋開工及建築許可（Housing Starts）",
-    "notes": "房地產週期指標，對利率敏感度高。",
-    "importance": 2,
-    "stars": "⭐⭐"
-  },
-  {
     "date": "2026-10-27",
     "time": "08:30 ET",
     "title_zh": "耐用品訂單（Durable Goods Orders）",
@@ -44,6 +36,30 @@
     "time": "10:00 ET",
     "title_zh": "ISM 製造業採購經理指數（PMI）",
     "notes": "50 為榮枯分界線，市場前瞻性製造業指標。",
+    "importance": 2,
+    "stars": "⭐⭐"
+  },
+  {
+    "date": "2026-11-04",
+    "time": "約 08:30 ET",
+    "title_zh": "財政部季度再融資公告（QRA，約）",
+    "notes": "關注 Bills 與 Coupons 發行比例；確切日期以財政部公告為準。",
+    "importance": 2,
+    "stars": "⭐⭐"
+  },
+  {
+    "date": "2026-11-04",
+    "time": "08:30 ET",
+    "title_zh": "貿易帳（Trade Balance）",
+    "notes": "進出口差額，公布數據為兩個月前的資料。",
+    "importance": 1,
+    "stars": "⭐"
+  },
+  {
+    "date": "2026-11-04",
+    "time": "10:00 ET",
+    "title_zh": "ISM 服務業 PMI",
+    "notes": "50 為榮枯分界線，服務業佔美國經濟主體。",
     "importance": 2,
     "stars": "⭐⭐"
   }
