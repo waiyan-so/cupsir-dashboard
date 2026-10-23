@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-10-22 22:52 UTC",
+  "updated_at": "2026-10-23 22:45 UTC",
   "overall_signal": "BULLISH",
-  "total_score": 6,
+  "total_score": 5,
   "category_labels": {
     "macro": "一、宏觀環境",
     "market": "二、市場溫度",
@@ -173,7 +173,7 @@
       "name_zh": "十年減兩年孳息差",
       "value": 0.31,
       "unit": "%",
-      "data_date": "2026-10-22",
+      "data_date": "2026-10-23",
       "signal": "NORMAL",
       "signal_color": "positive",
       "interpretation": "CupSir 框架分類：NORMAL。",
@@ -189,10 +189,6 @@
         "target": "T10Y2Y"
       },
       "history": [
-        {
-          "date": "2026-09-10",
-          "value": 0.39
-        },
         {
           "date": "2026-09-11",
           "value": 0.33
@@ -308,6 +304,10 @@
         {
           "date": "2026-10-22",
           "value": 0.31
+        },
+        {
+          "date": "2026-10-23",
+          "value": 0.31
         }
       ],
       "chart": {
@@ -325,9 +325,9 @@
       "category": "macro",
       "name": "High Yield Credit Spread",
       "name_zh": "高收益信用差",
-      "value": 3.27,
+      "value": 3.4,
       "unit": "%",
-      "data_date": "2026-10-21",
+      "data_date": "2026-10-22",
       "signal": "NORMAL",
       "signal_color": "positive",
       "interpretation": "CupSir 框架分類：NORMAL。",
@@ -343,10 +343,6 @@
         "target": "BAMLH0A0HYM2"
       },
       "history": [
-        {
-          "date": "2026-09-10",
-          "value": 2.7
-        },
         {
           "date": "2026-09-11",
           "value": 2.65
@@ -462,6 +458,10 @@
         {
           "date": "2026-10-21",
           "value": 3.27
+        },
+        {
+          "date": "2026-10-22",
+          "value": 3.4
         }
       ],
       "chart": {
@@ -634,9 +634,9 @@
       "category": "market",
       "name": "CBOE Volatility Index",
       "name_zh": "VIX 波動率指數",
-      "value": 19.03,
+      "value": 19.45,
       "unit": "",
-      "data_date": "2026-10-22",
+      "data_date": "2026-10-23",
       "signal": "NEUTRAL",
       "signal_color": "positive",
       "interpretation": "CupSir 框架分類：NEUTRAL。",
@@ -652,10 +652,6 @@
         "target": "TVC:VIX"
       },
       "history": [
-        {
-          "date": "2026-09-11",
-          "value": 15.84
-        },
         {
           "date": "2026-09-14",
           "value": 17.1
@@ -771,6 +767,10 @@
         {
           "date": "2026-10-22",
           "value": 19.03
+        },
+        {
+          "date": "2026-10-23",
+          "value": 19.45
         }
       ],
       "chart": {
@@ -789,12 +789,12 @@
       "category": "market",
       "name": "US Dollar Index",
       "name_zh": "美元指數 DXY",
-      "value": 101.78,
+      "value": 101.61,
       "unit": "",
-      "data_date": "2026-10-21",
-      "signal": "USD STRENGTHENING",
+      "data_date": "2026-10-22",
+      "signal": "USD NEUTRAL",
       "signal_color": "warning",
-      "interpretation": "CupSir 框架分類：USD STRENGTHENING。",
+      "interpretation": "CupSir 框架分類：USD NEUTRAL。",
       "checklist": [
         "檢查一個月升跌幅",
         "美元急升是否壓制風險資產",
@@ -807,10 +807,6 @@
         "target": "TVC:DXY"
       },
       "history": [
-        {
-          "date": "2026-09-10",
-          "value": 99.09
-        },
         {
           "date": "2026-09-11",
           "value": 99.12
@@ -926,6 +922,10 @@
         {
           "date": "2026-10-21",
           "value": 101.78
+        },
+        {
+          "date": "2026-10-22",
+          "value": 101.61
         }
       ],
       "chart": {
@@ -939,9 +939,9 @@
       "category": "market",
       "name": "Copper Futures",
       "name_zh": "銅價",
-      "value": 6.543,
+      "value": 6.363,
       "unit": "USD",
-      "data_date": "2026-10-21",
+      "data_date": "2026-10-22",
       "signal": "NEUTRAL",
       "signal_color": "warning",
       "interpretation": "CupSir 框架分類：NEUTRAL。",
@@ -957,10 +957,6 @@
         "target": "COMEX:HG1!"
       },
       "history": [
-        {
-          "date": "2026-09-10",
-          "value": 6.467
-        },
         {
           "date": "2026-09-11",
           "value": 6.47
@@ -1076,6 +1072,10 @@
         {
           "date": "2026-10-21",
           "value": 6.543
+        },
+        {
+          "date": "2026-10-22",
+          "value": 6.363
         }
       ],
       "chart": {
@@ -1089,9 +1089,9 @@
       "category": "market",
       "name": "WTI Crude Oil",
       "name_zh": "WTI 原油",
-      "value": 97.15,
+      "value": 99.47,
       "unit": "USD",
-      "data_date": "2026-10-21",
+      "data_date": "2026-10-22",
       "signal": "STILL HIGH",
       "signal_color": "warning",
       "interpretation": "CupSir 框架分類：STILL HIGH。",
@@ -1107,10 +1107,6 @@
         "target": "NYMEX:CL1!"
       },
       "history": [
-        {
-          "date": "2026-09-10",
-          "value": 102.48
-        },
         {
           "date": "2026-09-11",
           "value": 100.05
@@ -1226,6 +1222,10 @@
         {
           "date": "2026-10-21",
           "value": 97.15
+        },
+        {
+          "date": "2026-10-22",
+          "value": 99.47
         }
       ],
       "chart": {
@@ -1239,12 +1239,12 @@
       "category": "cot",
       "name": "S&P 500 COT",
       "name_zh": "S&P 500 COT 持倉",
-      "value": 70.1,
+      "value": 69.8,
       "unit": "index",
-      "data_date": "2026-10-13",
-      "signal": "BULLISH LEAN",
-      "signal_color": "positive",
-      "interpretation": "CupSir 框架分類：BULLISH LEAN。",
+      "data_date": "2026-10-20",
+      "signal": "NEUTRAL",
+      "signal_color": "warning",
+      "interpretation": "CupSir 框架分類：NEUTRAL。",
       "checklist": [
         "商業持倉者 COT Index 是否 ≥80 或 ≤20",
         "小型投機者 Sentiment Index 是否反向極端",
@@ -1257,10 +1257,6 @@
         "target": "SP:SPX"
       },
       "history": [
-        {
-          "date": "2026-03-24",
-          "value": 27.8
-        },
         {
           "date": "2026-03-31",
           "value": 9.6
@@ -1376,6 +1372,10 @@
         {
           "date": "2026-10-13",
           "value": 70.1
+        },
+        {
+          "date": "2026-10-20",
+          "value": 69.8
         }
       ],
       "chart": {
@@ -1395,9 +1395,9 @@
       "category": "cot",
       "name": "10Y Treasury COT",
       "name_zh": "10年期國債 COT",
-      "value": 89.4,
+      "value": 87.1,
       "unit": "index",
-      "data_date": "2026-10-13",
+      "data_date": "2026-10-20",
       "signal": "STRONG BUY (SMART MONEY)",
       "signal_color": "positive",
       "interpretation": "CupSir 框架分類：STRONG BUY (SMART MONEY)。",
@@ -1413,10 +1413,6 @@
         "target": "CBOT:ZN1!"
       },
       "history": [
-        {
-          "date": "2026-03-24",
-          "value": 24.6
-        },
         {
           "date": "2026-03-31",
           "value": 60.0
@@ -1532,6 +1528,10 @@
         {
           "date": "2026-10-13",
           "value": 89.4
+        },
+        {
+          "date": "2026-10-20",
+          "value": 87.1
         }
       ],
       "chart": {
@@ -1551,9 +1551,9 @@
       "category": "cot",
       "name": "Gold COT",
       "name_zh": "黃金 COT",
-      "value": 49.0,
+      "value": 55.3,
       "unit": "index",
-      "data_date": "2026-10-13",
+      "data_date": "2026-10-20",
       "signal": "NEUTRAL",
       "signal_color": "warning",
       "interpretation": "CupSir 框架分類：NEUTRAL。",
@@ -1569,10 +1569,6 @@
         "target": "COMEX:GC1!"
       },
       "history": [
-        {
-          "date": "2026-03-24",
-          "value": 88.3
-        },
         {
           "date": "2026-03-31",
           "value": 90.3
@@ -1688,6 +1684,10 @@
         {
           "date": "2026-10-13",
           "value": 49.0
+        },
+        {
+          "date": "2026-10-20",
+          "value": 55.3
         }
       ],
       "chart": {
@@ -1707,12 +1707,12 @@
       "category": "cot",
       "name": "Oil COT",
       "name_zh": "原油 COT",
-      "value": 68.3,
+      "value": 74.5,
       "unit": "index",
-      "data_date": "2026-10-13",
-      "signal": "NEUTRAL",
-      "signal_color": "warning",
-      "interpretation": "CupSir 框架分類：NEUTRAL。",
+      "data_date": "2026-10-20",
+      "signal": "BULLISH LEAN",
+      "signal_color": "positive",
+      "interpretation": "CupSir 框架分類：BULLISH LEAN。",
       "checklist": [
         "商業持倉者 COT Index 是否 ≥80 或 ≤20",
         "小型投機者 Sentiment Index 是否反向極端",
@@ -1725,10 +1725,6 @@
         "target": "NYMEX:CL1!"
       },
       "history": [
-        {
-          "date": "2026-03-24",
-          "value": 4.3
-        },
         {
           "date": "2026-03-31",
           "value": 14.2
@@ -1844,6 +1840,10 @@
         {
           "date": "2026-10-13",
           "value": 68.3
+        },
+        {
+          "date": "2026-10-20",
+          "value": 74.5
         }
       ],
       "chart": {
@@ -1863,9 +1863,9 @@
       "category": "cot",
       "name": "DXY COT",
       "name_zh": "美元指數 COT",
-      "value": 24.2,
+      "value": 18.8,
       "unit": "index",
-      "data_date": "2026-10-13",
+      "data_date": "2026-10-20",
       "signal": "BEARISH LEAN",
       "signal_color": "warning",
       "interpretation": "CupSir 框架分類：BEARISH LEAN。",
@@ -1881,10 +1881,6 @@
         "target": "TVC:DXY"
       },
       "history": [
-        {
-          "date": "2026-03-24",
-          "value": 8.0
-        },
         {
           "date": "2026-03-31",
           "value": 0.1
@@ -2000,6 +1996,10 @@
         {
           "date": "2026-10-13",
           "value": 24.2
+        },
+        {
+          "date": "2026-10-20",
+          "value": 18.8
         }
       ],
       "chart": {
