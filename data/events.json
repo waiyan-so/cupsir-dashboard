@@ -70,5 +70,13 @@
     "notes": "關注 NFP、失業率和平均時薪。",
     "importance": 3,
     "stars": "⭐⭐⭐"
+  },
+  {
+    "date": "2026-11-10",
+    "time": "08:30 ET",
+    "title_zh": "消費者物價指數（CPI）",
+    "notes": "關注核心 CPI 按月/按年變化，市場對通脹路徑最敏感的數據之一。",
+    "importance": 3,
+    "stars": "⭐⭐⭐"
   }
 ]
