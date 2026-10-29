@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-10-28",
-    "time": "14:00 ET",
-    "title_zh": "聯儲局議息會議（FOMC）",
-    "notes": "關注利率決定、政策聲明及記者會。",
-    "importance": 3,
-    "stars": "⭐⭐⭐"
-  },
-  {
     "date": "2026-10-29",
     "time": "08:30 ET",
     "title_zh": "核心 PCE 物價指數（個人所得與支出）",
@@ -62,5 +54,13 @@
     "notes": "關注核心 CPI 按月/按年變化，市場對通脹路徑最敏感的數據之一。",
     "importance": 3,
     "stars": "⭐⭐⭐"
+  },
+  {
+    "date": "2026-11-12",
+    "time": "10:00 ET",
+    "title_zh": "成屋銷售（Existing Home Sales）",
+    "notes": "房地產成交量指標，涵蓋範圍比新屋銷售大。",
+    "importance": 1,
+    "stars": "⭐"
   }
 ]
