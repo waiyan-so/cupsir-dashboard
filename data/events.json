@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-11-02",
-    "time": "10:00 ET",
-    "title_zh": "ISM 製造業採購經理指數（PMI）",
-    "notes": "50 為榮枯分界線，市場前瞻性製造業指標。",
-    "importance": 2,
-    "stars": "⭐⭐"
-  },
-  {
     "date": "2026-11-04",
     "time": "約 08:30 ET",
     "title_zh": "財政部季度再融資公告（QRA，約）",
@@ -60,6 +52,14 @@
     "time": "08:30 ET",
     "title_zh": "生產者物價指數（PPI）",
     "notes": "上游通脹壓力指標，通常在 CPI 之後一兩日發布。",
+    "importance": 2,
+    "stars": "⭐⭐"
+  },
+  {
+    "date": "2026-11-17",
+    "time": "08:30 ET",
+    "title_zh": "零售銷售（Retail Sales）",
+    "notes": "反映消費力度，對非必需消費品股份敏感度高。",
     "importance": 2,
     "stars": "⭐⭐"
   }
