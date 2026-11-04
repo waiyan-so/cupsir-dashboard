@@ -62,5 +62,21 @@
     "notes": "反映消費力度，對非必需消費品股份敏感度高。",
     "importance": 2,
     "stars": "⭐⭐"
+  },
+  {
+    "date": "2026-11-18",
+    "time": "14:00 ET",
+    "title_zh": "FOMC 議息紀要（Minutes）",
+    "notes": "補充議息會議討論細節，關注委員分歧程度。",
+    "importance": 2,
+    "stars": "⭐⭐"
+  },
+  {
+    "date": "2026-11-18",
+    "time": "08:30 ET",
+    "title_zh": "新屋開工及建築許可（Housing Starts）",
+    "notes": "房地產週期指標，對利率敏感度高。",
+    "importance": 2,
+    "stars": "⭐⭐"
   }
 ]
