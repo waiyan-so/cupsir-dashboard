@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-11-10",
-    "time": "08:30 ET",
-    "title_zh": "消費者物價指數（CPI）",
-    "notes": "關注核心 CPI 按月/按年變化，市場對通脹路徑最敏感的數據之一。",
-    "importance": 3,
-    "stars": "⭐⭐⭐"
-  },
-  {
     "date": "2026-11-12",
     "time": "10:00 ET",
     "title_zh": "成屋銷售（Existing Home Sales）",
@@ -46,5 +38,29 @@
     "notes": "房地產週期指標，對利率敏感度高。",
     "importance": 2,
     "stars": "⭐⭐"
+  },
+  {
+    "date": "2026-11-25",
+    "time": "08:30 ET",
+    "title_zh": "核心 PCE 物價指數（個人所得與支出）",
+    "notes": "Fed 最重視的通脹指標，直接影響利率預期。",
+    "importance": 3,
+    "stars": "⭐⭐⭐"
+  },
+  {
+    "date": "2026-11-25",
+    "time": "08:30 ET",
+    "title_zh": "耐用品訂單（Durable Goods Orders）",
+    "notes": "企業資本開支意向的前瞻指標。",
+    "importance": 2,
+    "stars": "⭐⭐"
+  },
+  {
+    "date": "2026-11-25",
+    "time": "10:00 ET",
+    "title_zh": "新屋銷售（New Home Sales）",
+    "notes": "房地產成交量指標。",
+    "importance": 1,
+    "stars": "⭐"
   }
 ]
