@@ -46,5 +46,13 @@
     "notes": "房地產成交量指標。",
     "importance": 1,
     "stars": "⭐"
+  },
+  {
+    "date": "2026-12-01",
+    "time": "10:00 ET",
+    "title_zh": "ISM 製造業採購經理指數（PMI）",
+    "notes": "50 為榮枯分界線，市場前瞻性製造業指標。",
+    "importance": 2,
+    "stars": "⭐⭐"
   }
 ]
