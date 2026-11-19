@@ -1,21 +1,5 @@
 [
   {
-    "date": "2026-11-18",
-    "time": "14:00 ET",
-    "title_zh": "FOMC 議息紀要（Minutes）",
-    "notes": "補充議息會議討論細節，關注委員分歧程度。",
-    "importance": 2,
-    "stars": "⭐⭐"
-  },
-  {
-    "date": "2026-11-18",
-    "time": "08:30 ET",
-    "title_zh": "新屋開工及建築許可（Housing Starts）",
-    "notes": "房地產週期指標，對利率敏感度高。",
-    "importance": 2,
-    "stars": "⭐⭐"
-  },
-  {
     "date": "2026-11-25",
     "time": "08:30 ET",
     "title_zh": "核心 PCE 物價指數（個人所得與支出）",
@@ -44,6 +28,14 @@
     "time": "10:00 ET",
     "title_zh": "ISM 製造業採購經理指數（PMI）",
     "notes": "50 為榮枯分界線，市場前瞻性製造業指標。",
+    "importance": 2,
+    "stars": "⭐⭐"
+  },
+  {
+    "date": "2026-12-03",
+    "time": "10:00 ET",
+    "title_zh": "ISM 服務業 PMI",
+    "notes": "50 為榮枯分界線，服務業佔美國經濟主體。",
     "importance": 2,
     "stars": "⭐⭐"
   }
