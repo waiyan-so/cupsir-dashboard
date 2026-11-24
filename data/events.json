@@ -46,5 +46,13 @@
     "notes": "關注 NFP、失業率和平均時薪。",
     "importance": 3,
     "stars": "⭐⭐⭐"
+  },
+  {
+    "date": "2026-12-08",
+    "time": "08:30 ET",
+    "title_zh": "貿易帳（Trade Balance）",
+    "notes": "進出口差額，公布數據為兩個月前的資料。",
+    "importance": 1,
+    "stars": "⭐"
   }
 ]
