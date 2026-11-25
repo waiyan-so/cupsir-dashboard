@@ -54,5 +54,21 @@
     "notes": "進出口差額，公布數據為兩個月前的資料。",
     "importance": 1,
     "stars": "⭐"
+  },
+  {
+    "date": "2026-12-09",
+    "time": "14:00 ET",
+    "title_zh": "聯儲局議息會議（FOMC）",
+    "notes": "關注利率決定、政策聲明及記者會。",
+    "importance": 3,
+    "stars": "⭐⭐⭐"
+  },
+  {
+    "date": "2026-12-09",
+    "time": "10:00 ET",
+    "title_zh": "成屋銷售（Existing Home Sales）",
+    "notes": "房地產成交量指標，涵蓋範圍比新屋銷售大。",
+    "importance": 1,
+    "stars": "⭐"
   }
 ]
