@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-25 03:15 UTC",
+  "updated_at": "2026-11-26 02:33 UTC",
   "overall_signal": "BULLISH",
   "total_score": 3,
   "category_labels": {
@@ -171,9 +171,9 @@
       "category": "macro",
       "name": "10Y-2Y Treasury Spread",
       "name_zh": "十年減兩年孳息差",
-      "value": 0.28,
+      "value": 0.24,
       "unit": "%",
-      "data_date": "2026-11-24",
+      "data_date": "2026-11-25",
       "signal": "RECOVERING",
       "signal_color": "warning",
       "interpretation": "CupSir 框架分類：RECOVERING。",
@@ -189,10 +189,6 @@
         "target": "T10Y2Y"
       },
       "history": [
-        {
-          "date": "2026-10-13",
-          "value": 0.42
-        },
         {
           "date": "2026-10-14",
           "value": 0.37
@@ -308,6 +304,10 @@
         {
           "date": "2026-11-24",
           "value": 0.28
+        },
+        {
+          "date": "2026-11-25",
+          "value": 0.24
         }
       ],
       "chart": {
@@ -325,9 +325,9 @@
       "category": "macro",
       "name": "High Yield Credit Spread",
       "name_zh": "高收益信用差",
-      "value": 3.63,
+      "value": 3.72,
       "unit": "%",
-      "data_date": "2026-11-23",
+      "data_date": "2026-11-24",
       "signal": "ELEVATED",
       "signal_color": "warning",
       "interpretation": "CupSir 框架分類：ELEVATED。",
@@ -343,10 +343,6 @@
         "target": "BAMLH0A0HYM2"
       },
       "history": [
-        {
-          "date": "2026-10-13",
-          "value": 3.16
-        },
         {
           "date": "2026-10-14",
           "value": 3.25
@@ -462,6 +458,10 @@
         {
           "date": "2026-11-23",
           "value": 3.63
+        },
+        {
+          "date": "2026-11-24",
+          "value": 3.72
         }
       ],
       "chart": {
@@ -479,12 +479,12 @@
       "category": "macro",
       "name": "Atlanta Fed GDPNow",
       "name_zh": "GDPNow 實時預估",
-      "value": 3.209,
+      "value": 2.902,
       "unit": "%",
       "data_date": "2026 年第四季",
-      "signal": "STRONG",
+      "signal": "MODERATE",
       "signal_color": "positive",
-      "interpretation": "CupSir 框架分類：STRONG。",
+      "interpretation": "CupSir 框架分類：MODERATE。",
       "checklist": [
         "是否連續兩季為負（技術性衰退）",
         "與官方 GDP 方向是否一致",
@@ -615,7 +615,7 @@
         },
         {
           "date": "2026-10-01",
-          "value": 3.2093
+          "value": 2.9019
         }
       ],
       "chart": {
@@ -634,9 +634,9 @@
       "category": "market",
       "name": "CBOE Volatility Index",
       "name_zh": "VIX 波動率指數",
-      "value": 26.36,
+      "value": 28.29,
       "unit": "",
-      "data_date": "2026-11-24",
+      "data_date": "2026-11-25",
       "signal": "DANGEROUS",
       "signal_color": "warning",
       "interpretation": "CupSir 框架分類：DANGEROUS。",
@@ -652,10 +652,6 @@
         "target": "TVC:VIX"
       },
       "history": [
-        {
-          "date": "2026-10-14",
-          "value": 16.87
-        },
         {
           "date": "2026-10-15",
           "value": 16.46
@@ -771,6 +767,10 @@
         {
           "date": "2026-11-24",
           "value": 26.36
+        },
+        {
+          "date": "2026-11-25",
+          "value": 28.29
         }
       ],
       "chart": {
@@ -789,9 +789,9 @@
       "category": "market",
       "name": "US Dollar Index",
       "name_zh": "美元指數 DXY",
-      "value": 104.32,
+      "value": 103.81,
       "unit": "",
-      "data_date": "2026-11-23",
+      "data_date": "2026-11-24",
       "signal": "USD STRENGTHENING",
       "signal_color": "warning",
       "interpretation": "CupSir 框架分類：USD STRENGTHENING。",
@@ -807,10 +807,6 @@
         "target": "TVC:DXY"
       },
       "history": [
-        {
-          "date": "2026-10-13",
-          "value": 102.18
-        },
         {
           "date": "2026-10-14",
           "value": 102.55
@@ -926,6 +922,10 @@
         {
           "date": "2026-11-23",
           "value": 104.32
+        },
+        {
+          "date": "2026-11-24",
+          "value": 103.81
         }
       ],
       "chart": {
@@ -939,9 +939,9 @@
       "category": "market",
       "name": "Copper Futures",
       "name_zh": "銅價",
-      "value": 5.627,
+      "value": 5.363,
       "unit": "USD",
-      "data_date": "2026-11-23",
+      "data_date": "2026-11-24",
       "signal": "NEUTRAL",
       "signal_color": "warning",
       "interpretation": "CupSir 框架分類：NEUTRAL。",
@@ -957,10 +957,6 @@
         "target": "COMEX:HG1!"
       },
       "history": [
-        {
-          "date": "2026-10-13",
-          "value": 6.678
-        },
         {
           "date": "2026-10-14",
           "value": 6.611
@@ -1076,6 +1072,10 @@
         {
           "date": "2026-11-23",
           "value": 5.627
+        },
+        {
+          "date": "2026-11-24",
+          "value": 5.363
         }
       ],
       "chart": {
@@ -1089,9 +1089,9 @@
       "category": "market",
       "name": "WTI Crude Oil",
       "name_zh": "WTI 原油",
-      "value": 80.17,
+      "value": 82.05,
       "unit": "USD",
-      "data_date": "2026-11-23",
+      "data_date": "2026-11-24",
       "signal": "CYCLE COMPLETION",
       "signal_color": "positive",
       "interpretation": "CupSir 框架分類：CYCLE COMPLETION。",
@@ -1107,10 +1107,6 @@
         "target": "NYMEX:CL1!"
       },
       "history": [
-        {
-          "date": "2026-10-13",
-          "value": 94.14
-        },
         {
           "date": "2026-10-14",
           "value": 95.09
@@ -1226,6 +1222,10 @@
         {
           "date": "2026-11-23",
           "value": 80.17
+        },
+        {
+          "date": "2026-11-24",
+          "value": 82.05
         }
       ],
       "chart": {
