@@ -1,5 +1,40 @@
 [
   {
+    "title": "Stock market today: Live updates",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/2026/11/26/stock-market-today-live-updates.html",
+    "published_at": "2026-11-26T23:06:12Z",
+    "summary": "Investors are wrapping up a turbulent trading week that was shortened due to the Thanksgiving holiday."
+  },
+  {
+    "title": "Buyer beware? Nvidia's volatile swings expose risks of single-stock ETFs",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/2026/11/26/nvidias-volatile-swings-expose-risks-of-single-stock-etfs.html",
+    "published_at": "2026-11-26T16:00:01Z",
+    "summary": "ETF Action founding partner Mike Akins and GraniteShares CEO Will Rhind react to Nvidia's  sharp losses and latest comeback."
+  },
+  {
+    "title": "Spain’s Pablo Hernández de Cos set to lead European Central Bank",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/2026/11/26/pablo-hernandez-de-cos-ecb-president.html",
+    "published_at": "2026-11-26T14:20:44Z",
+    "summary": "De Cos will lead the ECB into a period of political uncertainty and choppy growth, after winning the backing needed to succeed Christine Lagarde next year."
+  },
+  {
+    "title": "Cracks in AI stocks weaken Wall Street’s once-reliable carry trade",
+    "source": "Bloomberg",
+    "url": "https://www.bloomberg.com/news/articles/2026-11-25/stocks-meltdown-spills-into-unlikely-market-sinking-carry-trade",
+    "published_at": "2026-11-26T09:46:34Z",
+    "summary": "Rising market volatility, shifting interest-rate expectations and political shocks are prompting global money managers to reassess currency investment strategies"
+  },
+  {
+    "title": "Latin America has the copper and energy the AI build-out needs. Infrastructure is the test",
+    "source": "CNBC",
+    "url": "https://www.cnbc.com/2026/11/26/latin-america-copper-energy-ai-investment.html",
+    "published_at": "2026-11-26T08:59:11Z",
+    "summary": "Latin America’s copper, oil, gas and rare earths could benefit from rising AI energy demand, if infrastructure and fiscal policy attract investment."
+  },
+  {
     "title": "Where the market may be mispricing risk most: AI boom, volatility, high-yield bonds",
     "source": "CNBC",
     "url": "https://www.cnbc.com/2026/11/26/mispricing-risk-fund-managers-ai-volatility.html",
@@ -19,40 +54,5 @@
     "url": "https://www.cnbc.com/2026/11/26/bok-rate-decision-korea-gdp-inflation.html",
     "published_at": "2026-11-26T00:58:38Z",
     "summary": "The central bank raised rates by 25 basis points to 3.25% for its final meeting of the year, in line with expectations from economists."
-  },
-  {
-    "title": "Asia-Pacific markets set for subdued open as investors weigh fresh U.S. tariffs",
-    "source": "CNBC",
-    "url": "https://www.cnbc.com/2026/11/26/stock-markets-today-.html",
-    "published_at": "2026-11-25T23:48:51Z",
-    "summary": "Asia-Pacific markets were set to open higher Thursday, after Wall Street staged a dramatic recovery from session lows overnight."
-  },
-  {
-    "title": "Liesman: Why Greenspan could bet on productivity — and Warsh needs to hike",
-    "source": "CNBC",
-    "url": "https://www.cnbc.com/2026/11/25/kevin-warsh-greenspan-fed-rates-ai-inflation.html",
-    "published_at": "2026-11-25T21:56:43Z",
-    "summary": "Alan Greenspan famously held the line on interest rates because he believed in the productivity promise of the internet boom. Why can't Kevin Warsh do the same?"
-  },
-  {
-    "title": "SpaceX, Musk pledge to donate a share each to active Trump Accounts",
-    "source": "CNBC",
-    "url": "https://www.cnbc.com/2026/11/25/spacex-musk-trump-account-stock.html",
-    "published_at": "2026-11-25T20:07:57Z",
-    "summary": "SpaceX said it will donate one share of the company's class A stock to every active Trump Account, and CEO Elon Musk would match it."
-  },
-  {
-    "title": "Nvidia leads tech sell-off as Huang comeback rally fizzles and AI concerns return",
-    "source": "CNBC",
-    "url": "https://www.cnbc.com/2026/11/25/nvidia-ai-stock-tech-selloff.html",
-    "published_at": "2026-11-25T17:10:17Z",
-    "summary": "Nvidia and other AI-linked stocks fell as investors weighed AI spending, inflation and higher-rate risks."
-  },
-  {
-    "title": "There are 5,100 newly minted Anthropic millionaires—here’s all the stuff they don’t tell you about when you suddenly get rich",
-    "source": "CNBC",
-    "url": "https://www.cnbc.com/2026/11/25/anthropic-ipo-employee-millionaires-sudden-wealth.html",
-    "published_at": "2026-11-25T16:32:55Z",
-    "summary": "Anthropic’s IPO made about 5,100 employees paper millionaires. Experts explain the risks of sudden wealth."
   }
 ]
